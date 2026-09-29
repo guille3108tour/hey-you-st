@@ -71,6 +71,27 @@ const PERFILES = {
 // Recuadro que encierra la Península de Nicoya [[oeste, sur], [este, norte]]
 const LIMITES_PENINSULA = [[-85.95, 9.50], [-84.70, 10.45]];
 
+// El mapa abre enmarcando los lugares de la guía, no toda la península (Juan, 29-sep:
+// "el mapa está muy lejos"). Se calcula con los lugares que se muestran, así se acomoda
+// solo cuando se suman lugares nuevos.
+const LIMITES_LUGARES = LUGARES.length
+  ? LUGARES.reduce(([[o, s], [e, n]], f) => {
+      const [lng, lat] = f.geometry.coordinates;
+      return [[Math.min(o, lng), Math.min(s, lat)], [Math.max(e, lng), Math.max(n, lat)]];
+    }, [[180, 90], [-180, -90]])
+  : LIMITES_PENINSULA;
+
+// Celular: la ficha es una hoja que sube desde abajo y las categorías son una fila de íconos
+const anchoMovil = window.matchMedia("(max-width: 640px)");
+
+// Márgenes del encuadre para que ningún lugar quede debajo de la barra de arriba, de la
+// fila de íconos (celular) o de la barra de categorías (escritorio)
+function margenEncuadre() {
+  return anchoMovil.matches
+    ? { top: 90, bottom: 100, left: 30, right: 30 }
+    : { top: 90, bottom: 50, left: 270, right: 50 };
+}
+
 // Fuentes gratuitas (sin API key)
 const OFM = "https://tiles.openfreemap.org/styles/";
 const TILES_SATELITE = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
@@ -106,8 +127,8 @@ const ESTILO_INICIAL = "puravida";
 const map = new maplibregl.Map({
   container: "map",
   style: ESTILOS[ESTILO_INICIAL].url,
-  bounds: LIMITES_PENINSULA,
-  fitBoundsOptions: { padding: 30 },
+  bounds: LIMITES_LUGARES,
+  fitBoundsOptions: { padding: margenEncuadre(), maxZoom: 13 },
   attributionControl: { compact: true },
 });
 
@@ -118,12 +139,12 @@ map.addControl(new maplibregl.ScaleControl({ unit: "metric" }), "bottom-right");
 // El encuadre inicial se calcula al crear el mapa, cuando el contenedor todavía
 // puede no tener su tamaño final (el layout no terminó de acomodarse, o la ventana
 // recién se está abriendo). Si no se rehace, el mapa abre mostrando media Costa Rica
-// en vez de la península. Lo rehacemos en cada cambio de tamaño, pero solo mientras
+// en vez de los lugares. Lo rehacemos en cada cambio de tamaño, pero solo mientras
 // el visitante no haya movido el mapa él mismo: a partir de ahí, la vista es suya.
 let encuadreLibre = true;
 
-function encuadrarPeninsula() {
-  map.fitBounds(LIMITES_PENINSULA, { padding: 30, duration: 0 });
+function encuadrarLugares() {
+  map.fitBounds(LIMITES_LUGARES, { padding: margenEncuadre(), maxZoom: 13, duration: 0 });
 }
 
 // MapLibre no detecta solo los cambios de tamaño de su contenedor (ej: la ventana
@@ -131,7 +152,7 @@ function encuadrarPeninsula() {
 // cargar) — sin esto el mapa se queda pegado en el tamaño que tenía al crearse.
 new ResizeObserver(() => {
   map.resize();
-  if (encuadreLibre) encuadrarPeninsula();
+  if (encuadreLibre) encuadrarLugares();
 }).observe(document.getElementById("map"));
 
 // originalEvent solo existe cuando el movimiento lo hizo una persona (arrastrar,
@@ -151,6 +172,7 @@ function crearFilaCapa(clave, cat, extraClase = "") {
   b.className = "capa" + (extraClase ? " " + extraClase : "");
   b.dataset.cat = clave;
   b.setAttribute("aria-pressed", "false");
+  b.setAttribute("aria-label", cat.label); // en celular se ve solo el ícono
   if (cat.color) b.style.setProperty("--cat", cat.color);
   b.innerHTML =
     '<span class="capa-icono"></span><span class="capa-label"></span><span class="capa-switch"></span>';
@@ -192,27 +214,22 @@ function sincronizarCapas(visibles) {
     b.setAttribute("aria-pressed", String(prendida));
   }
   conteoEl.textContent = visibles === 1 ? "1 lugar en el mapa" : `${visibles} lugares en el mapa`;
+  // En la fila de íconos del celular: sin filtro van todos a color; con uno elegido,
+  // ese resalta y el resto se apaga
+  capasEl.classList.toggle("filtrando", !todas);
 }
 
-// Colapsar/expandir la lista (en móvil arranca colapsada para no tapar el mapa)
+// Colapsar/expandir la lista (escritorio). En celular la barra es una fila de íconos
+// sin nombres que no tapa el mapa (css → "Móvil"), así que no se colapsa.
 const capasEl = document.getElementById("capas");
 const capasToggle = document.getElementById("capas-toggle");
 function colapsarCapas(colapsada) {
   capasEl.classList.toggle("colapsada", colapsada);
   capasToggle.setAttribute("aria-expanded", String(!colapsada));
 }
-let capasTocada = false; // el visitante ya decidió: dejamos de abrirla/cerrarla solos
 capasToggle.addEventListener("click", () => {
-  capasTocada = true;
   colapsarCapas(!capasEl.classList.contains("colapsada"));
 });
-
-// En pantalla angosta arranca colapsada para no tapar el mapa. Se escucha el cambio
-// (no solo el valor al cargar) porque la ventana puede empezar angosta y ensancharse.
-const anchoMovil = window.matchMedia("(max-width: 640px)");
-const ajustarCapas = () => { if (!capasTocada) colapsarCapas(anchoMovil.matches); };
-anchoMovil.addEventListener("change", ajustarCapas);
-ajustarCapas();
 
 // ---------- Marcadores ----------
 const marcadores = []; // { feature, marker, el }
@@ -1075,3 +1092,118 @@ coordsCopy.addEventListener("click", async () => {
     coordsCopy.textContent = "Seleccioná y copiá";
   }
 });
+
+// ---------- Lo que tenés cerca (ubicación) ----------
+// Pedido de Juan (29-sep): que la página pregunte si la persona comparte su ubicación y,
+// si está por la zona, le marque los lugares que tiene cerca. La persona no aparece en el
+// mapa: su ubicación solo se usa aquí, en su propio navegador, para medir distancias; no
+// se guarda ni se manda a ningún lado. Primero va una pregunta nuestra, en voz local, y
+// recién si dice que sí sale el permiso del navegador.
+const cercaEl = document.getElementById("cerca");
+const RADIO_ZONA_KM = 25;   // más lejos que esto del lugar más cercano = todavía no llegó
+const CUANTOS_CERCA = 3;
+let cierreCerca = null;
+
+// Distancia en km entre dos puntos [lng, lat] (fórmula del haversine)
+function distanciaKm([lng1, lat1], [lng2, lat2]) {
+  const rad = (g) => (g * Math.PI) / 180;
+  const a = Math.sin(rad(lat2 - lat1) / 2) ** 2 +
+    Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(rad(lng2 - lng1) / 2) ** 2;
+  return 6371 * 2 * Math.asin(Math.sqrt(a));
+}
+
+const kmATexto = (km) => km < 1 ? `${Math.round(km * 1000 / 50) * 50} m` : `${km.toFixed(1).replace(".", ",")} km`;
+
+function mostrarCerca(html, { cerrarEn } = {}) {
+  clearTimeout(cierreCerca);
+  cercaEl.innerHTML = html + '<button type="button" class="cerca-cerrar" aria-label="Cerrar">✕</button>';
+  cercaEl.hidden = false;
+  cercaEl.querySelector(".cerca-cerrar").addEventListener("click", ocultarCerca);
+  if (cerrarEn) cierreCerca = setTimeout(ocultarCerca, cerrarEn);
+}
+
+function ocultarCerca() {
+  clearTimeout(cierreCerca);
+  cercaEl.hidden = true;
+}
+
+function preguntarUbicacion() {
+  mostrarCerca(`
+    <p class="cerca-texto">📍 ¿Me compartís tu ubicación? Así te muestro lo que tenés cerca.
+      <span class="cerca-nota">No se guarda ni se manda a ningún lado.</span></p>
+    <div class="cerca-acciones">
+      <button type="button" class="cerca-si">Compartir</button>
+      <button type="button" class="cerca-no">Ahora no</button>
+    </div>`);
+  cercaEl.querySelector(".cerca-si").addEventListener("click", buscarUbicacion);
+  cercaEl.querySelector(".cerca-no").addEventListener("click", () => {
+    try { sessionStorage.setItem("hey-ubicacion", "no"); } catch {}
+    ocultarCerca();
+  });
+}
+
+function buscarUbicacion() {
+  mostrarCerca('<p class="cerca-texto">📍 Buscando dónde estás…</p>');
+  navigator.geolocation.getCurrentPosition(
+    (pos) => mostrarLugaresCerca([pos.coords.longitude, pos.coords.latitude]),
+    (err) => {
+      if (err.code === err.PERMISSION_DENIED) {
+        try { sessionStorage.setItem("hey-ubicacion", "no"); } catch {}
+      }
+      mostrarCerca('<p class="cerca-texto">No pude ver tu ubicación. Igual podés explorar el mapa tranquilo.</p>',
+        { cerrarEn: 5000 });
+    },
+    { enableHighAccuracy: false, timeout: 12000, maximumAge: 5 * 60 * 1000 },
+  );
+}
+
+function mostrarLugaresCerca(dondeEsta) {
+  const cercanos = marcadores
+    .map((m) => ({ ...m, km: distanciaKm(dondeEsta, m.feature.geometry.coordinates) }))
+    .sort((a, b) => a.km - b.km);
+
+  if (!cercanos.length || cercanos[0].km > RADIO_ZONA_KM) {
+    mostrarCerca(`<p class="cerca-texto">🌴 Todavía no estás por la zona. Cuando llegués, te muestro lo que
+      tenés cerca. Mientras, explorá lo que hay.</p>`, { cerrarEn: 8000 });
+    return;
+  }
+
+  const top = cercanos.slice(0, CUANTOS_CERCA);
+  marcadores.forEach((m) => m.el.classList.toggle("cercano", top.some(t => t.el === m.el)));
+
+  mostrarCerca(`
+    <p class="cerca-texto">📍 Esto es lo que tenés más cerca:</p>
+    <div class="cerca-lugares">
+      ${top.map((t, i) => `<button type="button" class="cerca-lugar" data-i="${i}">
+        ${esc(t.feature.properties.nombre)} <span>${kmATexto(t.km)}</span></button>`).join("")}
+    </div>`, { cerrarEn: 20000 });
+  cercaEl.querySelectorAll(".cerca-lugar").forEach((b) => b.addEventListener("click", () => {
+    const t = top[+b.dataset.i];
+    ocultarCerca();
+    abrirPanel(t.feature, t.el);
+  }));
+
+  // El mapa se acerca a la persona y a sus lugares más cercanos (sin mostrarla a ella),
+  // dejando libre el espacio de la tarjeta para que ningún lugar quede escondido detrás
+  const lngs = [dondeEsta[0], ...top.map(t => t.feature.geometry.coordinates[0])];
+  const lats = [dondeEsta[1], ...top.map(t => t.feature.geometry.coordinates[1])];
+  const margen = margenEncuadre();
+  margen.top = Math.max(margen.top, cercaEl.getBoundingClientRect().bottom + 30);
+  encuadreLibre = false;
+  map.fitBounds([[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]],
+    { padding: margen, maxZoom: 14, duration: sinMovimiento.matches ? 0 : 1200 });
+}
+
+// Al abrir la página: si ya dio permiso antes, directo a lo que tiene cerca; si nunca
+// contestó (y no dijo "Ahora no" en esta visita), la pregunta aparece cuando el mapa ya
+// cargó. Si el navegador no deja (sin permiso o sin https), no se pregunta nada.
+async function arrancarUbicacion() {
+  if (!navigator.geolocation || !window.isSecureContext) return;
+  try { if (sessionStorage.getItem("hey-ubicacion") === "no") return; } catch {}
+  let estado = "prompt";
+  try { estado = (await navigator.permissions.query({ name: "geolocation" })).state; } catch {}
+  if (estado === "denied") return;
+  if (estado === "granted") buscarUbicacion();
+  else setTimeout(preguntarUbicacion, 1200);
+}
+map.once("load", arrancarUbicacion);
