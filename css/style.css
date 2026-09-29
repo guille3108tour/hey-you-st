@@ -539,7 +539,11 @@ select.ctrl option { color: var(--texto); }
   padding: 2px 7px;
 }
 
-/* ---------- Chatbot experimental (ver CLAUDE.md) ---------- */
+/* ---------- Chatbot experimental (ver CLAUDE.md) ----------
+   Mismo vidrio oscuro que la ficha y la barra de categorías: el chat es parte de la
+   página, no una ventana de otro estilo (pedido de Juan, 29-sep). La "charla" (mensajes
+   + campo) se muda entre la ventanita del botón 💬 y la ficha de un lugar (js/chatbot.js):
+   estos estilos sirven en los dos lados y más abajo se ajusta lo propio de la ficha. */
 .chatbot {
   position: absolute;
   right: 12px;
@@ -547,15 +551,20 @@ select.ctrl option { color: var(--texto); }
   z-index: 15;
 }
 
+/* Con la ficha de un lugar abierta, el chat vive adentro de ella: el botón sobra */
+.panel:not([hidden]) ~ .chatbot { display: none; }
+
 .chatbot-toggle {
   width: 52px;
   height: 52px;
   border-radius: 50%;
-  border: none;
-  background: var(--azul);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(14, 32, 45, 0.82);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   color: #fff;
   font-size: 22px;
-  box-shadow: var(--sombra);
+  box-shadow: 0 10px 34px rgba(2, 20, 40, 0.35);
   cursor: pointer;
 }
 
@@ -563,55 +572,91 @@ select.ctrl option { color: var(--texto); }
   position: absolute;
   right: 0;
   bottom: 64px;
-  width: 320px;
+  width: 340px;
   max-height: 60vh;
   flex-direction: column;
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: var(--sombra);
+  color: #fff;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(14, 32, 45, 0.80);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  box-shadow: 0 10px 34px rgba(2, 20, 40, 0.35);
   overflow: hidden;
 }
 .chatbot-panel:not([hidden]) { display: flex; }
 
 .chatbot-header {
-  background: var(--azul);
-  color: #fff;
-  padding: 10px 12px;
+  padding: 12px 12px 10px 14px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
-.chatbot-header em { font-style: normal; opacity: 0.7; font-weight: 400; }
+.chatbot-header em { font-style: normal; opacity: 0.6; font-weight: 400; }
 .chatbot-header button {
-  background: none;
-  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.08);
   color: #fff;
-  font-size: 14px;
+  font-size: 12px;
   cursor: pointer;
+}
+
+.charla {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 
 .chatbot-mensajes {
   flex: 1;
   overflow-y: auto;
-  padding: 10px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
   min-height: 120px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
 }
 
+/* El local habla en vidrio claro; lo que escribe la persona va en el turquesa de las
+   pestañas elegidas. La esquina de abajo marca de qué lado viene cada mensaje. */
 .chatbot-msg {
-  font-size: 13px;
-  line-height: 1.4;
-  padding: 8px 10px;
-  border-radius: 10px;
-  max-width: 88%;
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 9px 12px;
+  border-radius: 14px;
+  max-width: 90%;
+  white-space: pre-line;
 }
-.chatbot-msg.bot { background: #f8fafc; border: 1px solid var(--borde); align-self: flex-start; }
-.chatbot-msg.user { background: var(--azul); color: #fff; align-self: flex-end; }
-.chatbot-msg.error { background: #fee2e2; color: #991b1b; align-self: flex-start; }
+.chatbot-msg.bot {
+  align-self: flex-start;
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom-left-radius: 4px;
+}
+.chatbot-msg.user {
+  align-self: flex-end;
+  color: #fff;
+  background: rgba(34, 230, 223, 0.18);
+  border: 1px solid rgba(34, 230, 223, 0.5);
+  border-bottom-right-radius: 4px;
+}
+.chatbot-msg.pensando { color: rgba(255, 255, 255, 0.6); font-style: italic; }
+.chatbot-msg.error {
+  align-self: flex-start;
+  color: #fef3c7;
+  background: rgba(254, 243, 199, 0.12);
+  border: 1px solid rgba(254, 243, 199, 0.25);
+}
 
 .chatbot-opciones {
   display: flex;
@@ -621,51 +666,100 @@ select.ctrl option { color: var(--texto); }
   max-width: 100%;
 }
 .chatbot-opcion {
-  border: 1px solid var(--azul-claro);
-  background: #fff;
-  color: var(--azul);
+  border: 1px solid rgba(34, 230, 223, 0.55);
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
   border-radius: 999px;
   padding: 6px 12px;
-  font-size: 12px;
+  font: inherit;
+  font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.15s;
 }
-.chatbot-opcion:hover { background: #e0f2fe; }
+.chatbot-opcion:hover { background: rgba(14, 165, 233, 0.26); }
 
 #chatbot-form {
   display: flex;
-  gap: 6px;
-  padding: 8px;
-  border-top: 1px solid var(--borde);
+  gap: 8px;
+  padding: 10px 12px 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
 #chatbot-input {
   flex: 1;
-  border: 1px solid var(--borde);
-  border-radius: 999px;
-  padding: 8px 12px;
-  font-size: 13px;
   min-width: 0;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border-radius: 999px;
+  padding: 9px 14px;
+  font: inherit;
+  font-size: 14px;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
+#chatbot-input::placeholder { color: rgba(255, 255, 255, 0.5); }
+#chatbot-input:focus {
+  outline: none;
+  border-color: rgba(34, 230, 223, 0.8);
+  box-shadow: 0 0 0 3px rgba(34, 230, 223, 0.18);
+}
+#chatbot-input:disabled { opacity: 0.6; }
 #chatbot-form button[type="submit"] {
-  width: 34px;
-  height: 34px;
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
-  border: none;
-  background: var(--azul);
+  border: 1px solid rgba(34, 230, 223, 0.6);
+  background: rgba(14, 165, 233, 0.32);
   color: #fff;
   cursor: pointer;
+  transition: background 0.15s;
+}
+#chatbot-form button[type="submit"]:hover { background: rgba(14, 165, 233, 0.45); }
+
+/* ---- La charla dentro de la ficha de un lugar ----
+   Ocupa el lugar del texto y se despliega ahí. No lleva scroll propio: se mueve la
+   ficha entera, y el campo para escribir queda pegado abajo mientras tanto. */
+.charla-volver {
+  margin-left: auto;
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: #fff;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+}
+.charla-volver:hover { background: rgba(255, 255, 255, 0.2); }
+
+.panel .charla { animation: desplegar-charla 0.35s ease-out; }
+.panel .chatbot-saludo { display: none; }
+.panel .chatbot-mensajes { overflow: visible; padding: 6px 0 4px; min-height: 0; }
+/* Que lo que llega no quede escondido detrás del campo pegado abajo */
+.panel .chatbot-msg, .panel .chatbot-opciones { scroll-margin-bottom: 80px; }
+.panel #chatbot-form {
+  position: sticky;
+  bottom: 0;
+  margin: 8px -16px -16px;
+  padding: 10px 16px 14px;
+  background: rgba(18, 36, 48, 0.96);
+}
+
+@keyframes desplegar-charla {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .panel .charla { animation: none; }
 }
 
 @media (max-width: 640px) {
   .chatbot { right: 10px; bottom: 20px; }
   .chatbot-panel { width: calc(100vw - 20px); right: -2px; }
-}
-
-/* Con el panel de un lugar abierto y pantalla ancha, el chat se abre a su lado:
-   así se ve la respuesta sin perder de vista el lugar por el que se preguntó. */
-@media (min-width: 1100px) {
-  .panel:not([hidden]) ~ .chatbot .chatbot-panel { right: 370px; }
 }
 
 /* ---------- Móvil: el panel sube desde abajo ---------- */
@@ -679,7 +773,10 @@ select.ctrl option { color: var(--texto); }
     max-height: 60%;
     border-radius: 16px 16px 0 0;
   }
-  .panel { max-height: 62%; border-radius: 18px 18px 0 0; }
+  .panel { max-height: 62%; border-radius: 18px 18px 0 0; transition: max-height 0.35s ease; }
+  /* Al abrirse la charla la ficha se estira hacia arriba, para que se pueda conversar
+     sin que la foto se coma el espacio. Para justo debajo de "Explorá el mapa". */
+  .panel.charlando { max-height: calc(100% - var(--topbar-alto) - 84px); }
   .hero { height: 170px; border-radius: 18px 18px 0 0; }
   .coords { bottom: 28px; font-size: 11px; }
 }

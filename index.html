@@ -58,21 +58,25 @@
     </aside>
 
     <!-- Experimento: chatbot de preguntas (ver CLAUDE.md — no es el "local buddy" real,
-         solo un prototipo para probar la sensación). Requiere scripts/chat-server.js corriendo. -->
+         solo un prototipo para probar la sensación). Requiere scripts/chat-server.js corriendo.
+         La "charla" (mensajes + campo) se muda: vive acá y, al tocar la pregunta de un lugar,
+         pasa a la ficha en lugar del texto (js/chatbot.js). -->
     <div class="chatbot" id="chatbot">
       <button class="chatbot-toggle" id="chatbot-toggle" title="Preguntale al local (experimental)">💬</button>
       <div class="chatbot-panel" id="chatbot-panel" hidden>
         <div class="chatbot-header">
-          <span>🌴 Preguntale al local <em>(prueba)</em></span>
+          <span>💬 Preguntale al local <em>(prueba)</em></span>
           <button id="chatbot-close" aria-label="Cerrar">✕</button>
         </div>
-        <div class="chatbot-mensajes" id="chatbot-mensajes">
-          <div class="chatbot-msg bot">¡Hola! Preguntame algo como "¿dónde llevo a mis hijos?" o "¿dónde como bien barato?" — todavía estoy aprendiendo, así que puedo equivocarme.</div>
+        <div class="charla" id="charla">
+          <div class="chatbot-mensajes" id="chatbot-mensajes" aria-live="polite">
+            <div class="chatbot-msg bot chatbot-saludo">¡Hola! Preguntame algo como "¿dónde llevo a mis hijos?" o "¿dónde como bien barato?" — todavía estoy aprendiendo, así que puedo equivocarme.</div>
+          </div>
+          <form id="chatbot-form">
+            <input id="chatbot-input" type="text" placeholder="Escribile al local..." autocomplete="off">
+            <button type="submit" aria-label="Enviar">➤</button>
+          </form>
         </div>
-        <form id="chatbot-form">
-          <input id="chatbot-input" type="text" placeholder="Escribí tu pregunta..." autocomplete="off">
-          <button type="submit" aria-label="Enviar">➤</button>
-        </form>
       </div>
     </div>
   </main>

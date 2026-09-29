@@ -12,6 +12,11 @@ const chatPanel = document.getElementById("chatbot-panel");
 const chatMensajes = document.getElementById("chatbot-mensajes");
 const chatForm = document.getElementById("chatbot-form");
 const chatInput = document.getElementById("chatbot-input");
+const charlaEl = document.getElementById("charla");
+
+// En celular, enfocar el campo después de cada respuesta abre el teclado y tapa lo que
+// el local acaba de decir: ahí solo se enfoca cuando la persona toca el campo.
+const pantallaTactil = window.matchMedia("(pointer: coarse)");
 
 // Historial de la conversación (solo en memoria del navegador — se pierde al recargar).
 // Hace falta mandarlo completo en cada pregunta para que el bot pueda "acordarse"
@@ -21,19 +26,33 @@ const historial = [];
 
 chatToggle.addEventListener("click", () => {
   chatPanel.hidden = !chatPanel.hidden;
-  if (!chatPanel.hidden) chatInput.focus();
+  if (chatPanel.hidden) return;
+  // Si la charla venía de la ficha de un lugar, se abre en lo último que se habló
+  chatMensajes.scrollTop = chatMensajes.scrollHeight;
+  chatInput.focus();
 });
 
 document.getElementById("chatbot-close").addEventListener("click", () => {
   chatPanel.hidden = true;
 });
 
+// ¿La charla está en su ventanita (y no en la ficha de un lugar)?
+const charlaEnCasa = () => chatPanel.contains(charlaEl);
+
+// Deja a la vista lo último que llegó. En la ventanita se baja su propia lista; en la
+// ficha se mueve la ficha entera, y "nearest" hace que una respuesta larga quede a la
+// vista desde su primera línea en vez de saltar directo al final.
+function mostrar(el) {
+  if (charlaEnCasa()) chatMensajes.scrollTop = chatMensajes.scrollHeight;
+  else el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+
 function agregarMensaje(texto, clase) {
   const div = document.createElement("div");
   div.className = `chatbot-msg ${clase}`;
   div.textContent = texto;
   chatMensajes.appendChild(div);
-  chatMensajes.scrollTop = chatMensajes.scrollHeight;
+  mostrar(div);
   return div;
 }
 
@@ -56,7 +75,7 @@ function agregarOpciones(opciones) {
     cont.appendChild(btn);
   }
   chatMensajes.appendChild(cont);
-  chatMensajes.scrollTop = chatMensajes.scrollHeight;
+  mostrar(cont);
 }
 
 // La pregunta que se está contestando y las que tocaron desde el mapa mientras tanto:
@@ -76,7 +95,7 @@ async function mandarPregunta(pregunta, contexto) {
   agregarMensaje(pregunta, "user");
   historial.push({ role: "user", content: contexto ? conContexto(pregunta, contexto) : pregunta });
   chatInput.disabled = true;
-  const pensando = agregarMensaje("Pensando...", "bot");
+  const pensando = agregarMensaje("Pensando...", "bot pensando");
 
   try {
     let res, data;
@@ -117,7 +136,7 @@ async function mandarPregunta(pregunta, contexto) {
   } finally {
     enCurso = null;
     chatInput.disabled = false;
-    chatInput.focus();
+    if (!pantallaTactil.matches) chatInput.focus({ preventScroll: true });
     const siguiente = enFila.shift();
     if (siguiente) {
       document.querySelectorAll(".chatbot-opciones").forEach(el => el.remove());
@@ -137,10 +156,22 @@ chatForm.addEventListener("submit", (e) => {
   mandarPregunta(pregunta);
 });
 
-// Puerta de entrada desde el mapa: un toque en la pregunta de un lugar abre el chat y
-// la manda como si la persona la hubiera escrito. "contexto" = { lugar, seccion }.
+// La charla es una sola pieza que se muda (pedido de Juan, 29-sep): vive en la ventanita
+// del botón 💬 y, cuando la persona toca la pregunta de un lugar, se despliega en la ficha
+// en lugar del texto. Es la misma conversación en los dos lados, así el local no pierde
+// el hilo. js/app.js la trae a la ficha y la devuelve antes de rehacer el panel.
+window.charlaEnFicha = (contenedor) => {
+  chatPanel.hidden = true;
+  contenedor.appendChild(charlaEl);
+};
+window.charlaACasa = () => {
+  if (!charlaEnCasa()) chatPanel.appendChild(charlaEl);
+};
+
+// Puerta de entrada desde el mapa: un toque en la pregunta de un lugar manda la pregunta
+// como si la persona la hubiera escrito. "contexto" = { lugar, seccion }.
 window.preguntarAlBot = (pregunta, contexto) => {
-  chatPanel.hidden = false;
+  if (charlaEnCasa()) chatPanel.hidden = false;
   // Un doble toque no manda dos veces la misma pregunta
   if (pregunta === enCurso || enFila.some(f => f.pregunta === pregunta)) return;
   // Si todavía está contestando otra, esta queda en fila y sale apenas termine

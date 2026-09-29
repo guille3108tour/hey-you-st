@@ -504,7 +504,9 @@ function abrirPanel(feature, el) {
         <button type="button" data-modo="mapa">${con3d ? "3D" : "Foto"}</button>
       </div>` : "";
 
-  // Las vistas del lugar anterior se van con el HTML viejo
+  // Las vistas del lugar anterior se van con el HTML viejo (la charla no: se guarda)
+  devolverCharla();
+  panel.classList.remove("charlando");
   desmontarVista3D();
   desmontarVista360();
   panelBody.innerHTML = `
@@ -558,6 +560,8 @@ function abrirPanel(feature, el) {
   const vistaEl = panelBody.querySelector(".vista");
   const tagsEl = [...panelBody.querySelectorAll(".tag")];
   const pintarVista = (cat) => {
+    devolverCharla();
+    panel.classList.remove("charlando");
     tagsEl.forEach(t => t.setAttribute("aria-pressed", String(t.dataset.cat === cat)));
     const c = CATEGORIAS[cat];
     // Regla de Juan (29-sep): una sola pregunta por sección
@@ -568,13 +572,24 @@ function abrirPanel(feature, el) {
       <p class="resumen abierto">${esc(c ? textoDeCategoria(p, cat) : (p.entrada || "Conocé este lugar con la guía local."))}</p>
       <p class="preguntas-titulo">💬 Preguntale al local</p>
       ${preguntas}`;
-    // Un toque abre el chat y manda la pregunta tal cual. El bot no ve el mapa, así que
-    // el lugar y la sección viajan aparte, sin repetirlos en el texto que ve el visitante.
     vistaEl.querySelectorAll(".pregunta").forEach(b => {
       const q = b.textContent;
-      b.addEventListener("click", () =>
-        window.preguntarAlBot?.(q, { lugar: p.nombre, seccion: c ? c.label : "General" }));
+      b.addEventListener("click", () => abrirCharla(cat, q));
     });
+  };
+  // Regla de Juan (29-sep): al tocar la pregunta, en lugar del texto se despliega la charla
+  // con el local, ahí mismo en la ficha y con su mismo vidrio. La pregunta sale tal cual;
+  // el bot no ve el mapa, así que el lugar y la sección viajan aparte, sin repetirlos en
+  // el texto que ve el visitante. "‹ Volver" (o tocar una pestaña) regresa al texto.
+  const abrirCharla = (cat, q) => {
+    const c = CATEGORIAS[cat];
+    vistaEl.innerHTML = `
+      <p class="vista-titulo charla-titulo">💬 Preguntale al local
+        <button type="button" class="charla-volver">‹ Volver</button></p>`;
+    vistaEl.querySelector(".charla-volver").addEventListener("click", () => pintarVista(cat));
+    window.charlaEnFicha?.(vistaEl);
+    panel.classList.add("charlando");
+    window.preguntarAlBot?.(q, { lugar: p.nombre, seccion: c ? c.label : "General" });
   };
   tagsEl.forEach(t => t.addEventListener("click", () => {
     // Tocar la pestaña que ya está elegida vuelve a la vista general
@@ -599,7 +614,16 @@ function abrirPanel(feature, el) {
   });
 }
 
+// La charla con el local (js/chatbot.js) puede estar metida en la ficha. Antes de rehacer
+// o cerrar el panel la devolvemos a su ventanita: si no, se borraría junto con el HTML
+// viejo y se perdería la conversación.
+function devolverCharla() {
+  window.charlaACasa?.();
+}
+
 function cerrarPanel() {
+  devolverCharla();
+  panel.classList.remove("charlando");
   panel.hidden = true;
   lugarAbierto = null;
   desmontarVista3D();
