@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hey You ST · Guía local de Santa Teresa</title>
+  <meta name="description" content="Hey You ST: el mapa de Santa Teresa y la Península de Nicoya hecho por locales. Spots de surf, playas, lugares para ir con niños, cascadas y atardeceres.">
+  <link rel="icon" type="image/svg+xml" href="img/marca/hey-you-st.svg">
+  <link rel="icon" type="image/png" sizes="512x512" href="img/marca/hey-you-st-512.png">
+  <link rel="apple-touch-icon" href="img/marca/hey-you-st-180.png">
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- La barra flota sobre el mapa (ver css/style.css → "Barra superior"): el mapa
+       ocupa toda la pantalla y la barra solo lo sombrea, no le roba altura. -->
+  <header class="topbar">
+    <div class="brand">
+      <img class="logo" src="img/marca/hey-you-st.svg" alt="">
+      <div>
+        <h1>Hey You ST</h1>
+        <p>Península de Nicoya · Santa Teresa</p>
+      </div>
+    </div>
+    <div class="topbar-acciones">
+      <select id="sel-estilo" class="ctrl" title="Estilo del mapa" aria-label="Estilo del mapa"></select>
+      <button id="btn-sat" class="ctrl" title="Ver imagen satelital">🛰<span class="ctrl-txt"> Satélite</span></button>
+      <button id="btn-3d" class="ctrl" title="Ver el terreno en 3D">⛰<span class="ctrl-txt"> 3D</span></button>
+      <button id="btn-curvas" class="ctrl" title="Mostrar u ocultar las curvas de nivel">〰<span class="ctrl-txt"> Curvas</span></button>
+    </div>
+  </header>
+
+  <main>
+    <div id="map"></div>
+
+    <!-- Barra lateral de categorías. Los botones se generan en js/app.js a partir
+         de CATEGORIAS; se prende una a la vez y "Todas" las reinicia. -->
+    <aside class="capas" id="capas">
+      <div class="capas-cabecera">
+        <div class="capas-titulos">
+          <span class="capas-titulo">Explorá el mapa</span>
+          <span class="capas-conteo" id="capas-conteo"></span>
+        </div>
+        <button class="capas-toggle" id="capas-toggle" aria-expanded="true" aria-controls="capas-lista" aria-label="Mostrar u ocultar las categorías">▾</button>
+      </div>
+      <div class="capas-lista" id="capas-lista"></div>
+    </aside>
+
+    <div class="coords" id="coords">
+      <span id="coords-text">Hacé clic en el mapa para ver las coordenadas de un punto</span>
+      <button id="coords-copy" hidden>Copiar</button>
+    </div>
+
+    <aside class="panel" id="panel" hidden>
+      <button class="panel-close" id="panel-close" aria-label="Cerrar">✕</button>
+      <div class="panel-body" id="panel-body"></div>
+    </aside>
+
+    <!-- Experimento: chatbot de preguntas (ver CLAUDE.md — no es el "local buddy" real,
+         solo un prototipo para probar la sensación). Requiere scripts/chat-server.js corriendo. -->
+    <div class="chatbot" id="chatbot">
+      <button class="chatbot-toggle" id="chatbot-toggle" title="Preguntale al local (experimental)">💬</button>
+      <div class="chatbot-panel" id="chatbot-panel" hidden>
+        <div class="chatbot-header">
+          <span>🌴 Preguntale al local <em>(prueba)</em></span>
+          <button id="chatbot-close" aria-label="Cerrar">✕</button>
+        </div>
+        <div class="chatbot-mensajes" id="chatbot-mensajes">
+          <div class="chatbot-msg bot">¡Hola! Preguntame algo como "¿dónde llevo a mis hijos?" o "¿dónde como bien barato?" — todavía estoy aprendiendo, así que puedo equivocarme.</div>
+        </div>
+        <form id="chatbot-form">
+          <input id="chatbot-input" type="text" placeholder="Escribí tu pregunta..." autocomplete="off">
+          <button type="submit" aria-label="Enviar">➤</button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+  <!-- Curvas de nivel generadas en el navegador a partir de los tiles de altura -->
+  <script src="https://unpkg.com/maplibre-contour@0.1.1/dist/index.min.js"></script>
+  <script src="data/points.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/chatbot.js"></script>
+</body>
+</html>

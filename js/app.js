@@ -1,0 +1,902 @@
+/* =========================================================
+   Hey You ST · Península de Nicoya — lógica del mapa
+   ========================================================= */
+
+// Categorías disponibles. El ícono 3D y el color se usan en chips y marcadores.
+// Los íconos se generan siempre con el mismo prompt de estilo: ver
+// img/iconos/PROMPT-DE-ESTILO.md antes de agregar una categoría nueva.
+// El emoji queda de respaldo por si la imagen no carga.
+const CATEGORIAS = {
+  surf:       { label: "Surf",        icono: "img/iconos/surf.png",       emoji: "🏄", color: "#0ea5e9" },
+  familia:    { label: "Con niños",   icono: "img/iconos/familia.png",    emoji: "👧", color: "#f59e0b" },
+  playa:      { label: "Playas",      icono: "img/iconos/playa.png",      emoji: "🏖️", color: "#eab308" },
+  atardecer:  { label: "Atardecer",   icono: "img/iconos/atardecer.png",  emoji: "🌅", color: "#f97316" },
+  cascada:    { label: "Cascadas",    icono: "img/iconos/cascada.png",    emoji: "💧", color: "#06b6d4" },
+  naturaleza: { label: "Naturaleza",  icono: "img/iconos/naturaleza.png", emoji: "🌿", color: "#22c55e" },
+  comida:     { label: "Comida",      icono: "img/iconos/comida.png",     emoji: "🍽️", color: "#ef4444" },
+  bienestar:  { label: "Bienestar",   icono: "img/iconos/bienestar.png",  emoji: "🧘", color: "#8b5cf6" },
+  tours:      { label: "Tours",       icono: "img/iconos/tours.png",      emoji: "🚤", color: "#6366f1" },
+  transporte: { label: "Transporte",  icono: "img/iconos/transporte.png", emoji: "🚙", color: "#64748b" },
+  hospedaje:  { label: "Hospedaje",   icono: "img/iconos/hospedaje.png",  emoji: "🏨", color: "#ec4899" },
+};
+
+// Por ahora la guía arranca con lo local (decisión de Juan, 2026-09-28): estas
+// categorías quedan en pausa. Sus lugares siguen guardados en data/points.js;
+// para reactivar una categoría, sacala de esta lista.
+const CATEGORIAS_EN_PAUSA = ["hospedaje", "comida", "bienestar", "transporte", "tours"];
+// Hoteles, restaurantes y operadores de tours se ocultan del todo, aunque tengan otra
+// categoría (ej: un hotel con vista al atardecer, o las clases de surf en Surf).
+// Bienestar y transporte solo dejan de ser filtro: Villa Flor sigue como playa.
+const NEGOCIOS_EN_PAUSA = ["hospedaje", "comida", "tours"];
+for (const clave of CATEGORIAS_EN_PAUSA) delete CATEGORIAS[clave];
+
+// Los lugares que muestra el mapa, cada uno solo con sus categorías activas
+const LUGARES = POINTS.features
+  .filter(f => !f.properties.categorias.some(c => NEGOCIOS_EN_PAUSA.includes(c)))
+  .map(f => ({ ...f, properties: { ...f.properties, categorias: f.properties.categorias.filter(c => CATEGORIAS[c]) } }))
+  .filter(f => f.properties.categorias.length);
+
+// Los tours se coordinan directamente con Juan, no con quien da el tour: el panel
+// no muestra teléfonos, correos ni webs de proveedores y ofrece escribirle a él.
+// Número de WhatsApp con código de país, sin + ni espacios (ej: "50688887777").
+const CONTACTO_JUAN = { whatsapp: "" };
+
+// La fila "Todas" del panel no es una categoría, pero usa el mismo set de íconos.
+const CAT_TODAS = { label: "Todas", icono: "img/iconos/todas.png", emoji: "🗺️", color: "#0ea5e9" };
+
+// Devuelve el <img> del ícono 3D de una categoría. Si la imagen no carga
+// (ruta mala, sin conexión), cae al emoji para que la fila nunca quede vacía.
+function crearIcono(cat) {
+  const img = document.createElement("img");
+  img.className = "ico";
+  img.src = cat.icono;
+  img.alt = "";
+  img.addEventListener("error", () => {
+    const span = document.createElement("span");
+    span.className = "ico-emoji";
+    span.textContent = cat.emoji;
+    img.replaceWith(span);
+  }, { once: true });
+  return img;
+}
+
+// Perfiles de viajero, usados para etiquetar las "voces" (historias locales) de cada punto.
+const PERFILES = {
+  nomada:     { label: "Nómada",     emoji: "🎒" },
+  familia:    { label: "Familia",    emoji: "👨‍👩‍👧" },
+  solo:       { label: "Solo",       emoji: "🚶" },
+  explorador: { label: "Explorador", emoji: "🧭" },
+};
+
+// Recuadro que encierra la Península de Nicoya [[oeste, sur], [este, norte]]
+const LIMITES_PENINSULA = [[-85.95, 9.50], [-84.70, 10.45]];
+
+// Fuentes gratuitas (sin API key)
+const OFM = "https://tiles.openfreemap.org/styles/";
+const TILES_SATELITE = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
+const TILES_TERRENO  = "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png";
+
+// Paletas propias: se aplican encima del estilo "bright" de OpenFreeMap.
+// Cambiá cualquier color aquí y se refleja en el mapa.
+const PALETA_PURAVIDA = {
+  fondo: "#f6f0e1", mar: "#79c4d8", selva: "#8fbf7f", pasto: "#d3e4bd", arena: "#f3e3ae",
+  urbano: "#efe7d3", edificios: "#e6dcc6",
+  viaBorde: "#d9c8a4", viaMenor: "#ffffff", viaMayor: "#f8e4b2", autopista: "#f1c98c", sendero: "#bdae90",
+  limites: "#bfae8c", texto: "#33423a", textoAgua: "#1f6f83",
+};
+
+const PALETA_PAPEL = {
+  fondo: "#efe6cf", mar: "#a7c8c6", selva: "#a9b98a", pasto: "#d8d9b4", arena: "#e8dcb4",
+  urbano: "#e9dfc4", edificios: "#dccfb0",
+  viaBorde: "#b59a72", viaMenor: "#f7efdc", viaMayor: "#e8cf9d", autopista: "#d9b077", sendero: "#a89673",
+  limites: "#a08d6a", texto: "#4a3f2f", textoAgua: "#3f6b6d",
+};
+
+// Estilos disponibles en el selector. "url" es el estilo base de OpenFreeMap
+// y "paleta" (opcional) lo recolorea.
+const ESTILOS = {
+  puravida: { nombre: "🌴 Pura Vida", url: OFM + "bright", paleta: PALETA_PURAVIDA },
+  papel:    { nombre: "🗺️ Papel",     url: OFM + "bright", paleta: PALETA_PAPEL },
+  minimal:  { nombre: "⚪ Minimal",   url: OFM + "positron" },
+  noche:    { nombre: "🌙 Noche",     url: OFM + "dark" },
+};
+const ESTILO_INICIAL = "puravida";
+
+// ---------- Mapa ----------
+const map = new maplibregl.Map({
+  container: "map",
+  style: ESTILOS[ESTILO_INICIAL].url,
+  bounds: LIMITES_PENINSULA,
+  fitBoundsOptions: { padding: 30 },
+  attributionControl: { compact: true },
+});
+
+map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "top-right");
+map.addControl(new maplibregl.GeolocateControl({ trackUserLocation: true }), "top-right");
+map.addControl(new maplibregl.ScaleControl({ unit: "metric" }), "bottom-right");
+
+// El encuadre inicial se calcula al crear el mapa, cuando el contenedor todavía
+// puede no tener su tamaño final (el layout no terminó de acomodarse, o la ventana
+// recién se está abriendo). Si no se rehace, el mapa abre mostrando media Costa Rica
+// en vez de la península. Lo rehacemos en cada cambio de tamaño, pero solo mientras
+// el visitante no haya movido el mapa él mismo: a partir de ahí, la vista es suya.
+let encuadreLibre = true;
+
+function encuadrarPeninsula() {
+  map.fitBounds(LIMITES_PENINSULA, { padding: 30, duration: 0 });
+}
+
+// MapLibre no detecta solo los cambios de tamaño de su contenedor (ej: la ventana
+// cambia de tamaño, el celular rota, o el layout termina de acomodarse después de
+// cargar) — sin esto el mapa se queda pegado en el tamaño que tenía al crearse.
+new ResizeObserver(() => {
+  map.resize();
+  if (encuadreLibre) encuadrarPeninsula();
+}).observe(document.getElementById("map"));
+
+// originalEvent solo existe cuando el movimiento lo hizo una persona (arrastrar,
+// rueda, pellizcar); los movimientos nuestros (flyTo al abrir un punto) no lo traen.
+map.on("movestart", (e) => { if (e.originalEvent) encuadreLibre = false; });
+
+// ---------- Filtros (barra lateral de categorías) ----------
+// Un Set vacío significa "todas": es el estado inicial y al que vuelve el botón
+// "Todas". Se pueden tener varias categorías prendidas al mismo tiempo.
+const listaCapasEl = document.getElementById("capas-lista");
+const conteoEl = document.getElementById("capas-conteo");
+const categoriasActivas = new Set();
+
+function crearFilaCapa(clave, cat, extraClase = "") {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.className = "capa" + (extraClase ? " " + extraClase : "");
+  b.dataset.cat = clave;
+  b.setAttribute("aria-pressed", "false");
+  if (cat.color) b.style.setProperty("--cat", cat.color);
+  b.innerHTML =
+    '<span class="capa-icono"></span><span class="capa-label"></span><span class="capa-switch"></span>';
+  b.querySelector(".capa-icono").appendChild(crearIcono(cat));
+  b.querySelector(".capa-label").textContent = cat.label;
+  b.addEventListener("click", () => alternarCategoria(clave));
+  return b;
+}
+
+// Regla de Juan: una categoría a la vez. Prender una apaga la que estaba;
+// tocar la que ya está prendida la apaga y el mapa vuelve a "Todas".
+function alternarCategoria(clave) {
+  const yaEstaba = categoriasActivas.has(clave);
+  categoriasActivas.clear();
+  if (clave !== "todos" && !yaEstaba) categoriasActivas.add(clave);
+  renderMarcadores();
+  // Otra regla de Juan (29-sep): si hay un lugar abierto que tiene esa categoría, el
+  // panel se queda quieto (nombre, portada, vista 3D) y solo cambia el texto a esa
+  // pestaña. Si el lugar no la tiene, desaparece del mapa y el panel se cierra.
+  const filtro = [...categoriasActivas][0];
+  if (lugarAbierto && (!filtro || lugarAbierto.categorias.includes(filtro))) {
+    lugarAbierto.pintarVista(filtro || null);
+  } else {
+    cerrarPanel();
+  }
+}
+
+listaCapasEl.appendChild(crearFilaCapa("todos", CAT_TODAS, "capa-todas"));
+for (const [clave, cat] of Object.entries(CATEGORIAS)) {
+  listaCapasEl.appendChild(crearFilaCapa(clave, cat));
+}
+
+// Refleja el estado de los interruptores y el conteo de lugares visibles.
+function sincronizarCapas(visibles) {
+  const todas = categoriasActivas.size === 0;
+  for (const b of listaCapasEl.querySelectorAll(".capa")) {
+    const clave = b.dataset.cat;
+    const prendida = clave === "todos" ? todas : categoriasActivas.has(clave);
+    b.setAttribute("aria-pressed", String(prendida));
+  }
+  conteoEl.textContent = visibles === 1 ? "1 lugar en el mapa" : `${visibles} lugares en el mapa`;
+}
+
+// Colapsar/expandir la lista (en móvil arranca colapsada para no tapar el mapa)
+const capasEl = document.getElementById("capas");
+const capasToggle = document.getElementById("capas-toggle");
+function colapsarCapas(colapsada) {
+  capasEl.classList.toggle("colapsada", colapsada);
+  capasToggle.setAttribute("aria-expanded", String(!colapsada));
+}
+let capasTocada = false; // el visitante ya decidió: dejamos de abrirla/cerrarla solos
+capasToggle.addEventListener("click", () => {
+  capasTocada = true;
+  colapsarCapas(!capasEl.classList.contains("colapsada"));
+});
+
+// En pantalla angosta arranca colapsada para no tapar el mapa. Se escucha el cambio
+// (no solo el valor al cargar) porque la ventana puede empezar angosta y ensancharse.
+const anchoMovil = window.matchMedia("(max-width: 640px)");
+const ajustarCapas = () => { if (!capasTocada) colapsarCapas(anchoMovil.matches); };
+anchoMovil.addEventListener("change", ajustarCapas);
+ajustarCapas();
+
+// ---------- Marcadores ----------
+const marcadores = []; // { feature, marker, el }
+
+for (const feature of LUGARES) {
+  const el = document.createElement("div");
+  el.className = "marker";
+  el.title = feature.properties.nombre;
+
+  el.addEventListener("click", (e) => {
+    e.stopPropagation();
+    abrirPanel(feature, el);
+  });
+
+  // opacityWhenCovered: en modo 3D MapLibre atenúa los marcadores "tapados" por el terreno;
+  // para una guía preferimos que siempre se vean.
+  const marker = new maplibregl.Marker({ element: el, anchor: "center", opacityWhenCovered: "0.9" })
+    .setLngLat(feature.geometry.coordinates);
+
+  marcadores.push({ feature, marker, el });
+}
+
+// Pinta el marcador con el ícono 3D y el color de una categoría.
+// Sólo rehace la imagen si cambió de categoría, para que al filtrar no parpadee.
+function pintarMarcador(el, clave) {
+  const cat = CATEGORIAS[clave] || CATEGORIAS.playa;
+  el.style.setProperty("--cat", cat.color);
+  if (el.dataset.cat === clave) return;
+  el.dataset.cat = clave;
+  el.replaceChildren(crearIcono(cat));
+}
+
+function renderMarcadores() {
+  const todas = categoriasActivas.size === 0;
+  let visibles = 0;
+  for (const m of marcadores) {
+    const cats = m.feature.properties.categorias;
+    // Con filtros activos, el ícono muestra la PRIMERA categoría buscada que el
+    // lugar cumple (un lugar con surf y niños se ve como "niños" cuando el
+    // visitante está buscando lugares para niños).
+    const coincide = todas ? null : cats.find(c => categoriasActivas.has(c));
+    if (!todas && !coincide) { m.marker.remove(); continue; }
+    pintarMarcador(m.el, coincide || cats[0]);
+    m.marker.addTo(map);
+    visibles++;
+  }
+  sincronizarCapas(visibles);
+}
+renderMarcadores();
+
+// ---------- Panel de detalle ----------
+const panel = document.getElementById("panel");
+const panelBody = document.getElementById("panel-body");
+let lugarAbierto = null; // { categorias, pintarVista } del lugar que muestra el panel
+document.getElementById("panel-close").addEventListener("click", cerrarPanel);
+
+// Escapa texto para meterlo en HTML sin riesgo
+function esc(s) {
+  return String(s ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+
+// Portada de respaldo mientras un lugar no tenga foto propia: la vista satelital
+// real del punto, de Esri World Imagery (la misma fuente gratis de la capa Satélite).
+function fotoSatelital(lng, lat) {
+  const dx = 0.0037, dy = 0.0019; // unos 800 × 420 m alrededor del punto
+  const bbox = [lng - dx, lat - dy, lng + dx, lat + dy].join(",");
+  return "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/export" +
+    `?bbox=${bbox}&bboxSR=4326&imageSR=3857&size=720,380&format=jpg&f=image`;
+}
+
+// ---------- Vista 3D del lugar (portada del panel) ----------
+// Un mini mapa aparte: la imagen satelital sobre el relieve real, inclinado y
+// girando despacito alrededor del punto. Mientras carga se ve la foto satelital
+// plana; si el navegador no puede con 3D, se queda esa foto.
+// Es el primer paso: cuando un lugar tenga su propia captura 3D, va en este mismo espacio.
+let mapa3d = null;
+let giro3d = null;
+const sinMovimiento = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+function montarVista3D(contenedor, lng, lat, cat) {
+  desmontarVista3D();
+  try {
+    mapa3d = new maplibregl.Map({
+      container: contenedor,
+      style: {
+        version: 8,
+        sources: {
+          satelite: { type: "raster", tiles: [TILES_SATELITE], tileSize: 256, maxzoom: 19 },
+          relieve: { type: "raster-dem", tiles: [TILES_TERRENO], encoding: "terrarium", tileSize: 256, maxzoom: 15 },
+        },
+        layers: [{ id: "satelite", type: "raster", source: "satelite" }],
+        terrain: { source: "relieve", exaggeration: 1.8 },
+        sky: {
+          "sky-color": "#6fb7d6",
+          "horizon-color": "#dff1f7",
+          "fog-color": "#dff1f7",
+          "sky-horizon-blend": 0.6,
+          "horizon-fog-blend": 0.6,
+          "fog-ground-blend": 0.9,
+        },
+      },
+      center: [lng, lat],
+      zoom: 14.9,
+      pitch: 70,
+      bearing: -20,
+      attributionControl: false,
+      scrollZoom: false,      // la rueda sigue bajando el panel
+      touchPitch: false,
+      pitchWithRotate: false,
+    });
+  } catch {
+    mapa3d = null; // sin WebGL: queda la foto satelital plana
+    return;
+  }
+
+  // El nombre del lugar tapa la parte de abajo: el punto se muestra más arriba
+  mapa3d.setPadding({ top: 0, bottom: 80, left: 0, right: 0 });
+
+  // El punto exacto, con el ícono de su categoría
+  if (cat) {
+    const ico = crearIcono(cat);
+    ico.classList.add("mini-marcador");
+    new maplibregl.Marker({ element: ico, anchor: "bottom" }).setLngLat([lng, lat]).addTo(mapa3d);
+  }
+
+  mapa3d.once("idle", () => contenedor.classList.add("lista"));
+
+  // Gira solo, salvo que la persona lo esté moviendo o prefiera sin animaciones
+  let tocando = false;
+  mapa3d.on("mousedown", () => { tocando = true; });
+  mapa3d.on("touchstart", () => { tocando = true; });
+  mapa3d.on("mouseup", () => { tocando = false; });
+  mapa3d.on("touchend", () => { tocando = false; });
+  const girar = () => {
+    if (!mapa3d) return;
+    if (!tocando && !sinMovimiento.matches) mapa3d.setBearing(mapa3d.getBearing() + 0.08);
+    giro3d = requestAnimationFrame(girar);
+  };
+  giro3d = requestAnimationFrame(girar);
+}
+
+function desmontarVista3D() {
+  if (giro3d) cancelAnimationFrame(giro3d);
+  giro3d = null;
+  if (mapa3d) mapa3d.remove(); // libera la memoria de video del mini mapa
+  mapa3d = null;
+}
+
+// ---------- Foto 360° propia del lugar ----------
+// Cuando un lugar tiene su toma 360° ("foto360" en data/points.js), la portada la
+// muestra con un visor libre (Pannellum). El visor se descarga solo la primera vez
+// que hace falta, así el mapa no carga nada extra para los lugares sin 360°.
+let visor360 = null;
+let pannellumListo = null;
+
+function cargarPannellum() {
+  if (!pannellumListo) {
+    pannellumListo = new Promise((ok, mal) => {
+      const base = "https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/";
+      const css = document.createElement("link");
+      css.rel = "stylesheet";
+      css.href = base + "pannellum.css";
+      document.head.appendChild(css);
+      const js = document.createElement("script");
+      js.src = base + "pannellum.js";
+      js.onload = ok;
+      js.onerror = () => { pannellumListo = null; mal(); };
+      document.head.appendChild(js);
+    });
+  }
+  return pannellumListo;
+}
+
+// "foto360" puede ser solo la ruta, o { src, yaw, minPitch } para ajustar la toma
+async function montarVista360(contenedor, foto360) {
+  desmontarVista360();
+  try { await cargarPannellum(); } catch { return; }
+  // Mientras se descargaba el visor, la persona pudo abrir otro lugar o pasar a 3D
+  if (!contenedor.isConnected || !contenedor.getClientRects().length) return;
+  const toma = typeof foto360 === "string" ? { src: foto360 } : foto360;
+  visor360 = pannellum.viewer(contenedor, {
+    type: "equirectangular",
+    panorama: toma.src,
+    yaw: toma.yaw ?? 0,
+    minPitch: toma.minPitch ?? -90,
+    autoLoad: true,
+    autoRotate: sinMovimiento.matches ? 0 : -2,
+    hfov: 100,
+    compass: false,
+    showZoomCtrl: false,
+    showFullscreenCtrl: true, // para verla en pantalla completa
+    mouseZoom: false,         // la rueda sigue bajando el panel
+  });
+}
+
+function desmontarVista360() {
+  if (visor360) visor360.destroy();
+  visor360 = null;
+}
+
+// ---------- Texto breve según la pestaña elegida ----------
+// Primero manda el texto de esa categoría; si falta, usamos la entrada corta.
+// No convertimos los campos técnicos en una ficha estática dentro del panel.
+function textoDeCategoria(p, cat) {
+  return p.porCategoria?.[cat] || p.entrada || "Conocé este lugar con la guía local.";
+}
+
+// Preguntas al bot cuando hay una pestaña elegida: hablan de esa categoría
+const PREGUNTAS_POR_CATEGORIA = {
+  general: n => [
+    `¿Qué te gustaría saber de ${n}: cómo llegar, qué hacer o qué tener en cuenta?`,
+  ],
+  surf: n => [
+    `¿Qué día y a qué hora te gustaría surfear en ${n}?`,
+    `¿Qué nivel tenés para surfear en ${n}?`,
+  ],
+  familia: n => [
+    `¿Qué edad tienen los niños y cuándo piensan ir a ${n}?`,
+    `¿Qué te gustaría saber antes de ir con niños a ${n}?`,
+  ],
+  atardecer: n => [
+    `¿Qué día te gustaría ir a ${n} para el atardecer?`,
+  ],
+  playa: n => [
+    `¿Qué te gustaría saber de ${n}: cómo es la orilla, cómo llegar o qué hay cerca?`,
+  ],
+  naturaleza: n => [
+    `¿Qué te gustaría conocer de ${n}: el camino, el entorno o qué tener en cuenta?`,
+  ],
+  cascada: n => [
+    `¿Qué día pensás visitar ${n} y desde dónde saldrías?`,
+  ],
+};
+
+// Preguntas pensadas para ese lugar, según lo que es, de la mejor a la menos buena
+// (el panel solo muestra la primera). Llevan el nombre del lugar porque el bot las
+// recibe sin ver el mapa.
+function preguntasSugeridas(p, cat) {
+  // Primero mandan las preguntas escritas para este lugar ("preguntas" en data/points.js)
+  const propias = p.preguntas?.[cat || "general"];
+  if (propias?.length) return propias.slice(0, 3);
+  if (PREGUNTAS_POR_CATEGORIA[cat || "general"]) return PREGUNTAS_POR_CATEGORIA[cat || "general"](p.nombre);
+  const n = p.nombre;
+  const cats = p.categorias || [];
+  const qs = [];
+  if (p.surf) qs.push(`¿${n} sirve para aprender a surfear?`);
+  if (cats.includes("familia")) qs.push(`¿Es tranquilo ir con niños a ${n}?`);
+  if (p.mareas) qs.push(`¿Cómo cambia ${n} con la marea?`);
+  if (cats.includes("atardecer")) qs.push(`¿A qué hora conviene llegar a ${n} para el atardecer?`);
+  if (cats.includes("cascada")) qs.push(`¿Cómo es la caminata hasta ${n}?`);
+  if (cats.includes("comida")) qs.push(`¿Qué me recomendás pedir en ${n}?`);
+  if (cats.includes("hospedaje")) qs.push(`¿Para qué tipo de viajero es ${n}?`);
+  if (cats.includes("tours")) qs.push(`¿Qué incluye la experiencia de ${n}?`);
+  if (cats.includes("bienestar")) qs.push(`¿Qué tipo de experiencia es ${n}?`);
+  qs.push(`¿Qué más hay cerca de ${n}?`);
+  return qs.slice(0, 3);
+}
+
+function abrirPanel(feature, el) {
+  const p = feature.properties;
+  const [lng, lat] = feature.geometry.coordinates;
+
+  document.querySelectorAll(".marker.activo").forEach(m => m.classList.remove("activo"));
+  el.classList.add("activo");
+
+  // Las categorías del lugar son pestañas: tocar "Surf" cuenta cómo es el surf ahí
+  const tags = p.categorias
+    .filter(c => CATEGORIAS[c])
+    .map(c => `<button type="button" class="tag" data-cat="${c}" aria-pressed="false">` +
+      `<img class="tag-ico" src="${esc(CATEGORIAS[c].icono)}" alt="">${esc(CATEGORIAS[c].label)}</button>`)
+    .join("");
+
+  // Portada: la foto del lugar si la hay; si no, su vista 3D (y mientras carga,
+  // la foto satelital plana del mismo punto)
+  const portada = p.foto || fotoSatelital(lng, lat);
+  const con3d = !p.foto;
+  const con360 = !!p.foto360;
+  const CREDITO_3D = "Vista 3D · Esri · AWS Terrain";
+  const CREDITO_360 = "Foto 360° · tomada por un local";
+  const credito = p.foto && !con360 ? "" : `<span class="hero-credito">${con360 ? CREDITO_360 : CREDITO_3D}</span>`;
+  // Con foto 360° la portada tiene dos modos: la toma propia y la vista del mapa
+  const modos = con360 ? `
+      <div class="hero-modos" role="group" aria-label="Cómo ver el lugar">
+        <button type="button" data-modo="360">360°</button>
+        <button type="button" data-modo="mapa">${con3d ? "3D" : "Foto"}</button>
+      </div>` : "";
+
+  // Las vistas del lugar anterior se van con el HTML viejo
+  desmontarVista3D();
+  desmontarVista360();
+  panelBody.innerHTML = `
+    <div class="hero">
+      <img class="hero-foto" src="${esc(portada)}" alt="${esc(p.nombre)}">
+      ${con3d ? `<div class="hero-3d"></div>` : ""}
+      ${con360 ? `<div class="hero-360"></div>` : ""}
+      ${modos}
+      ${credito}
+      <div class="hero-texto">
+        <h2>${esc(p.nombre)}</h2>
+        <div class="tags">${tags}</div>
+      </div>
+    </div>
+    <div class="panel-contenido">
+      <div class="vista"></div>
+    </div>`;
+
+  const heroFoto = panelBody.querySelector(".hero-foto");
+  const mostrarFoto = () => heroFoto.classList.add("lista");
+  if (heroFoto.complete && heroFoto.naturalWidth) mostrarFoto();
+  else heroFoto.addEventListener("load", mostrarFoto, { once: true });
+  const heroEl = panelBody.querySelector(".hero");
+  const mostrarMapa3D = () => {
+    if (con3d) montarVista3D(panelBody.querySelector(".hero-3d"), lng, lat, CATEGORIAS[p.categorias[0]]);
+  };
+  if (con360) {
+    // Arranca en la toma propia (lo más real que tenemos del lugar); un toque pasa al 3D
+    const creditoEl = heroEl.querySelector(".hero-credito");
+    const ponerModo = (modo) => {
+      heroEl.dataset.modo = modo;
+      heroEl.querySelectorAll(".hero-modos button")
+        .forEach(b => b.setAttribute("aria-pressed", String(b.dataset.modo === modo)));
+      creditoEl.textContent = modo === "360" ? CREDITO_360 : (con3d ? CREDITO_3D : "");
+      if (modo === "360") {
+        desmontarVista3D();
+        montarVista360(heroEl.querySelector(".hero-360"), p.foto360);
+      } else {
+        desmontarVista360();
+        mostrarMapa3D();
+      }
+    };
+    heroEl.querySelectorAll(".hero-modos button")
+      .forEach(b => b.addEventListener("click", () => ponerModo(b.dataset.modo)));
+    ponerModo("360");
+  } else {
+    mostrarMapa3D();
+  }
+
+  // El panel conserva el texto breve y una pregunta generadora por sección.
+  const vistaEl = panelBody.querySelector(".vista");
+  const tagsEl = [...panelBody.querySelectorAll(".tag")];
+  const pintarVista = (cat) => {
+    tagsEl.forEach(t => t.setAttribute("aria-pressed", String(t.dataset.cat === cat)));
+    const c = CATEGORIAS[cat];
+    // Regla de Juan (29-sep): una sola pregunta por sección
+    const preguntas = preguntasSugeridas(p, cat).slice(0, 1)
+      .map(q => `<button type="button" class="pregunta">${esc(q)}</button>`).join("");
+    vistaEl.innerHTML = `
+      ${c ? `<p class="vista-titulo"><img src="${esc(c.icono)}" alt="">${esc(c.label)} en ${esc(p.nombre)}</p>` : ""}
+      <p class="resumen abierto">${esc(c ? textoDeCategoria(p, cat) : (p.entrada || "Conocé este lugar con la guía local."))}</p>
+      <p class="preguntas-titulo">💬 Preguntale al local</p>
+      ${preguntas}`;
+    // Un toque abre el chat y manda la pregunta tal cual. El bot no ve el mapa, así que
+    // el lugar y la sección viajan aparte, sin repetirlos en el texto que ve el visitante.
+    vistaEl.querySelectorAll(".pregunta").forEach(b => {
+      const q = b.textContent;
+      b.addEventListener("click", () =>
+        window.preguntarAlBot?.(q, { lugar: p.nombre, seccion: c ? c.label : "General" }));
+    });
+  };
+  tagsEl.forEach(t => t.addEventListener("click", () => {
+    // Tocar la pestaña que ya está elegida vuelve a la vista general
+    pintarVista(t.getAttribute("aria-pressed") === "true" ? null : t.dataset.cat);
+  }));
+  // Si la persona llegó filtrando por una categoría, el lugar abre en esa pestaña
+  const filtro = [...categoriasActivas][0];
+  pintarVista(p.categorias.includes(filtro) ? filtro : null);
+  lugarAbierto = { categorias: p.categorias, pintarVista };
+
+  panel.hidden = false;
+  encuadreLibre = false; // ya estamos viendo un lugar: no volver al encuadre general
+
+  // En móvil el panel tapa la parte de abajo; en escritorio tapa la derecha.
+  // Desplazamos el centro para que el punto quede visible.
+  const movil = window.innerWidth <= 640;
+  map.flyTo({
+    center: [lng, lat],
+    zoom: Math.max(map.getZoom(), 13),
+    offset: movil ? [0, -120] : [-180, 0],
+    duration: 900,
+  });
+}
+
+function cerrarPanel() {
+  panel.hidden = true;
+  lugarAbierto = null;
+  desmontarVista3D();
+  desmontarVista360();
+  document.querySelectorAll(".marker.activo").forEach(m => m.classList.remove("activo"));
+}
+
+// ---------- Utilidades para recolorear el estilo base ----------
+function pintar(id, prop, valor) {
+  if (map.getLayer(id)) map.setPaintProperty(id, prop, valor);
+}
+function ocultar(id) {
+  if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", "none");
+}
+function capasQueContienen(...fragmentos) {
+  return map.getStyle().layers.filter(l => fragmentos.some(f => l.id.includes(f)));
+}
+// Devuelve el id de la primera capa de etiquetas: lo que se inserte "antes" de
+// ella queda debajo de los nombres de lugares.
+function primeraEtiqueta() {
+  return map.getStyle().layers.find(l => l.type === "symbol")?.id;
+}
+
+// Recolorea el estilo "bright" con una de las paletas de arriba.
+function aplicarPaleta(p) {
+  pintar("background", "background-color", p.fondo);
+  ["water", "water-intermittent"].forEach(id => pintar(id, "fill-color", p.mar));
+  capasQueContienen("waterway").filter(l => l.type === "line").forEach(l => pintar(l.id, "line-color", p.mar));
+
+  pintar("landcover-wood", "fill-color", p.selva);
+  pintar("landcover-wood", "fill-opacity", 0.55);
+  ["landcover-grass", "landcover-grass-park", "park"].forEach(id => pintar(id, "fill-color", p.pasto));
+  pintar("landcover-sand", "fill-color", p.arena);
+
+  // Zonas de uso de suelo: casi invisibles (son lo que da el look "ciudad" de Google)
+  ["landuse-residential", "landuse-suburb"].forEach(id => pintar(id, "fill-color", p.urbano));
+  ["landuse-commercial", "landuse-industrial", "landuse-hospital", "landuse-school",
+   "landuse-cemetery", "landuse-railway"].forEach(ocultar);
+  ["building", "building-top"].forEach(id => pintar(id, "fill-color", p.edificios));
+
+  // Carreteras
+  for (const l of capasQueContienen("highway", "tunnel", "bridge")) {
+    if (l.type !== "line") continue;
+    const id = l.id;
+    if (id.includes("casing"))         pintar(id, "line-color", p.viaBorde);
+    else if (id.includes("path"))      pintar(id, "line-color", p.sendero);
+    else if (id.includes("minor"))     pintar(id, "line-color", p.viaMenor);
+    else if (id.includes("motorway"))  pintar(id, "line-color", p.autopista);
+    else                               pintar(id, "line-color", p.viaMayor);
+  }
+  capasQueContienen("boundary").forEach(l => pintar(l.id, "line-color", p.limites));
+
+  // Fuera los íconos de negocios y las flechas de sentido de vía
+  ["poi_r1", "poi_r7", "poi_r20", "poi_transit", "road_oneway", "road_oneway_opposite"].forEach(ocultar);
+
+  // Etiquetas
+  for (const l of capasQueContienen("label_", "highway-name", "water_name", "waterway_line_label")) {
+    const esAgua = l.id.includes("water");
+    pintar(l.id, "text-color", esAgua ? p.textoAgua : p.texto);
+    pintar(l.id, "text-halo-color", esAgua ? "rgba(255,255,255,0.7)" : p.fondo);
+  }
+}
+
+// ---------- Selector de estilo ----------
+const selEstilo = document.getElementById("sel-estilo");
+let estiloActual = ESTILO_INICIAL;
+
+for (const [clave, e] of Object.entries(ESTILOS)) {
+  const op = document.createElement("option");
+  op.value = clave;
+  op.textContent = e.nombre;
+  op.selected = clave === ESTILO_INICIAL;
+  selEstilo.appendChild(op);
+}
+
+selEstilo.addEventListener("change", () => {
+  estiloActual = selEstilo.value;
+  // Frenamos animaciones y quitamos el terreno antes de cambiar: MapLibre no
+  // tolera renderizar terreno mientras el estilo nuevo todavía está cargando.
+  map.stop();
+  if (map.getTerrain()) map.setTerrain(null);
+  map.setStyle(ESTILOS[estiloActual].url, { diff: false });
+  // Al cambiar de estilo se pierden las capas agregadas: se reponen en "style.load"
+});
+
+// En Noche los nombres de lugares van en blanco pleno, con borde oscuro, para que
+// se lean bien presentes por encima del brillo de las curvas (pedido de Juan).
+function nombresEnBlanco() {
+  for (const l of map.getStyle().layers) {
+    if (l.type !== "symbol" || !l.layout?.["text-field"] || l.id.startsWith("curvas")) continue;
+    map.setPaintProperty(l.id, "text-color", "#ffffff");
+    map.setPaintProperty(l.id, "text-halo-color", "rgba(4, 12, 20, 0.92)");
+    map.setPaintProperty(l.id, "text-halo-width", 1.6);
+    map.setPaintProperty(l.id, "text-opacity", 1);
+  }
+}
+
+// Cada vez que carga un estilo (al inicio y al cambiar) aplicamos ajustes y reponemos capas
+map.on("style.load", () => {
+  const e = ESTILOS[estiloActual];
+  if (e.paleta) aplicarPaleta(e.paleta);
+  if (estiloActual === "noche") nombresEnBlanco();
+  if (sateliteActivo) agregarSatelite();
+  if (terrenoActivo) agregarTerreno();
+  if (curvasActivas) agregarCurvas();
+});
+
+// ---------- Satélite ----------
+const btnSat = document.getElementById("btn-sat");
+let sateliteActivo = false;
+
+function agregarSatelite() {
+  if (!map.getSource("satelite")) {
+    map.addSource("satelite", {
+      type: "raster",
+      tiles: [TILES_SATELITE],
+      tileSize: 256,
+      attribution: "Imagen: Esri, Maxar, Earthstar Geographics",
+    });
+  }
+  // Debajo de las curvas y de las etiquetas, para que sigan visibles encima
+  if (!map.getLayer("satelite")) {
+    const antes = map.getLayer("curvas-brillo") ? "curvas-brillo" : primeraEtiqueta();
+    map.addLayer({ id: "satelite", type: "raster", source: "satelite" }, antes);
+  }
+}
+
+btnSat.addEventListener("click", () => {
+  sateliteActivo = !sateliteActivo;
+  btnSat.classList.toggle("activo", sateliteActivo);
+  if (sateliteActivo) agregarSatelite();
+  else if (map.getLayer("satelite")) map.removeLayer("satelite");
+  pintarCurvas();
+});
+
+// ---------- Terreno 3D ----------
+const btn3d = document.getElementById("btn-3d");
+let terrenoActivo = false;
+
+function agregarTerreno() {
+  if (!map.getSource("terreno")) {
+    map.addSource("terreno", {
+      type: "raster-dem",
+      tiles: [TILES_TERRENO],
+      encoding: "terrarium",
+      tileSize: 256,
+      maxzoom: 15,
+      attribution: "Terreno: Mapzen / AWS Terrain Tiles",
+    });
+  }
+  map.setTerrain({ source: "terreno", exaggeration: 1.4 });
+}
+
+btn3d.addEventListener("click", () => {
+  terrenoActivo = !terrenoActivo;
+  btn3d.classList.toggle("activo", terrenoActivo);
+
+  if (terrenoActivo) {
+    agregarTerreno();
+    map.easeTo({ pitch: 60, duration: 900 });
+  } else {
+    map.setTerrain(null);
+    map.easeTo({ pitch: 0, bearing: 0, duration: 900 });
+  }
+});
+
+// ---------- Curvas de nivel (neón) ----------
+// Se generan en el navegador a partir de las mismas alturas del modo 3D
+// (AWS Terrain Tiles), con el plugin libre maplibre-contour. Mientras más cerca,
+// más apretadas: cada zoom tiene su propia separación entre curvas.
+const btnCurvas = document.getElementById("btn-curvas");
+let curvasActivas = true;
+
+// Si el plugin no cargó (sin conexión al CDN), el mapa sigue funcionando sin curvas
+const demCurvas = window.mlcontour
+  ? new mlcontour.DemSource({ url: TILES_TERRENO, encoding: "terrarium", maxzoom: 13, worker: true })
+  : null;
+if (demCurvas) demCurvas.setupMaplibre(maplibregl);
+else btnCurvas.hidden = true;
+
+// Metros entre curvas según el zoom: [curva fina, curva maestra]
+const SEPARACION_CURVAS = {
+  9:  [100, 500],
+  11: [50, 250],
+  13: [25, 100],
+  14: [10, 50],
+  15: [5, 25],
+};
+const CAPAS_CURVAS = ["curvas-brillo", "curvas-linea", "curvas-etiquetas"];
+
+function agregarCurvas() {
+  if (!demCurvas) return;
+  if (!map.getSource("curvas")) {
+    map.addSource("curvas", {
+      type: "vector",
+      tiles: [demCurvas.contourProtocolUrl({
+        thresholds: SEPARACION_CURVAS,
+        contourLayer: "curvas",
+        elevationKey: "ele",
+        levelKey: "level",
+      })],
+      maxzoom: 15,
+      attribution: "Curvas: AWS Terrain Tiles",
+    });
+  }
+  // Debajo de los nombres del mapa; sin batimetría (en el mar no hay curvas)
+  const antes = primeraEtiqueta();
+  const enTierra = [">", ["get", "ele"], 0];
+  const base = { source: "curvas", "source-layer": "curvas" };
+  if (!map.getLayer("curvas-brillo")) {
+    map.addLayer({ id: "curvas-brillo", type: "line", ...base, filter: enTierra,
+      layout: { "line-join": "round", "line-cap": "round" } }, antes);
+  }
+  if (!map.getLayer("curvas-linea")) {
+    map.addLayer({ id: "curvas-linea", type: "line", ...base, filter: enTierra,
+      layout: { "line-join": "round", "line-cap": "round" } }, antes);
+  }
+  if (!map.getLayer("curvas-etiquetas")) {
+    map.addLayer({ id: "curvas-etiquetas", type: "symbol", ...base, minzoom: 12,
+      filter: ["all", enTierra, [">", ["get", "level"], 0]],
+      layout: {
+        "symbol-placement": "line",
+        "symbol-spacing": 320,
+        "text-field": ["concat", ["to-string", ["get", "ele"]], " m"],
+        "text-font": ["Noto Sans Regular"],
+        "text-size": 12,
+        "text-letter-spacing": 0.05,
+      } }, antes);
+  }
+  pintarCurvas();
+}
+
+function quitarCurvas() {
+  for (const id of CAPAS_CURVAS) if (map.getLayer(id)) map.removeLayer(id);
+}
+
+// Neón con brillo sobre fondos oscuros (Noche y Satélite); en los estilos claros,
+// turquesa sobrio sin brillo, porque sobre arena el resplandor se ve sucio.
+function pintarCurvas() {
+  if (!map.getLayer("curvas-linea")) return;
+  const neon = estiloActual === "noche" || sateliteActivo;
+  const maestra = [">", ["get", "level"], 0];
+  const porZoom = (...paradas) => ["interpolate", ["linear"], ["zoom"], ...paradas];
+
+  map.setLayoutProperty("curvas-brillo", "visibility", neon ? "visible" : "none");
+  map.setPaintProperty("curvas-brillo", "line-color", "#00f0ff");
+  map.setPaintProperty("curvas-brillo", "line-width",
+    porZoom(9, ["case", maestra, 3, 2], 14, ["case", maestra, 8, 4]));
+  map.setPaintProperty("curvas-brillo", "line-blur", porZoom(9, 2, 14, 5));
+  // El brillo es sobre todo de las maestras; las finas apenas resplandecen
+  map.setPaintProperty("curvas-brillo", "line-opacity",
+    porZoom(9, ["case", maestra, 0.14, 0.03], 13, ["case", maestra, 0.4, 0.1]));
+
+  map.setPaintProperty("curvas-linea", "line-color", neon
+    ? ["case", maestra, "#8ffff6", "#22e6df"]
+    : ["case", maestra, "#0b7f86", "#1a9aa1"]);
+  map.setPaintProperty("curvas-linea", "line-width",
+    porZoom(9, ["case", maestra, 0.8, 0.4], 14, ["case", maestra, 1.6, 0.8]));
+  // Lejos casi no se notan; al acercarse se encienden. Las finas siempre más tenues.
+  map.setPaintProperty("curvas-linea", "line-opacity", neon
+    ? porZoom(9, ["case", maestra, 0.45, 0.15], 12, ["case", maestra, 0.85, 0.35], 15, ["case", maestra, 1, 0.6])
+    : porZoom(9, ["case", maestra, 0.3, 0.1], 12, ["case", maestra, 0.55, 0.25], 15, ["case", maestra, 0.75, 0.45]));
+
+  map.setPaintProperty("curvas-etiquetas", "text-color", neon ? "#8ffff6" : "#0b6f75");
+  map.setPaintProperty("curvas-etiquetas", "text-halo-color",
+    neon ? "rgba(3, 14, 22, 0.85)" : "rgba(255, 255, 255, 0.85)");
+  map.setPaintProperty("curvas-etiquetas", "text-halo-width", 1.2);
+}
+
+btnCurvas.classList.toggle("activo", curvasActivas);
+btnCurvas.addEventListener("click", () => {
+  curvasActivas = !curvasActivas;
+  btnCurvas.classList.toggle("activo", curvasActivas);
+  if (curvasActivas) agregarCurvas();
+  else quitarCurvas();
+});
+
+// ---------- Ayudante de coordenadas (para agregar puntos nuevos) ----------
+const coordsText = document.getElementById("coords-text");
+const coordsCopy = document.getElementById("coords-copy");
+let ultimaCoord = null;
+
+map.on("click", (e) => {
+  const lng = +e.lngLat.lng.toFixed(5);
+  const lat = +e.lngLat.lat.toFixed(5);
+  ultimaCoord = `[${lng}, ${lat}]`;
+  coordsText.innerHTML = `Lat <code>${lat}</code> · Lng <code>${lng}</code> · GeoJSON: <code>${ultimaCoord}</code>`;
+  coordsCopy.hidden = false;
+  coordsCopy.textContent = "Copiar";
+});
+
+coordsCopy.addEventListener("click", async () => {
+  if (!ultimaCoord) return;
+  try {
+    await navigator.clipboard.writeText(ultimaCoord);
+    coordsCopy.textContent = "¡Copiado!";
+  } catch {
+    coordsCopy.textContent = "Seleccioná y copiá";
+  }
+});
