@@ -762,7 +762,13 @@ select.ctrl option { color: var(--texto); }
   .chatbot-panel { width: calc(100vw - 20px); right: -2px; }
 }
 
-/* ---------- Móvil: el panel sube desde abajo ---------- */
+/* ---------- Móvil: el panel es una hoja que sube desde abajo ----------
+   Como las hojas del iPhone (pedido de Juan, 29-sep): se arrastra desde la agarradera,
+   o desde el contenido cuando está arriba del todo, y se queda en una de tres alturas
+   (js/app.js → "Hoja deslizable"). Bajada queda una barrita con el nombre del lugar,
+   para seguir explorando el mapa; subida, vuelve la charla o el texto donde estaba. */
+.panel-asa { display: none; } /* solo en celular */
+
 @media (max-width: 640px) {
   .panel {
     top: auto;
@@ -770,14 +776,76 @@ select.ctrl option { color: var(--texto); }
     right: 0;
     bottom: 0;
     width: 100%;
-    max-height: 60%;
-    border-radius: 16px 16px 0 0;
+    max-height: none; /* la altura la pone la hoja, en px */
+    border-radius: 18px 18px 0 0;
+    overscroll-behavior: contain;
+    transition: height 0.38s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
-  .panel { max-height: 62%; border-radius: 18px 18px 0 0; transition: max-height 0.35s ease; }
-  /* Al abrirse la charla la ficha se estira hacia arriba, para que se pueda conversar
-     sin que la foto se coma el espacio. Para justo debajo de "Explorá el mapa". */
-  .panel.charlando { max-height: calc(100% - var(--topbar-alto) - 84px); }
-  .hero { height: 170px; border-radius: 18px 18px 0 0; }
+  .panel.arrastrando { transition: none; }
+  .panel.baja { overflow: hidden; }
+  /* Charlando, el campo para escribir queda al pie de la hoja aunque la charla todavía
+     sea corta: la hoja, la ficha y la charla se estiran hasta abajo */
+  .panel.charlando:not([hidden]) { display: flex; flex-direction: column; }
+  .panel.charlando .panel-body,
+  .panel.charlando .panel-contenido,
+  .panel.charlando .vista { flex: 1 0 auto; display: flex; flex-direction: column; }
+  .panel.charlando .hero { flex-shrink: 0; }
+  .panel-body { transition: opacity 0.2s; }
+  .panel.baja .panel-body { opacity: 0; pointer-events: none; }
+
+  .panel-asa {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    position: sticky;
+    top: 0;
+    z-index: 4; /* encima de lo que pasa por debajo al hacer scroll */
+    flex-shrink: 0;
+    width: 100%;
+    height: 22px;
+    padding: 8px 16px 0;
+    border: none;
+    border-radius: 18px 18px 0 0;
+    background: rgba(18, 36, 48, 0.96);
+    color: #fff;
+    font: inherit;
+    cursor: grab;
+    touch-action: none; /* el dedo arrastra la hoja, no la página */
+    overflow: hidden;
+    transition: height 0.3s ease;
+  }
+  .panel-asa:active { cursor: grabbing; }
+  .panel-asa-barra {
+    flex: 0 0 auto;
+    width: 38px;
+    height: 5px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.45);
+  }
+  .panel-asa-mini {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    max-width: 100%;
+    padding-right: 34px; /* lugar para la ✕ */
+    font-size: 15px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .panel-asa-pista { font-size: 12px; font-weight: 600; color: #8ffff6; }
+  .panel-asa-pista::after { content: "⌃ Subí para ver más"; }
+  .panel.charlando .panel-asa-pista::after { content: "💬 Seguí la charla"; }
+  .panel.baja .panel-asa { height: 58px; }
+  .panel.baja .panel-asa-mini { opacity: 1; }
+
+  /* La agarradera va arriba de la portada: la foto ya no lleva las esquinas redondas */
+  .hero { height: 170px; border-radius: 0; }
+  .panel-close { top: 30px; z-index: 5; }
+  .panel.baja .panel-close { top: 19px; }
   .coords { bottom: 28px; font-size: 11px; }
 }
 

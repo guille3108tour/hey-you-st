@@ -53,6 +53,12 @@
     </div>
 
     <aside class="panel" id="panel" hidden>
+      <!-- Agarradera de la hoja en celular (js/app.js → "Hoja deslizable"): se arrastra
+           para bajar o subir la ficha. Bajada, muestra el nombre del lugar. -->
+      <button type="button" class="panel-asa" id="panel-asa" aria-label="Bajar la ficha para ver el mapa">
+        <span class="panel-asa-barra"></span>
+        <span class="panel-asa-mini"><span id="panel-asa-nombre"></span><span class="panel-asa-pista"></span></span>
+      </button>
       <button class="panel-close" id="panel-close" aria-label="Cerrar">✕</button>
       <div class="panel-body" id="panel-body"></div>
     </aside>
