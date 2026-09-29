@@ -855,6 +855,21 @@ function aplicarPaleta(p) {
   }
 }
 
+// ---------- Menú de capas (celular) ----------
+// En el teléfono la barra de arriba muestra solo un botón; al tocarlo se abre el menú
+// con el estilo, el satélite, el 3D y las curvas. Se queda abierto mientras la persona
+// prende y apaga cosas, y se cierra al tocar afuera o con Escape. En compu no se usa.
+const accionesEl = document.getElementById("topbar-acciones");
+const btnCapas = document.getElementById("btn-capas");
+
+function abrirMenuCapas(abierto) {
+  accionesEl.classList.toggle("abierta", abierto);
+  btnCapas.setAttribute("aria-expanded", String(abierto));
+}
+btnCapas.addEventListener("click", () => abrirMenuCapas(!accionesEl.classList.contains("abierta")));
+document.addEventListener("click", (e) => { if (!accionesEl.contains(e.target)) abrirMenuCapas(false); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") abrirMenuCapas(false); });
+
 // ---------- Selector de estilo ----------
 const selEstilo = document.getElementById("sel-estilo");
 let estiloActual = ESTILO_INICIAL;

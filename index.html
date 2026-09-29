@@ -23,11 +23,17 @@
         <p>Península de Nicoya · Santa Teresa</p>
       </div>
     </div>
-    <div class="topbar-acciones">
-      <select id="sel-estilo" class="ctrl" title="Estilo del mapa" aria-label="Estilo del mapa"></select>
-      <button id="btn-sat" class="ctrl" title="Ver imagen satelital">🛰<span class="ctrl-txt"> Satélite</span></button>
-      <button id="btn-3d" class="ctrl" title="Ver el terreno en 3D">⛰<span class="ctrl-txt"> 3D</span></button>
-      <button id="btn-curvas" class="ctrl" title="Mostrar u ocultar las curvas de nivel">〰<span class="ctrl-txt"> Curvas</span></button>
+    <!-- En compu los controles van en fila; en celular se juntan en un solo botón de capas
+         que abre un menú (css → "Barra superior", js/app.js → "Menú de capas") -->
+    <div class="topbar-acciones" id="topbar-acciones">
+      <button type="button" id="btn-capas" class="ctrl ctrl-capas" aria-expanded="false" aria-controls="menu-capas"
+              title="Estilo y capas del mapa" aria-label="Estilo y capas del mapa">🗺️</button>
+      <div class="menu-capas" id="menu-capas">
+        <select id="sel-estilo" class="ctrl" title="Estilo del mapa" aria-label="Estilo del mapa"></select>
+        <button id="btn-sat" class="ctrl" title="Ver imagen satelital">🛰<span class="ctrl-txt"> Satélite</span></button>
+        <button id="btn-3d" class="ctrl" title="Ver el terreno en 3D">⛰<span class="ctrl-txt"> 3D</span></button>
+        <button id="btn-curvas" class="ctrl" title="Mostrar u ocultar las curvas de nivel">〰<span class="ctrl-txt"> Curvas</span></button>
+      </div>
     </div>
   </header>
 
