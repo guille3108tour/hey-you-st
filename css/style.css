@@ -178,6 +178,43 @@ select.ctrl option { color: var(--texto); }
 }
 .marker:hover, .marker.activo { transform: scale(1.18); }
 
+/* Al salir de la foto 360°, el lugar queda marcado: su nombre debajo y un aro que late, para
+   que la persona sepa dónde queda en el mapa (pedido de Juan, 3-oct) */
+.marker.marcado { z-index: 2; }
+.marker.marcado::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border-radius: 50%;
+  border: 2px solid #22e6df;
+  pointer-events: none;
+  animation: latido-marcado 2s ease-out infinite;
+}
+.marker.marcado::before {
+  content: attr(data-nombre);
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(34, 230, 223, 0.7);
+  background: rgba(14, 32, 45, 0.88);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  pointer-events: none;
+}
+@keyframes latido-marcado {
+  from { transform: scale(0.7); opacity: 0.9; }
+  to   { transform: scale(1.6); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marker.marcado::after { animation: none; opacity: 0.8; }
+}
+
 /* ---------- Panel de detalle ----------
    Mismo vidrio oscuro que el panel de categorías, para que las dos piezas
    flotantes se sientan de la misma familia. Arriba manda la imagen; el texto
@@ -726,6 +763,63 @@ select.ctrl option { color: var(--texto); }
   max-width: calc(100% - 24px);
   transition: opacity 0.25s, transform 0.25s, bottom 0.38s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
+/* Al pasar a otra playa, la foto nueva entra por el lado hacia donde se deslizó */
+.inmersivo > .inm-360.entra-derecha { animation: entra-derecha 0.35s ease-out; }
+.inmersivo > .inm-360.entra-izquierda { animation: entra-izquierda 0.35s ease-out; }
+@keyframes entra-derecha { from { transform: translateX(30%); opacity: 0; } }
+@keyframes entra-izquierda { from { transform: translateX(-30%); opacity: 0; } }
+
+/* Aviso de "deslizá para ir a otra playa": la manito va y viene */
+.inm-pista {
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  z-index: 3;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: max-content;
+  max-width: 250px;
+  padding: 16px 20px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(14, 32, 45, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #fff;
+  text-align: center;
+  pointer-events: none;
+  animation: aparecer-pista 0.3s ease-out;
+  transition: opacity 0.3s;
+}
+.inm-pista.fuera { opacity: 0; }
+.inm-pista p { margin: 0; font-size: 15px; font-weight: 600; line-height: 1.35; }
+.inm-pista-mano { font-size: 34px; animation: mano-desliza 1.6s ease-in-out infinite; }
+@keyframes aparecer-pista { from { opacity: 0; transform: translate(-50%, -40%); } }
+@keyframes mano-desliza {
+  0%, 100% { transform: translateX(-30px) rotate(-8deg); }
+  50% { transform: translateX(30px) rotate(8deg); }
+}
+
+/* Puntitos: cuántas playas con foto hay y en cuál está */
+.inm-puntos { display: flex; gap: 6px; }
+.inm-puntos span {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.45);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  transition: width 0.25s;
+}
+.inm-puntos span.activo { width: 20px; background: #fff; }
+
+@media (prefers-reduced-motion: reduce) {
+  .inmersivo > .inm-360.entra-derecha, .inmersivo > .inm-360.entra-izquierda,
+  .inm-pista, .inm-pista-mano { animation: none; }
+}
+
 /* El botón propio del visor para el giroscopio se cambia por el nuestro, más visible */
 .inm-360 .pnlm-orientation-button { display: none !important; }
 .inm-giro {

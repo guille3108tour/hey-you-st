@@ -238,6 +238,7 @@ for (const feature of LUGARES) {
   const el = document.createElement("div");
   el.className = "marker";
   el.title = feature.properties.nombre;
+  el.dataset.nombre = feature.properties.nombre; // la etiqueta del lugar marcado (css: .marker.marcado)
 
   el.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -618,8 +619,7 @@ function abrirPanel(feature, el, opciones = {}) {
   const sobre360 = !!opciones.sobre360;
   panel.classList.toggle("sobre-360", sobre360);
 
-  document.querySelectorAll(".marker.activo").forEach(m => m.classList.remove("activo"));
-  el.classList.add("activo");
+  marcarLugar(el);
 
   // Las categorías del lugar son pestañas: tocar "Surf" cuenta cómo es el surf ahí.
   // Si el lugar tiene tours, "Tours" va de última.
@@ -763,7 +763,16 @@ function cerrarPanel() {
   desmontarVista360();
   // Encima de la 360°, cerrar la ficha vuelve a la foto (que vuelve a moverse); el lugar sigue marcado
   congelarFoto(false);
-  if (inmersivo.hidden) document.querySelectorAll(".marker.activo").forEach(m => m.classList.remove("activo"));
+  if (inmersivo.hidden) marcarLugar(null);
+}
+
+// El lugar abierto se agranda con un halo. "marcado" suma su nombre y un aro que late: es como
+// queda al salir de la foto 360° (ver salirDeLaFoto). Abrir otro lugar o tocar el mapa lo quita.
+function marcarLugar(el, { conNombre = false } = {}) {
+  document.querySelectorAll(".marker.activo, .marker.marcado")
+    .forEach(m => m.classList.remove("activo", "marcado"));
+  if (el) el.classList.add("activo");
+  if (el && conNombre) el.classList.add("marcado");
 }
 
 // ---------- Modo inmersivo ----------
@@ -799,23 +808,66 @@ function abrirLugar(feature, el) {
   else abrirPanel(feature, el);
 }
 
-function abrirInmersivo(feature, el) {
+// ---------- Pasar de una playa a otra (opción 1 de Juan, 3-oct) ----------
+// Sobre la foto 360°, deslizar a la izquierda o a la derecha lleva a la siguiente playa con
+// foto. En el celular el dedo queda para eso (la foto se recorre moviendo el teléfono); en la
+// compu se sigue arrastrando con el mouse y se cambia de playa con las flechas del teclado.
+// La primera vez en la visita sale un aviso que lo explica; abajo, unos puntitos dicen cuántas hay.
+const tactil = window.matchMedia("(pointer: coarse)").matches;
+let lugarInmersivo = null; // id del lugar que muestra la foto
+
+// Los lugares con foto 360°, de norte a sur: deslizar recorre la costa en ese orden
+function recorrido360() {
+  return marcadores.filter(m => m.feature.properties.foto360)
+    .sort((a, b) => b.feature.geometry.coordinates[1] - a.feature.geometry.coordinates[1]);
+}
+
+function irAOtraPlaya(paso) {
+  const lista = recorrido360();
+  const i = lista.findIndex(m => m.feature.properties.id === lugarInmersivo);
+  if (lista.length < 2 || i < 0) return;
+  const otra = lista[(i + paso + lista.length) % lista.length];
+  abrirInmersivo(otra.feature, otra.el, { desde: paso > 0 ? "derecha" : "izquierda" });
+}
+
+function pistaYaVista() {
+  try {
+    if (sessionStorage.getItem("hey-pista-deslizar")) return true;
+    sessionStorage.setItem("hey-pista-deslizar", "1");
+  } catch {}
+  return false;
+}
+
+function abrirInmersivo(feature, el, opciones = {}) {
   const p = feature.properties;
   cerrarPanel();
   cerrarInmersivo();
-  document.querySelectorAll(".marker.activo").forEach(m => m.classList.remove("activo"));
-  el.classList.add("activo");
+  lugarInmersivo = p.id;
+  marcarLugar(el);
+  encuadreLibre = false; // ya estamos viendo un lugar: no volver al encuadre general
 
   const secciones = p.categorias.filter(c => CATEGORIAS[c]).map(c => [c, CATEGORIAS[c]]);
   if (toursDelLugar(p).length) secciones.push(["tours", TAB_TOURS]);
+  const lista = recorrido360();
+  const variasPlayas = lista.length > 1;
+  const pista = variasPlayas && !pistaYaVista() ? `
+    <div class="inm-pista" role="status">
+      <span class="inm-pista-mano" aria-hidden="true">👆</span>
+      <p>${tactil ? "Deslizá a la izquierda o a la derecha para ir a otra playa"
+        : "Usá las flechas ← → del teclado para ir a otra playa"}</p>
+    </div>` : "";
   inmersivo.innerHTML = `
-    <div class="inm-360"></div>
+    <div class="inm-360${opciones.desde ? ` entra-${opciones.desde}` : ""}"></div>
     <div class="inm-arriba">
       <h2>${esc(p.nombre)}</h2>
       <button type="button" class="inm-cerrar" aria-label="Volver al mapa">✕</button>
     </div>
     <span class="inm-credito">Foto 360° · tomada por un local</span>
+    ${pista}
     <div class="inm-abajo">
+      ${variasPlayas ? `<div class="inm-puntos" aria-hidden="true">
+        ${lista.map(m => `<span${m.feature === feature ? ' class="activo"' : ""}></span>`).join("")}
+      </div>` : ""}
       <button type="button" class="inm-giro" aria-pressed="false" hidden></button>
       <nav class="inm-secciones" aria-label="Secciones de ${esc(p.nombre)}">
         ${secciones.map(([clave, { icono, label }]) => `
@@ -827,7 +879,7 @@ function abrirInmersivo(feature, el) {
   inmersivo.hidden = false;
   document.body.classList.add("con-inmersivo");
 
-  inmersivo.querySelector(".inm-cerrar").addEventListener("click", cerrarInmersivo);
+  inmersivo.querySelector(".inm-cerrar").addEventListener("click", salirDeLaFoto);
   inmersivo.querySelectorAll(".inm-secciones button").forEach(b => b.addEventListener("click", () =>
     abrirPanel(feature, el, { sobre360: true, cat: b.dataset.cat })));
 
@@ -846,9 +898,38 @@ function abrirInmersivo(feature, el) {
   const toma = typeof p.foto360 === "string" ? { src: p.foto360 } : p.foto360;
   const vfov = 2 * Math.atan(Math.tan(hfov / 2 * rad) * cont.clientHeight / cont.clientWidth) / rad;
   const pitch = Math.min(Math.max(0, (toma.minPitch ?? -90) + vfov / 2), (toma.maxPitch ?? 90) - vfov / 2);
+  // El aviso de deslizar se va solo, o apenas la persona toca la pantalla
+  const pistaEl = inmersivo.querySelector(".inm-pista");
+  if (pistaEl) {
+    const quitarPista = () => {
+      pistaEl.classList.add("fuera");
+      setTimeout(() => pistaEl.remove(), 300);
+    };
+    setTimeout(quitarPista, 4000);
+    inmersivo.addEventListener("pointerdown", quitarPista, { once: true });
+  }
+
+  // En el celular, un deslizón rápido de lado a lado cambia de playa
+  if (tactil && variasPlayas) {
+    let toque = null;
+    cont.addEventListener("touchstart", (e) => {
+      toque = e.touches.length === 1 ? { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() } : null;
+    }, { passive: true });
+    cont.addEventListener("touchend", (e) => {
+      if (!toque) return;
+      const dx = e.changedTouches[0].clientX - toque.x;
+      const dy = e.changedTouches[0].clientY - toque.y;
+      const rapido = Date.now() - toque.t < 800;
+      toque = null;
+      if (rapido && Math.abs(dx) > 50 && Math.abs(dx) > 1.3 * Math.abs(dy)) irAOtraPlaya(dx < 0 ? 1 : -1);
+    });
+  }
+
   crearVisor360(cont, p.foto360, {
     showFullscreenCtrl: false, mouseZoom: true, hfov, minHfov: 30,
     pitch, minPitch: pitch - 0.5, maxPitch: pitch + 0.5,
+    draggable: !tactil,         // en el celular el dedo cambia de playa
+    disableKeyboardCtrl: true,  // las flechas cambian de playa, no giran la foto
   }).then((v) => {
     if (!cont.isConnected) { v?.destroy(); return; }
     visorInmersivo = v;
@@ -911,17 +992,33 @@ function cerrarInmersivo() {
   visorInmersivo = null;
   sincronizarGiro = null;
   fotoCongelada = null;
+  lugarInmersivo = null;
   inmersivo.hidden = true;
   inmersivo.innerHTML = "";
   document.body.classList.remove("con-inmersivo");
-  document.querySelectorAll(".marker.activo").forEach(m => m.classList.remove("activo"));
 }
 
-// Escape: primero cierra la ficha; si no hay ficha, sale de la foto
+// Pedido de Juan (3-oct): al salir de la foto, el lugar queda marcado en el mapa (con su nombre
+// y un aro que late) y el mapa se acerca a él, para que la persona sepa dónde queda.
+function salirDeLaFoto() {
+  const m = marcadores.find(x => x.feature.properties.id === lugarInmersivo);
+  cerrarInmersivo();
+  if (!m) return;
+  marcarLugar(m.el, { conNombre: true });
+  map.flyTo({ center: m.feature.geometry.coordinates, zoom: Math.max(map.getZoom(), 14),
+    duration: sinMovimiento.matches ? 0 : 800 });
+}
+
+// Escape: primero cierra la ficha; si no hay ficha, sale de la foto. Con la foto sola, las
+// flechas pasan a la playa de al lado.
 document.addEventListener("keydown", (e) => {
-  if (e.key !== "Escape" || inmersivo.hidden) return;
-  if (!panel.hidden) cerrarPanel();
-  else cerrarInmersivo();
+  if (inmersivo.hidden) return;
+  if (e.key === "Escape") {
+    if (!panel.hidden) cerrarPanel();
+    else salirDeLaFoto();
+  } else if (panel.hidden && (e.key === "ArrowRight" || e.key === "ArrowLeft")) {
+    irAOtraPlaya(e.key === "ArrowRight" ? 1 : -1);
+  }
 });
 
 // ---------- Hoja deslizable (solo celular) ----------
@@ -1365,6 +1462,8 @@ const coordsCopy = document.getElementById("coords-copy");
 let ultimaCoord = null;
 
 map.on("click", (e) => {
+  // Tocar el mapa (fuera de un lugar) quita la marca que dejó la foto 360°
+  if (panel.hidden && inmersivo.hidden) marcarLugar(null);
   const lng = +e.lngLat.lng.toFixed(5);
   const lat = +e.lngLat.lat.toFixed(5);
   ultimaCoord = `[${lng}, ${lat}]`;
