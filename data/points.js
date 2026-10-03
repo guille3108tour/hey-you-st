@@ -552,6 +552,31 @@ const POINTS = {
       "geometry": {
         "type": "Point",
         "coordinates": [
+          -85.167018,
+          9.640846
+        ]
+      },
+      "properties": {
+        "id": "eso-beach",
+        "nombre": "Eso Beach",
+        "categorias": [
+          "playa"
+        ],
+        "foto": "",
+        "foto360": {
+          "src": "img/360/eso-beach.jpg",
+          "yaw": 125,
+          "minPitch": -35,
+          "maxPitch": 60
+        },
+        "voces": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
           -85.143076,
           9.594294
         ]

@@ -407,7 +407,7 @@ function cargarPannellum() {
   return pannellumListo;
 }
 
-// "foto360" puede ser solo la ruta, o { src, yaw, minPitch } para ajustar la toma.
+// "foto360" puede ser solo la ruta, o { src, yaw, minPitch, maxPitch } para ajustar la toma.
 // "ajustes" cambia opciones del visor (la pantalla completa no usa las mismas que la portada).
 async function crearVisor360(contenedor, foto360, ajustes = {}) {
   try { await cargarPannellum(); } catch { return null; }
@@ -419,6 +419,7 @@ async function crearVisor360(contenedor, foto360, ajustes = {}) {
     panorama: toma.src,
     yaw: toma.yaw ?? 0,
     minPitch: toma.minPitch ?? -90,
+    maxPitch: toma.maxPitch ?? 90,
     autoLoad: true,
     autoRotate: sinMovimiento.matches ? 0 : -2,
     hfov: 100,
