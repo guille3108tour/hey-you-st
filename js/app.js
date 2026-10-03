@@ -39,7 +39,7 @@ const LUGARES = POINTS.features
 // Los tours se coordinan directamente con Juan, no con quien da el tour: el panel
 // no muestra teléfonos, correos ni webs de proveedores y ofrece escribirle a él.
 // Número de WhatsApp con código de país, sin + ni espacios (ej: "50688887777").
-const CONTACTO_JUAN = { whatsapp: "" };
+const CONTACTO_JUAN = { whatsapp: "50689889988" };
 
 // La fila "Todas" del panel no es una categoría, pero usa el mismo set de íconos.
 const CAT_TODAS = { label: "Todas", icono: "img/iconos/todas.png", emoji: "🗺️", color: "#0ea5e9" };
@@ -441,55 +441,45 @@ function textoDeCategoria(p, cat) {
   return p.porCategoria?.[cat] || p.entrada || "Conocé este lugar con la guía local.";
 }
 
-// Preguntas al bot cuando hay una pestaña elegida: hablan de esa categoría
-const PREGUNTAS_POR_CATEGORIA = {
-  general: n => [
-    `¿Qué te gustaría saber de ${n}: cómo llegar, qué hacer o qué tener en cuenta?`,
-  ],
-  surf: n => [
-    `¿Qué día y a qué hora te gustaría surfear en ${n}?`,
-    `¿Qué nivel tenés para surfear en ${n}?`,
-  ],
-  familia: n => [
-    `¿Qué edad tienen los niños y cuándo piensan ir a ${n}?`,
-    `¿Qué te gustaría saber antes de ir con niños a ${n}?`,
-  ],
-  atardecer: n => [
-    `¿Qué día te gustaría ir a ${n} para el atardecer?`,
-  ],
-  playa: n => [
-    `¿Qué te gustaría saber de ${n}: cómo es la orilla, cómo llegar o qué hay cerca?`,
-  ],
-  naturaleza: n => [
-    `¿Qué te gustaría conocer de ${n}: el camino, el entorno o qué tener en cuenta?`,
-  ],
-  cascada: n => [
-    `¿Qué día pensás visitar ${n} y desde dónde saldrías?`,
-  ],
-};
+// Una sección es un texto corto o, desde el 2-oct (pedido de Juan: más detalle por categoría),
+// una sección completa { texto, datos, bloques } — ver data/points.js.
+function htmlSeccion(sec) {
+  if (typeof sec === "string") return `<p class="resumen abierto">${esc(sec)}</p>`;
+  const datos = sec.datos?.length
+    ? `<div class="datos">${sec.datos.map(d => `<span class="dato">${esc(d)}</span>`).join("")}</div>` : "";
+  const bloques = (sec.bloques || [])
+    .map(b => `<div class="bloque"><h4>${esc(b.titulo)}</h4><p>${esc(b.texto)}</p></div>`).join("");
+  return `<p class="seccion-intro">${esc(sec.texto)}</p>${datos}${bloques}`;
+}
 
-// Preguntas pensadas para ese lugar, según lo que es, de la mejor a la menos buena
-// (el panel solo muestra la primera). Llevan el nombre del lugar porque el bot las
-// recibe sin ver el mapa.
-function preguntasSugeridas(p, cat) {
-  // Primero mandan las preguntas escritas para este lugar ("preguntas" en data/points.js)
-  const propias = p.preguntas?.[cat || "general"];
-  if (propias?.length) return propias.slice(0, 3);
-  if (PREGUNTAS_POR_CATEGORIA[cat || "general"]) return PREGUNTAS_POR_CATEGORIA[cat || "general"](p.nombre);
-  const n = p.nombre;
-  const cats = p.categorias || [];
-  const qs = [];
-  if (p.surf) qs.push(`¿${n} sirve para aprender a surfear?`);
-  if (cats.includes("familia")) qs.push(`¿Es tranquilo ir con niños a ${n}?`);
-  if (p.mareas) qs.push(`¿Cómo cambia ${n} con la marea?`);
-  if (cats.includes("atardecer")) qs.push(`¿A qué hora conviene llegar a ${n} para el atardecer?`);
-  if (cats.includes("cascada")) qs.push(`¿Cómo es la caminata hasta ${n}?`);
-  if (cats.includes("comida")) qs.push(`¿Qué me recomendás pedir en ${n}?`);
-  if (cats.includes("hospedaje")) qs.push(`¿Para qué tipo de viajero es ${n}?`);
-  if (cats.includes("tours")) qs.push(`¿Qué incluye la experiencia de ${n}?`);
-  if (cats.includes("bienestar")) qs.push(`¿Qué tipo de experiencia es ${n}?`);
-  qs.push(`¿Qué más hay cerca de ${n}?`);
-  return qs.slice(0, 3);
+// ---------- Tours del lugar ----------
+// Pedido de Juan (2-oct): los tours van como la última pestaña de cada lugar, no como un
+// botón aparte. La pestaña cuenta el tour completo y, si lo quieren, se reserva con Juan por
+// WhatsApp. Nunca se muestra quién da el tour ni su contacto. Los tours y en qué lugares
+// aparecen están en data/tours.js ("lugares").
+const TAB_TOURS = { label: "Tours", icono: "img/iconos/tours.png" };
+
+function toursDelLugar(p) {
+  return TOURS.filter(t => t.lugares?.includes(p.id));
+}
+
+function botonWhatsApp(mensaje, etiqueta) {
+  if (!CONTACTO_JUAN.whatsapp) return `<span class="reservar reservar-pronto">Reservas por WhatsApp muy pronto</span>`;
+  const url = `https://wa.me/${CONTACTO_JUAN.whatsapp}?text=${encodeURIComponent(mensaje)}`;
+  return `<a class="reservar" href="${esc(url)}" target="_blank" rel="noopener">${esc(etiqueta)}</a>`;
+}
+
+// El mensaje ya trae los huecos de cuántos son y qué día: es lo primero que Juan necesita
+function htmlTour(t) {
+  return `
+    <article class="tour">
+      <h3>${esc(t.titulo)}</h3>
+      <p class="tour-meta">📍 ${esc(t.salida)}<br>⏱ ${esc(t.duracion)}</p>
+      <div class="datos">${t.incluye.map(i => `<span class="dato">${esc(i)}</span>`).join("")}</div>
+      <p class="tour-texto">${esc(t.texto)}</p>
+      <p class="tour-precio${t.precio ? "" : " a-confirmar"}">${esc(t.precio || "Precio según la fecha y el grupo: te lo confirmamos por WhatsApp.")}</p>
+      ${botonWhatsApp(`Hola Juan 👋 Vi en Hey You ST el tour "${t.titulo}" y me interesa. Somos ___ personas y nos gustaría ir el ___.`, "Quiero este tour: escribile a Juan")}
+    </article>`;
 }
 
 function abrirPanel(feature, el) {
@@ -499,12 +489,15 @@ function abrirPanel(feature, el) {
   document.querySelectorAll(".marker.activo").forEach(m => m.classList.remove("activo"));
   el.classList.add("activo");
 
-  // Las categorías del lugar son pestañas: tocar "Surf" cuenta cómo es el surf ahí
+  // Las categorías del lugar son pestañas: tocar "Surf" cuenta cómo es el surf ahí.
+  // Si el lugar tiene tours, "Tours" va de última.
+  const tours = toursDelLugar(p);
+  const pestana = (clave, { icono, label }) => `<button type="button" class="tag" data-cat="${clave}" aria-pressed="false">` +
+    `<img class="tag-ico" src="${esc(icono)}" alt="">${esc(label)}</button>`;
   const tags = p.categorias
     .filter(c => CATEGORIAS[c])
-    .map(c => `<button type="button" class="tag" data-cat="${c}" aria-pressed="false">` +
-      `<img class="tag-ico" src="${esc(CATEGORIAS[c].icono)}" alt="">${esc(CATEGORIAS[c].label)}</button>`)
-    .join("");
+    .map(c => pestana(c, CATEGORIAS[c]))
+    .join("") + (tours.length ? pestana("tours", TAB_TOURS) : "");
 
   // Portada: la foto del lugar si la hay; si no, su vista 3D (y mientras carga,
   // la foto satelital plana del mismo punto)
@@ -521,9 +514,7 @@ function abrirPanel(feature, el) {
         <button type="button" data-modo="mapa">${con3d ? "3D" : "Foto"}</button>
       </div>` : "";
 
-  // Las vistas del lugar anterior se van con el HTML viejo (la charla no: se guarda)
-  devolverCharla();
-  panel.classList.remove("charlando");
+  // Las vistas del lugar anterior se van con el HTML viejo
   desmontarVista3D();
   desmontarVista360();
   panelBody.innerHTML = `
@@ -573,41 +564,22 @@ function abrirPanel(feature, el) {
     mostrarMapa3D();
   }
 
-  // El panel conserva el texto breve y una pregunta generadora por sección.
+  // El panel muestra el texto breve de la sección elegida. "Preguntale al local" se quitó
+  // el 2-oct (pedido de Juan): la ficha ya da buena información por sí sola.
   const vistaEl = panelBody.querySelector(".vista");
   const tagsEl = [...panelBody.querySelectorAll(".tag")];
   const pintarVista = (cat) => {
-    devolverCharla();
-    panel.classList.remove("charlando");
     tagsEl.forEach(t => t.setAttribute("aria-pressed", String(t.dataset.cat === cat)));
+    if (cat === "tours") {
+      vistaEl.innerHTML = `
+        <p class="vista-titulo"><img src="${esc(TAB_TOURS.icono)}" alt="">Tours en ${esc(p.nombre)}</p>
+        ${tours.map(htmlTour).join("")}`;
+      return;
+    }
     const c = CATEGORIAS[cat];
-    // Regla de Juan (29-sep): una sola pregunta por sección
-    const preguntas = preguntasSugeridas(p, cat).slice(0, 1)
-      .map(q => `<button type="button" class="pregunta">${esc(q)}</button>`).join("");
     vistaEl.innerHTML = `
       ${c ? `<p class="vista-titulo"><img src="${esc(c.icono)}" alt="">${esc(c.label)} en ${esc(p.nombre)}</p>` : ""}
-      <p class="resumen abierto">${esc(c ? textoDeCategoria(p, cat) : (p.entrada || "Conocé este lugar con la guía local."))}</p>
-      <p class="preguntas-titulo">💬 Preguntale al local</p>
-      ${preguntas}`;
-    vistaEl.querySelectorAll(".pregunta").forEach(b => {
-      const q = b.textContent;
-      b.addEventListener("click", () => abrirCharla(cat, q));
-    });
-  };
-  // Regla de Juan (29-sep): al tocar la pregunta, en lugar del texto se despliega la charla
-  // con el local, ahí mismo en la ficha y con su mismo vidrio. La pregunta sale tal cual;
-  // el bot no ve el mapa, así que el lugar y la sección viajan aparte, sin repetirlos en
-  // el texto que ve el visitante. "‹ Volver" (o tocar una pestaña) regresa al texto.
-  const abrirCharla = (cat, q) => {
-    const c = CATEGORIAS[cat];
-    vistaEl.innerHTML = `
-      <p class="vista-titulo charla-titulo">💬 Preguntale al local
-        <button type="button" class="charla-volver">‹ Volver</button></p>`;
-    vistaEl.querySelector(".charla-volver").addEventListener("click", () => pintarVista(cat));
-    window.charlaEnFicha?.(vistaEl);
-    panel.classList.add("charlando");
-    if (anchoMovil.matches) ponerAltura("alta"); // en celular la hoja sube para conversar
-    window.preguntarAlBot?.(q, { lugar: p.nombre, seccion: c ? c.label : "General" });
+      ${htmlSeccion(c ? textoDeCategoria(p, cat) : (p.entrada || "Conocé este lugar con la guía local."))}`;
   };
   tagsEl.forEach(t => t.addEventListener("click", () => {
     // Tocar la pestaña que ya está elegida vuelve a la vista general
@@ -635,16 +607,7 @@ function abrirPanel(feature, el) {
   });
 }
 
-// La charla con el local (js/chatbot.js) puede estar metida en la ficha. Antes de rehacer
-// o cerrar el panel la devolvemos a su ventanita: si no, se borraría junto con el HTML
-// viejo y se perdería la conversación.
-function devolverCharla() {
-  window.charlaACasa?.();
-}
-
 function cerrarPanel() {
-  devolverCharla();
-  panel.classList.remove("charlando");
   panel.hidden = true;
   lugarAbierto = null;
   soltarAltura();
@@ -656,7 +619,7 @@ function cerrarPanel() {
 // ---------- Hoja deslizable (solo celular) ----------
 // Pedido de Juan (29-sep): la ficha se baja y se sube como las hojas del iPhone. Tiene tres
 // alturas: "baja" (una barrita con el nombre, para seguir explorando el mapa), "media" (al
-// abrir un lugar) y "alta" (para conversar). Se arrastra desde la agarradera, o desde el
+// abrir un lugar) y "alta" (para leer todo). Se arrastra desde la agarradera, o desde el
 // contenido cuando está arriba del todo; al soltar se acomoda en la altura más cercana, o
 // en la siguiente si el gesto fue rápido. Un toque en la agarradera baja o sube la hoja.
 const panelAsa = document.getElementById("panel-asa");

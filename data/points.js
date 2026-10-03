@@ -29,19 +29,119 @@ const POINTS = {
           "peligros": "Pocos; playa abierta"
         },
         "familia": {
-          "sombra": "Sí, árboles al fondo de la playa",
-          "pozas": "Sí, con marea baja",
+          "sombra": "Árboles al fondo de la playa, pero en las tardes no hay sombra: el sol pega de frente. Con niños, cuidado en las tardes",
+          "pozas": "No hay pozas, pero es tan plana que siempre hay buen espacio para estar",
           "servicios": "Hay parqueo con alguien que cuida los carros; están empezando a surgir negocios locales de comida cerca"
         },
         "mareas": {
           "alta": "El agua sube rápido por lo plana que es la playa — se puede estar, pero ojo con dejar cosas cerca de la orilla, se mojan.",
-          "baja": "Se abre muchísimo espacio de arena, ideal para las familias. En la tarde, con la marea bajando, el reflejo anaranjado del atardecer sobre el agua que queda en la arena es un espectáculo."
+          "baja": "Se abre muchísimo espacio de arena, ideal para las familias. Lo perfecto, por el sol, es que la marea baja caiga entre las 6 y las 11 a.m. o entre las 3 y las 5 p.m. (para surf es distinto). En la tarde, con la marea bajando, el reflejo anaranjado del atardecer sobre el agua que queda en la arena es un espectáculo."
         },
-        "entrada": "Una playa amplia y tranquila al norte de Santa Teresa, con espacio para pasar el día en familia, pozas que aparecen con marea baja y condiciones que pueden interesarle a quien empieza a surfear. Al final de la tarde, la arena húmeda puede reflejar los colores del cielo.",
+        "entrada": "Una playa amplia, plana y tranquila al norte de Santa Teresa, con espacio para pasar el día en familia y condiciones que pueden interesarle a quien empieza a surfear. Al final de la tarde, la arena húmeda puede reflejar los colores del cielo.",
         "porCategoria": {
-          "surf": "Playa Hermosa tiene fondo de arena y suele recomendarse para niveles principiante e intermedio. La ficha local señala que funciona mejor con marea baja a media y swell del suroeste (SW). Es una playa abierta, así que las condiciones pueden cambiar: antes de entrar, conviene revisar cómo están el oleaje, el viento y la marea ese día.",
-          "familia": "Playa Hermosa es amplia y plana, con oleaje muy bajo. Cuando baja la marea queda más espacio para jugar y pueden formarse pozas. Al fondo de la playa hay árboles que dan sombra. Si van en familia, la marea baja suele dejar más espacio; con marea alta, mantené bolsos y pertenencias lejos de la orilla porque el agua sube rápido. Hay parqueo con una persona que cuida los carros y están empezando a aparecer negocios locales de comida cerca. Una buena opción para pasar la tarde con calma y quedarse a ver el atardecer.",
-          "atardecer": "Cuando la marea baja deja una película de agua sobre la arena, el cielo se refleja y Playa Hermosa se llena de tonos cálidos. Es un buen lugar para cerrar la tarde con un paseo tranquilo por una playa amplia."
+          "surf": {
+            "texto": "Si estás aprendiendo, esta es tu ola. Playa Hermosa es un beach break noble, con fondo de arena y olas suaves que abren a la izquierda y a la derecha. Y cuando Santa Teresa se pone grande y pesada, acá todavía se puede jugar.",
+            "datos": [
+              "Beach break",
+              "Fondo de arena",
+              "Izquierdas y derechas",
+              "Swell del SW",
+              "Marea baja a media",
+              "Offshore: viento del este",
+              "Olas de 1 a 4 pies",
+              "Principiante e intermedio"
+            ],
+            "bloques": [
+              {
+                "titulo": "Cómo es la ola",
+                "texto": "Rompe en varios picos a lo largo de la playa, así que hay espacio para repartirse. Es una ola con poca fuerza, de esas que perdonan: ideal para pararte por primera vez en la espuma o para practicar giros sin que el mar te castigue."
+              },
+              {
+                "titulo": "Cuándo se pone buena",
+                "texto": "La ficha local dice que trabaja mejor con marea baja a media y swell del suroeste (también agarra el del oeste). Madrugá: las mañanas suelen traer viento offshore del este, que deja el agua lisa como vidrio y las olas limpias."
+              },
+              {
+                "titulo": "En qué época venir",
+                "texto": "De abril a septiembre entran los swells más constantes del sur y suroeste. De diciembre a febrero las olas llegan más chicas y ordenadas: la mejor época si estás empezando."
+              },
+              {
+                "titulo": "Ojo con",
+                "texto": "Es una playa abierta y cambia de un día a otro. Antes de entrar, sentate cinco minutos a ver dónde rompe, cómo corre el agua y cómo va la marea. Y si dejás cosas en la arena, acordate de que con marea alta el agua sube rápido."
+              }
+            ]
+          },
+          "playa": {
+            "texto": "Ancha, plana y de arena clara, con palmeras y almendros al fondo. Playa Hermosa queda a unos 3 km al norte del centro de Santa Teresa, pero se siente en otro ritmo: muy tranquila, con agua cristalina y un mar que casi siempre llega mansito a la orilla.",
+            "datos": [
+              "Arena ancha y plana",
+              "Agua cristalina",
+              "Oleaje bajo",
+              "Sin sombra en la tarde",
+              "Parqueo con cuidador",
+              "A unos 3 km de Santa Teresa"
+            ],
+            "bloques": [
+              {
+                "titulo": "Cómo cambia con la marea",
+                "texto": "Con marea baja la playa se abre muchísimo: aparece arena de sobra para caminar, correr o tirarse a leer. Lo perfecto es que la marea baja caiga entre las 6 y las 11 a.m. o entre las 3 y las 5 p.m., por el sol. Con marea alta el agua sube rápido por lo plana que es; se puede estar igual, pero dejá las cosas lejos de la orilla."
+              },
+              {
+                "titulo": "Lo práctico",
+                "texto": "Hay parqueo con alguien que cuida los carros. En la tarde el sol pega de frente y no hay sombra en la arena. Cerca están empezando a aparecer negocios locales de comida, pero no cuentes con un restaurante en la arena: traé agua y algo para picar."
+              }
+            ]
+          },
+          "familia": {
+            "texto": "Una playa plana y segura, con olas bajitas que llegan suaves a la orilla: los chiquitos juegan y los papás respiran. Es tan plana que siempre hay buen espacio para estar; eso sí, en la tarde el sol pega de frente.",
+            "datos": [
+              "Playa plana",
+              "Olas bajitas",
+              "Mucho espacio con marea baja",
+              "Ideal: marea baja de 6 a 11 a.m. o de 3 a 5 p.m.",
+              "Sin sombra en la tarde",
+              "Parqueo con cuidador"
+            ],
+            "bloques": [
+              {
+                "titulo": "La mejor hora",
+                "texto": "Con marea baja: como la playa es tan plana, se abre muchísimo espacio de arena para jugar. Lo perfecto es que la marea baja caiga entre las 6 y las 11 a.m. o entre las 3 y las 5 p.m.: así no les toca el sol más fuerte del día."
+              },
+              {
+                "titulo": "Con marea alta",
+                "texto": "El agua sube rápido por lo plana que es la playa. Dejen bolsos, toallas y juguetes lejos de la orilla."
+              },
+              {
+                "titulo": "Ojo con el sol de la tarde",
+                "texto": "En las tardes el sol pega de frente y no hay sombra en la arena. Si andan con niños, tengan cuidado en esas horas. Cerca están empezando a surgir negocios locales de comida: buena excusa para resguardarse del sol antes de quedarse al atardecer."
+              },
+              {
+                "titulo": "Dato de local",
+                "texto": "Antes, después de misa, Playa Hermosa era el punto de encuentro del pueblo: las familias llegaban con ropa de cambio y parrillas, y los niños jugaban tranquilos en la orilla."
+              }
+            ]
+          },
+          "atardecer": {
+            "texto": "Acá el atardecer se ve dos veces: en el cielo y en la arena. Cuando la marea va bajando queda una película de agua sobre la playa que refleja todo el naranja del cielo, y caminar ahí es como caminar sobre un espejo.",
+            "datos": [
+              "Mirando al oeste",
+              "Sol se pone entre 5:15 y 6:05 p.m.",
+              "Mejor con marea bajando"
+            ],
+            "bloques": [
+              {
+                "titulo": "A qué hora llegar",
+                "texto": "En esta zona el sol se pone entre las 5:15 p.m. (noviembre) y las 6:05 p.m. (julio). Llegá unos 30 o 40 minutos antes: muchas veces los mejores colores aparecen justo después de que el sol se esconde."
+              },
+              {
+                "titulo": "El truco",
+                "texto": "Revisá la tabla de mareas: si el atardecer coincide con la marea bajando, te toca el reflejo completo sobre la arena."
+              },
+              {
+                "titulo": "Para cerrar el día",
+                "texto": "Es una playa amplia para caminar sin prisa, sentarte en la arena y bajar revoluciones. Si venís a desconectarte, este puede ser tu ritual de cada tarde."
+              }
+            ]
+          }
         },
         "preguntas": {
           "general": [
@@ -92,6 +192,13 @@ const POINTS = {
               "explorador"
             ],
             "texto": "Antes, después de misa —este es un pueblo muy cristiano— Playa Hermosa era el punto de encuentro del pueblo: la gente llegaba con ropa de cambio, se cambiaba ahí mismo, sacaban parrillas y compartían en familia, mientras los niños jugaban tranquilos porque la playa es muy plana y segura. Recomiendo ir con marea baja para tener más espacio; con marea alta igual se puede estar, pero ojo que las cosas se mojan rápido. Hay parqueo con quien cuida los carros, y están empezando a surgir negocios locales de comida — buena excusa para resguardarse del sol de la tarde antes de quedarse a ver el atardecer."
+          },
+          {
+            "autor": "Guille",
+            "perfiles": [
+              "familia"
+            ],
+            "texto": "En Playa Hermosa no hay pozas, pero al ser un lugar tan plano hay lugar bueno para estar. En las tardes, como el sol está de frente, no hay sombra: si andás con niños, hay que tener cuidado durante las tardes. Las mejores horas para ir en marea baja: perfecto cuando la marea baja es entre las 3 y las 5 p.m., o desde las 6 hasta las 11 a.m., por temas de sol. Para el surf es diferente."
           }
         ]
       }
