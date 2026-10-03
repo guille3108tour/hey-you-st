@@ -736,7 +736,8 @@ function abrirPanel(feature, el, opciones = {}) {
   panel.scrollTop = 0;
   asaNombre.textContent = p.nombre;
   // Al tocar una sección sobre la 360°, la ficha sube hasta arriba (pedido de Juan, 3-oct);
-  // su ✕ devuelve a la foto
+  // su ✕ devuelve a la foto. Mientras tanto la foto se queda quieta.
+  if (sobre360) congelarFoto(true);
   if (anchoMovil.matches) ponerAltura(sobre360 ? "alta" : "media");
   encuadreLibre = false; // ya estamos viendo un lugar: no volver al encuadre general
   if (sobre360) return; // el mapa está detrás de la foto; ya se movió al abrirla
@@ -759,7 +760,8 @@ function cerrarPanel() {
   soltarAltura();
   desmontarVista3D();
   desmontarVista360();
-  // Encima de la 360°, cerrar la ficha vuelve a la foto; el lugar sigue marcado
+  // Encima de la 360°, cerrar la ficha vuelve a la foto (que vuelve a moverse); el lugar sigue marcado
+  congelarFoto(false);
   if (inmersivo.hidden) document.querySelectorAll(".marker.activo").forEach(m => m.classList.remove("activo"));
 }
 
@@ -770,6 +772,26 @@ function cerrarPanel() {
 // lo usan los lugares con "foto360" (Villa Flor); los demás abren la ficha de siempre.
 const inmersivo = document.getElementById("inmersivo");
 let visorInmersivo = null;
+let sincronizarGiro = null; // actualiza el botón del giroscopio (ver prepararGiroscopio)
+let fotoCongelada = null;   // { giro } mientras la ficha tapa la foto
+
+// Pedido de Juan (3-oct): mientras se lee una sección, la foto de atrás se queda quieta (sin
+// girar sola ni seguir el teléfono) para no distraer del texto; al cerrar o bajar la ficha,
+// vuelve a moverse como estaba.
+function congelarFoto(congelar) {
+  const v = visorInmersivo;
+  if (!v) return;
+  if (congelar && !fotoCongelada) {
+    fotoCongelada = { giro: v.isOrientationActive() };
+    v.stopAutoRotate();
+    if (fotoCongelada.giro) v.stopOrientation();
+  } else if (!congelar && fotoCongelada) {
+    if (fotoCongelada.giro) v.startOrientation();
+    else if (!sinMovimiento.matches) v.startAutoRotate(-2);
+    fotoCongelada = null;
+    sincronizarGiro?.();
+  }
+}
 
 function abrirLugar(feature, el) {
   if (feature.properties.foto360) abrirInmersivo(feature, el);
@@ -851,6 +873,7 @@ function prepararGiroscopio(v) {
   });
   // Arrastrar la foto con el dedo apaga el giroscopio (así lo hace el visor): el botón lo refleja
   inmersivo.querySelector(".inm-360").addEventListener("touchend", () => setTimeout(sincronizar, 0));
+  sincronizarGiro = sincronizar;
   btn.hidden = false;
   sincronizar();
   // Se intenta prender solo: en Android el permiso no hace falta o se da sin preguntar; en el
@@ -866,6 +889,8 @@ function cerrarInmersivo() {
   if (!panel.hidden) cerrarPanel();
   if (visorInmersivo) visorInmersivo.destroy();
   visorInmersivo = null;
+  sincronizarGiro = null;
+  fotoCongelada = null;
   inmersivo.hidden = true;
   inmersivo.innerHTML = "";
   document.body.classList.remove("con-inmersivo");
@@ -908,6 +933,8 @@ function ponerAltura(nombre) {
   panel.style.height = pxDeAltura(nombre) + "px";
   panel.classList.toggle("baja", nombre === "baja");
   if (nombre === "baja") panel.scrollTop = 0;
+  // Sobre la 360°: con la ficha bajada la foto vuelve a moverse; al subirla, se queda quieta
+  if (panel.classList.contains("sobre-360") && !panel.hidden) congelarFoto(nombre !== "baja");
   panelAsa.setAttribute("aria-label", nombre === "baja" ? "Subir la ficha" : "Bajar la ficha para ver el mapa");
 }
 
