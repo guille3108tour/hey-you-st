@@ -840,14 +840,33 @@ function abrirInmersivo(feature, el) {
   const cont = inmersivo.querySelector(".inm-360");
   const rad = Math.PI / 180;
   const hfov = Math.min(100, 2 * Math.atan(Math.tan(37.5 * rad) * cont.clientWidth / cont.clientHeight) / rad);
-  crearVisor360(cont, p.foto360, { showFullscreenCtrl: false, mouseZoom: true, hfov, minHfov: 30 }).then((v) => {
+  // Pedido de Juan (3-oct): no una esfera completa, solo de lado a lado. La altura queda fija
+  // cerca del horizonte (con el mínimo y el máximo casi iguales el visor la traba ahí), sin
+  // mostrar el relleno de la toma, y el teléfono solo mueve la foto en horizontal.
+  const toma = typeof p.foto360 === "string" ? { src: p.foto360 } : p.foto360;
+  const vfov = 2 * Math.atan(Math.tan(hfov / 2 * rad) * cont.clientHeight / cont.clientWidth) / rad;
+  const pitch = Math.min(Math.max(0, (toma.minPitch ?? -90) + vfov / 2), (toma.maxPitch ?? 90) - vfov / 2);
+  crearVisor360(cont, p.foto360, {
+    showFullscreenCtrl: false, mouseZoom: true, hfov, minHfov: 30,
+    pitch, minPitch: pitch - 0.5, maxPitch: pitch + 0.5,
+  }).then((v) => {
     if (!cont.isConnected) { v?.destroy(); return; }
     visorInmersivo = v;
-    if (v) prepararGiroscopio(v);
+    if (!v) return;
+    soloHorizontal(v);
+    v.on("load", () => soloHorizontal(v));
+    prepararGiroscopio(v);
   });
 
   // Detrás, el mapa ya se acerca al lugar: al volver, la persona está ahí
   map.flyTo({ center: feature.geometry.coordinates, zoom: Math.max(map.getZoom(), 13), duration: 0 });
+}
+
+// Con el giroscopio, el visor inclina la foto si el teléfono se ladea ("roll"). Juan quiere
+// que el teléfono solo la mueva de lado a lado: el roll queda siempre en 0. (getConfig()
+// devuelve la configuración viva del visor; la altura ya está trabada con minPitch/maxPitch.)
+function soloHorizontal(v) {
+  Object.defineProperty(v.getConfig(), "roll", { get: () => 0, set() {}, configurable: true });
 }
 
 // Pedido de Juan (3-oct): mirar alrededor moviendo el teléfono, para que la foto se sienta
