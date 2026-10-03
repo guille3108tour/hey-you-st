@@ -52,28 +52,14 @@ const POINTS = {
         "porCategoria": {
           "surf": {
             "texto": "Si estás aprendiendo, esta es tu ola. Playa Hermosa es un beach break noble, con fondo de arena y olas suaves que abren a la izquierda y a la derecha. Y cuando Santa Teresa se pone grande y pesada, acá todavía se puede jugar.",
-            "datos": [
-              "Beach break",
-              "Fondo de arena",
-              "Izquierdas y derechas",
-              "Swell del SW",
-              "Marea baja a media",
-              "Offshore: viento del este",
-              "Olas de 1 a 4 pies",
-              "Principiante e intermedio"
-            ],
             "bloques": [
               {
                 "titulo": "Cómo es la ola",
-                "texto": "Rompe en varios picos a lo largo de la playa, así que hay espacio para repartirse. Es una ola con poca fuerza, de esas que perdonan: ideal para pararte por primera vez en la espuma o para practicar giros sin que el mar te castigue."
+                "texto": "Rompe en varios picos a lo largo de la playa, así que hay espacio para repartirse. Suele andar entre 1 y 4 pies, con poca fuerza, de esas que perdonan: ideal para pararte por primera vez en la espuma o para practicar giros sin que el mar te castigue."
               },
               {
                 "titulo": "Cuándo se pone buena",
                 "texto": "La ficha local dice que trabaja mejor con marea baja a media y swell del suroeste (también agarra el del oeste). Madrugá: las mañanas suelen traer viento offshore del este, que deja el agua lisa como vidrio y las olas limpias."
-              },
-              {
-                "titulo": "En qué época venir",
-                "texto": "De abril a septiembre entran los swells más constantes del sur y suroeste. De diciembre a febrero las olas llegan más chicas y ordenadas: la mejor época si estás empezando."
               },
               {
                 "titulo": "Ojo con",
@@ -83,14 +69,6 @@ const POINTS = {
           },
           "playa": {
             "texto": "Ancha, plana y de arena clara. Queda al norte de Santa Teresa, pero se siente en otro ritmo: muy tranquila, con agua cristalina y un mar que casi siempre llega mansito a la orilla.",
-            "datos": [
-              "Arena ancha y plana",
-              "Agua cristalina",
-              "Oleaje bajo",
-              "Entra todo tipo de carro",
-              "Sin sombra en la tarde",
-              "Parqueo con cuidador"
-            ],
             "bloques": [
               {
                 "titulo": "Cómo cambia con la marea",
@@ -108,13 +86,6 @@ const POINTS = {
           },
           "familia": {
             "texto": "Una playa plana y segura, con olas bajitas que llegan suaves a la orilla: los chiquitos juegan y los papás respiran. Es tan plana que siempre hay buen espacio para estar; eso sí, en la tarde el sol pega de frente.",
-            "datos": [
-              "Playa plana",
-              "Olas bajitas",
-              "Mucho espacio con marea baja",
-              "Sin sombra en la tarde",
-              "Parqueo con cuidador"
-            ],
             "bloques": [
               {
                 "titulo": "La mejor hora",
@@ -136,11 +107,6 @@ const POINTS = {
           },
           "atardecer": {
             "texto": "Acá el atardecer se ve dos veces: en el cielo y en la arena. Cuando la marea va bajando queda una película de agua sobre la playa que refleja todo el naranja del cielo, y caminar ahí es como caminar sobre un espejo.",
-            "datos": [
-              "Mirando al oeste",
-              "Sol se pone entre 5:15 y 6:05 p.m.",
-              "Mejor con marea bajando"
-            ],
             "bloques": [
               {
                 "titulo": "A qué hora llegar",

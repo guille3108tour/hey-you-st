@@ -241,7 +241,7 @@ for (const feature of LUGARES) {
 
   el.addEventListener("click", (e) => {
     e.stopPropagation();
-    abrirPanel(feature, el);
+    abrirLugar(feature, el);
   });
 
   // opacityWhenCovered: en modo 3D MapLibre atenúa los marcadores "tapados" por el terreno;
@@ -407,14 +407,14 @@ function cargarPannellum() {
   return pannellumListo;
 }
 
-// "foto360" puede ser solo la ruta, o { src, yaw, minPitch } para ajustar la toma
-async function montarVista360(contenedor, foto360) {
-  desmontarVista360();
-  try { await cargarPannellum(); } catch { return; }
+// "foto360" puede ser solo la ruta, o { src, yaw, minPitch } para ajustar la toma.
+// "ajustes" cambia opciones del visor (la pantalla completa no usa las mismas que la portada).
+async function crearVisor360(contenedor, foto360, ajustes = {}) {
+  try { await cargarPannellum(); } catch { return null; }
   // Mientras se descargaba el visor, la persona pudo abrir otro lugar o pasar a 3D
-  if (!contenedor.isConnected || !contenedor.getClientRects().length) return;
+  if (!contenedor.isConnected || !contenedor.getClientRects().length) return null;
   const toma = typeof foto360 === "string" ? { src: foto360 } : foto360;
-  visor360 = pannellum.viewer(contenedor, {
+  return pannellum.viewer(contenedor, {
     type: "equirectangular",
     panorama: toma.src,
     yaw: toma.yaw ?? 0,
@@ -426,7 +426,13 @@ async function montarVista360(contenedor, foto360) {
     showZoomCtrl: false,
     showFullscreenCtrl: true, // para verla en pantalla completa
     mouseZoom: false,         // la rueda sigue bajando el panel
+    ...ajustes,
   });
+}
+
+async function montarVista360(contenedor, foto360) {
+  desmontarVista360();
+  visor360 = await crearVisor360(contenedor, foto360);
 }
 
 function desmontarVista360() {
@@ -438,18 +444,24 @@ function desmontarVista360() {
 // Primero manda el texto de esa categoría; si falta, usamos la entrada corta.
 // No convertimos los campos técnicos en una ficha estática dentro del panel.
 function textoDeCategoria(p, cat) {
-  return p.porCategoria?.[cat] || p.entrada || "Conocé este lugar con la guía local.";
+  return p.porCategoria?.[cat] || textoGeneral(p);
+}
+
+// Sin entrada todavía (ej. Villa Flor), la ficha muestra la descripción armada con lo que
+// contó el local, antes que una frase genérica
+function textoGeneral(p) {
+  return p.entrada || p.descripcion || "Conocé este lugar con la guía local.";
 }
 
 // Una sección es un texto corto o, desde el 2-oct (pedido de Juan: más detalle por categoría),
-// una sección completa { texto, datos, bloques } — ver data/points.js.
-function htmlSeccion(sec) {
-  if (typeof sec === "string") return `<p class="resumen abierto">${esc(sec)}</p>`;
-  const datos = sec.datos?.length
-    ? `<div class="datos">${sec.datos.map(d => `<span class="dato">${esc(d)}</span>`).join("")}</div>` : "";
+// una sección completa { texto, bloques } — ver data/points.js. Las pastillas de datos se
+// quitaron el 3-oct (pedido de Juan): repetían lo que ya cuentan los bloques.
+// "extra" va entre la entrada y los bloques (ahí va el "Best time to go" de la marea).
+function htmlSeccion(sec, extra = "") {
+  if (typeof sec === "string") return `<p class="resumen abierto">${esc(sec)}</p>${extra}`;
   const bloques = (sec.bloques || [])
     .map(b => `<div class="bloque"><h4>${esc(b.titulo)}</h4><p>${esc(b.texto)}</p></div>`).join("");
-  return `<p class="seccion-intro">${esc(sec.texto)}</p>${datos}${bloques}`;
+  return `<p class="seccion-intro">${esc(sec.texto)}</p>${extra}${bloques}`;
 }
 
 // ---------- Tours del lugar ----------
@@ -490,7 +502,6 @@ function htmlTour(t) {
 // las horas se guardan como milisegundos "de reloj tico" (la hora local leída como UTC).
 const TZ_CR = "America/Costa_Rica";
 const HORA = 3600e3, DIA = 24 * HORA;
-const DIAS_SEMANA = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
 const mareasCache = new Map();
 
 function cargarMareas(lng, lat) {
@@ -552,10 +563,10 @@ function rangoCR(ini, fin) {
   const [a, b] = [horaCR(ini), horaCR(fin)];
   return a.slice(-4) === b.slice(-4) ? `${a.slice(0, -5)} – ${b}` : `${a} – ${b}`;
 }
-function cuandoCR(ms, ahora) {
-  const dias = Math.floor(ms / DIA) - Math.floor(ahora / DIA);
-  return dias === 0 ? "hoy" : dias === 1 ? "mañana" : `el ${DIAS_SEMANA[new Date(ms).getUTCDay()]}`;
-}
+
+// Juan (3-oct): dos líneas, hoy y mañana, arriba de los bloques, y en inglés como él las
+// escribió ("Best time to go today at xxx" / "Best time to go tomorrow xxx").
+const DIAS_EN = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 async function llenarIdealHoy(el, ideal, lng, lat) {
   let ventanas;
@@ -563,28 +574,24 @@ async function llenarIdealHoy(el, ideal, lng, lat) {
   catch (e) { console.warn("Sin datos de marea:", e); return; }
   if (!el.isConnected) return; // la persona ya cambió de pestaña o de lugar
   const ahora = ahoraCR();
+  const hoy = Math.floor(ahora / DIA);
   const proximas = ventanas.filter(v => v.fin > ahora);
   if (!proximas.length) return;
-  const hoy = proximas.filter(v => cuandoCR(v.ini, ahora) === "hoy");
-  const tipoMarea = ideal.marea === "alta" ? "alta" : "baja";
-  let etiqueta, valor, ref;
-  if (hoy.length && hoy[0].ini <= ahora) {
-    etiqueta = "Ideal para ir ahora";
-    valor = `Hasta las ${horaCR(hoy[0].fin)}`;
-    ref = hoy[0];
-  } else if (hoy.length) {
-    etiqueta = "Ideal para ir hoy";
-    valor = hoy.map(v => rangoCR(v.ini, v.fin)).join(" y ");
-    ref = hoy[0];
-  } else {
-    ref = proximas[0];
-    etiqueta = "Hoy la marea no acompaña en las horas buenas";
-    valor = `Próxima: ${cuandoCR(ref.ini, ahora)}, ${rangoCR(ref.ini, ref.fin)}`;
-  }
+  const delDia = (n) => proximas.filter(v => Math.floor(v.ini / DIA) === hoy + n);
+  const horas = (vs) => vs.length
+    ? vs.map(v => v.ini <= ahora ? `now, until ${horaCR(v.fin)}` : rangoCR(v.ini, v.fin)).join(" and ")
+    : "no good window";
+  const linea = (texto, valor) => `<span class="ideal-linea">🕐 ${texto}: <strong>${esc(valor)}</strong></span>`;
+  const [vHoy, vManana] = [delDia(0), delDia(1)];
+  // Si ni hoy ni mañana hay ventana, se avisa cuál es la próxima
+  const proxima = !vHoy.length && !vManana.length
+    ? linea(`Next good time: ${DIAS_EN[new Date(proximas[0].ini).getUTCDay()]}`, rangoCR(proximas[0].ini, proximas[0].fin))
+    : "";
   el.innerHTML = `
-    <span class="ideal-etiqueta">🕐 ${esc(etiqueta)}</span>
-    <strong>${esc(valor)}</strong>
-    <span class="ideal-detalle">Marea ${tipoMarea} ${cuandoCR(ref.marea, ahora)} a las ${horaCR(ref.marea)} ·
+    ${linea("Best time to go today", horas(vHoy))}
+    ${linea("Best time to go tomorrow", horas(vManana))}
+    ${proxima}
+    <span class="ideal-detalle">With ${ideal.marea === "alta" ? "high" : "low"} tide · Tide data:
       <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a></span>`;
   el.hidden = false;
 }
@@ -602,9 +609,13 @@ function htmlComoLlegar(p, [lng, lat]) {
     </div>`;
 }
 
-function abrirPanel(feature, el) {
+// opciones.sobre360: la ficha se abre encima de la foto 360° a pantalla completa (ver
+// "Modo inmersivo"), así que no lleva portada; opciones.cat: la pestaña con que abre.
+function abrirPanel(feature, el, opciones = {}) {
   const p = feature.properties;
   const [lng, lat] = feature.geometry.coordinates;
+  const sobre360 = !!opciones.sobre360;
+  panel.classList.toggle("sobre-360", sobre360);
 
   document.querySelectorAll(".marker.activo").forEach(m => m.classList.remove("activo"));
   el.classList.add("activo");
@@ -637,18 +648,21 @@ function abrirPanel(feature, el) {
   // Las vistas del lugar anterior se van con el HTML viejo
   desmontarVista3D();
   desmontarVista360();
+  const textoHero = `
+      <div class="hero-texto">
+        <h2>${esc(p.nombre)}</h2>
+        <div class="tags">${tags}</div>
+      </div>`;
   panelBody.innerHTML = `
+    ${sobre360 ? `<div class="hero">${textoHero}</div>` : `
     <div class="hero">
       <img class="hero-foto" src="${esc(portada)}" alt="${esc(p.nombre)}">
       ${con3d ? `<div class="hero-3d"></div>` : ""}
       ${con360 ? `<div class="hero-360"></div>` : ""}
       ${modos}
       ${credito}
-      <div class="hero-texto">
-        <h2>${esc(p.nombre)}</h2>
-        <div class="tags">${tags}</div>
-      </div>
-    </div>
+      ${textoHero}
+    </div>`}
     <div class="panel-contenido">
       ${htmlComoLlegar(p, [lng, lat])}
       <div class="vista"></div>
@@ -656,13 +670,16 @@ function abrirPanel(feature, el) {
 
   const heroFoto = panelBody.querySelector(".hero-foto");
   const mostrarFoto = () => heroFoto.classList.add("lista");
-  if (heroFoto.complete && heroFoto.naturalWidth) mostrarFoto();
+  if (!heroFoto) { /* encima de la 360°: sin portada */ }
+  else if (heroFoto.complete && heroFoto.naturalWidth) mostrarFoto();
   else heroFoto.addEventListener("load", mostrarFoto, { once: true });
   const heroEl = panelBody.querySelector(".hero");
   const mostrarMapa3D = () => {
     if (con3d) montarVista3D(panelBody.querySelector(".hero-3d"), lng, lat, CATEGORIAS[p.categorias[0]]);
   };
-  if (con360) {
+  if (sobre360) {
+    // La foto ya está detrás, a pantalla completa: la ficha no monta otra vista
+  } else if (con360) {
     // Arranca en la toma propia (lo más real que tenemos del lugar); un toque pasa al 3D
     const creditoEl = heroEl.querySelector(".hero-credito");
     const ponerModo = (modo) => {
@@ -701,24 +718,28 @@ function abrirPanel(feature, el) {
     const conIdeal = p.horasIdeales && (!c || p.horasIdeales.secciones?.includes(cat));
     vistaEl.innerHTML = `
       ${c ? `<p class="vista-titulo"><img src="${esc(c.icono)}" alt="">${esc(c.label)} en ${esc(p.nombre)}</p>` : ""}
-      ${conIdeal ? `<div class="ideal-hoy" hidden></div>` : ""}
-      ${htmlSeccion(c ? textoDeCategoria(p, cat) : (p.entrada || "Conocé este lugar con la guía local."))}`;
+      ${htmlSeccion(c ? textoDeCategoria(p, cat) : textoGeneral(p),
+        conIdeal ? `<div class="ideal-hoy" hidden></div>` : "")}`;
     if (conIdeal) llenarIdealHoy(vistaEl.querySelector(".ideal-hoy"), p.horasIdeales, lng, lat);
   };
   tagsEl.forEach(t => t.addEventListener("click", () => {
     // Tocar la pestaña que ya está elegida vuelve a la vista general
     pintarVista(t.getAttribute("aria-pressed") === "true" ? null : t.dataset.cat);
   }));
-  // Si la persona llegó filtrando por una categoría, el lugar abre en esa pestaña
+  // Abre en la pestaña que tocaron sobre la 360°; si no, en la categoría con que la persona
+  // venía filtrando el mapa
   const filtro = [...categoriasActivas][0];
-  pintarVista(p.categorias.includes(filtro) ? filtro : null);
+  pintarVista(opciones.cat || (p.categorias.includes(filtro) ? filtro : null));
   lugarAbierto = { categorias: p.categorias, pintarVista };
 
   panel.hidden = false;
   panel.scrollTop = 0;
   asaNombre.textContent = p.nombre;
-  if (anchoMovil.matches) ponerAltura("media");
+  // Al tocar una sección sobre la 360°, la ficha sube hasta arriba (pedido de Juan, 3-oct);
+  // su ✕ devuelve a la foto
+  if (anchoMovil.matches) ponerAltura(sobre360 ? "alta" : "media");
   encuadreLibre = false; // ya estamos viendo un lugar: no volver al encuadre general
+  if (sobre360) return; // el mapa está detrás de la foto; ya se movió al abrirla
 
   // En móvil el panel tapa la parte de abajo; en escritorio tapa la derecha.
   // Desplazamos el centro para que el punto quede visible.
@@ -733,12 +754,130 @@ function abrirPanel(feature, el) {
 
 function cerrarPanel() {
   panel.hidden = true;
+  panel.classList.remove("sobre-360");
   lugarAbierto = null;
   soltarAltura();
   desmontarVista3D();
   desmontarVista360();
+  // Encima de la 360°, cerrar la ficha vuelve a la foto; el lugar sigue marcado
+  if (inmersivo.hidden) document.querySelectorAll(".marker.activo").forEach(m => m.classList.remove("activo"));
+}
+
+// ---------- Modo inmersivo ----------
+// Idea de Juan (3-oct): al tocar un lugar con foto 360°, la foto llena la pantalla; abajo
+// flotan los íconos de sus secciones, y al tocar uno sube la ficha con esa sección encima de
+// la foto. Cerrar la ficha vuelve a la foto; la ✕ de arriba vuelve al mapa. Por ahora solo
+// lo usan los lugares con "foto360" (Villa Flor); los demás abren la ficha de siempre.
+const inmersivo = document.getElementById("inmersivo");
+let visorInmersivo = null;
+
+function abrirLugar(feature, el) {
+  if (feature.properties.foto360) abrirInmersivo(feature, el);
+  else abrirPanel(feature, el);
+}
+
+function abrirInmersivo(feature, el) {
+  const p = feature.properties;
+  cerrarPanel();
+  cerrarInmersivo();
+  document.querySelectorAll(".marker.activo").forEach(m => m.classList.remove("activo"));
+  el.classList.add("activo");
+
+  const secciones = p.categorias.filter(c => CATEGORIAS[c]).map(c => [c, CATEGORIAS[c]]);
+  if (toursDelLugar(p).length) secciones.push(["tours", TAB_TOURS]);
+  inmersivo.innerHTML = `
+    <div class="inm-360"></div>
+    <div class="inm-arriba">
+      <h2>${esc(p.nombre)}</h2>
+      <button type="button" class="inm-cerrar" aria-label="Volver al mapa">✕</button>
+    </div>
+    <span class="inm-credito">Foto 360° · tomada por un local</span>
+    <div class="inm-abajo">
+      <button type="button" class="inm-giro" aria-pressed="false" hidden></button>
+      <nav class="inm-secciones" aria-label="Secciones de ${esc(p.nombre)}">
+        ${secciones.map(([clave, { icono, label }]) => `
+          <button type="button" data-cat="${clave}">
+            <img src="${esc(icono)}" alt=""><span>${esc(label)}</span>
+          </button>`).join("")}
+      </nav>
+    </div>`;
+  inmersivo.hidden = false;
+  document.body.classList.add("con-inmersivo");
+
+  inmersivo.querySelector(".inm-cerrar").addEventListener("click", cerrarInmersivo);
+  inmersivo.querySelectorAll(".inm-secciones button").forEach(b => b.addEventListener("click", () =>
+    abrirPanel(feature, el, { sobre360: true, cat: b.dataset.cat })));
+
+  // A pantalla completa la rueda y el pellizco sí acercan, y no hace falta el botón de
+  // pantalla completa. Si el teléfono lo permite, el visor muestra el botón para mirar
+  // alrededor moviendo el teléfono.
+  // En el celular parado la pantalla es angosta y alta: si se abre tan ancho como en la
+  // portada, se ve casi puro cielo deformado (y el tope de "minPitch" obliga a mirar hacia
+  // arriba). Se encuadra como la cámara del teléfono: unos 75° de alto como máximo.
+  const cont = inmersivo.querySelector(".inm-360");
+  const rad = Math.PI / 180;
+  const hfov = Math.min(100, 2 * Math.atan(Math.tan(37.5 * rad) * cont.clientWidth / cont.clientHeight) / rad);
+  crearVisor360(cont, p.foto360, { showFullscreenCtrl: false, mouseZoom: true, hfov, minHfov: 30 }).then((v) => {
+    if (!cont.isConnected) { v?.destroy(); return; }
+    visorInmersivo = v;
+    if (v) prepararGiroscopio(v);
+  });
+
+  // Detrás, el mapa ya se acerca al lugar: al volver, la persona está ahí
+  map.flyTo({ center: feature.geometry.coordinates, zoom: Math.max(map.getZoom(), 13), duration: 0 });
+}
+
+// Pedido de Juan (3-oct): mirar alrededor moviendo el teléfono, para que la foto se sienta
+// viva. El visor ya lo trae, pero solo en celulares y con https (la página pública sí; el
+// localhost no). Donde se puede arranca solo; en el iPhone hay que tocar el botón, porque el
+// teléfono pide permiso y solo deja pedirlo después de un toque.
+function prepararGiroscopio(v) {
+  if (!v.isOrientationSupported()) return;
+  const btn = inmersivo.querySelector(".inm-giro");
+  const sincronizar = () => {
+    const activo = v.isOrientationActive();
+    btn.setAttribute("aria-pressed", String(activo));
+    btn.textContent = activo ? "📱 Siguiendo tu teléfono · tocá para soltar" : "📱 Mirá alrededor moviendo el teléfono";
+  };
+  const encender = () => {
+    v.stopAutoRotate();
+    v.startOrientation(); // en el iPhone, aquí sale el permiso
+    setTimeout(sincronizar, 600); // el permiso tarda: se revisa después
+  };
+  btn.addEventListener("click", () => {
+    if (v.isOrientationActive()) v.stopOrientation();
+    else encender();
+    sincronizar();
+  });
+  // Arrastrar la foto con el dedo apaga el giroscopio (así lo hace el visor): el botón lo refleja
+  inmersivo.querySelector(".inm-360").addEventListener("touchend", () => setTimeout(sincronizar, 0));
+  btn.hidden = false;
+  sincronizar();
+  // Se intenta prender solo: en Android el permiso no hace falta o se da sin preguntar; en el
+  // iPhone el pedido sin toque falla callado y queda el botón esperando
+  const pedir = DeviceOrientationEvent.requestPermission?.bind(DeviceOrientationEvent);
+  (pedir ? pedir() : Promise.resolve("granted"))
+    .then((r) => { if (r === "granted" && btn.isConnected) encender(); })
+    .catch(() => {});
+}
+
+function cerrarInmersivo() {
+  if (inmersivo.hidden) return;
+  if (!panel.hidden) cerrarPanel();
+  if (visorInmersivo) visorInmersivo.destroy();
+  visorInmersivo = null;
+  inmersivo.hidden = true;
+  inmersivo.innerHTML = "";
+  document.body.classList.remove("con-inmersivo");
   document.querySelectorAll(".marker.activo").forEach(m => m.classList.remove("activo"));
 }
+
+// Escape: primero cierra la ficha; si no hay ficha, sale de la foto
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape" || inmersivo.hidden) return;
+  if (!panel.hidden) cerrarPanel();
+  else cerrarInmersivo();
+});
 
 // ---------- Hoja deslizable (solo celular) ----------
 // Pedido de Juan (29-sep): la ficha se baja y se sube como las hojas del iPhone. Tiene tres
@@ -758,6 +897,8 @@ function pxDeAltura(nombre) {
   const media = Math.round(alto * 0.62);
   if (nombre === "baja") return 60;
   if (nombre === "media") return media;
+  // Encima de la 360° la ficha sube casi hasta arriba, dejando una franja de la foto (Juan, 3-oct)
+  if (panel.classList.contains("sobre-360")) return alto - 56;
   return Math.max(media, alto - barra - 84); // alta: justo debajo de "Explorá el mapa"
 }
 
@@ -1282,7 +1423,7 @@ function mostrarLugaresCerca(dondeEsta) {
   cercaEl.querySelectorAll(".cerca-lugar").forEach((b) => b.addEventListener("click", () => {
     const t = top[+b.dataset.i];
     ocultarCerca();
-    abrirPanel(t.feature, t.el);
+    abrirLugar(t.feature, t.el);
   }));
 
   // El mapa se acerca a la persona y a sus lugares más cercanos (sin mostrarla a ella),
