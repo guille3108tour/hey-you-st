@@ -524,7 +524,7 @@ const POINTS = {
         "foto": "",
         "foto360": {
           "src": "img/360/villa-flor.jpg",
-          "yaw": -40,
+          "yaw": 7,
           "minPitch": -35
         },
         "voces": [
