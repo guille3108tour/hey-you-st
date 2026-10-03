@@ -482,6 +482,126 @@ function htmlTour(t) {
     </article>`;
 }
 
+// ---------- Ideal para ir hoy ----------
+// Pedido de Juan (3-oct): cruzar las horas buenas de cada lugar ("horasIdeales", lo que cuenta
+// un local) con la tabla de mareas. Marea baja = de 2 h antes a 2 h después de la más baja
+// (criterio de Juan). La marea viene de Open-Meteo: gratis, sin clave, pide que se le cite.
+// Todo se calcula en hora de Costa Rica, aunque el visitante tenga el teléfono en otra zona:
+// las horas se guardan como milisegundos "de reloj tico" (la hora local leída como UTC).
+const TZ_CR = "America/Costa_Rica";
+const HORA = 3600e3, DIA = 24 * HORA;
+const DIAS_SEMANA = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+const mareasCache = new Map();
+
+function cargarMareas(lng, lat) {
+  const clave = `${lat.toFixed(1)},${lng.toFixed(1)}`;
+  if (!mareasCache.has(clave)) {
+    const url = `https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lng}` +
+      `&minutely_15=sea_level_height_msl&timezone=${encodeURIComponent(TZ_CR)}&forecast_days=8`;
+    mareasCache.set(clave, fetch(url)
+      .then(r => r.ok ? r.json() : Promise.reject(new Error(`Open-Meteo ${r.status}`)))
+      .then(j => ({ t: j.minutely_15.time.map(s => Date.parse(s + "Z")), h: j.minutely_15.sea_level_height_msl }))
+      .catch(e => { mareasCache.delete(clave); throw e; }));
+  }
+  return mareasCache.get(clave);
+}
+
+function ahoraCR() {
+  const f = new Intl.DateTimeFormat("sv-SE", { timeZone: TZ_CR, year: "numeric", month: "2-digit",
+    day: "2-digit", hour: "2-digit", minute: "2-digit" }).format(new Date());
+  return Date.parse(f.replace(" ", "T") + "Z");
+}
+
+// Momentos de marea más baja (o más alta) de la serie
+function extremosMarea({ t, h }, tipo) {
+  const out = [];
+  for (let i = 1; i < h.length - 1; i++) {
+    if (h[i] == null || h[i - 1] == null || h[i + 1] == null) continue;
+    const baja = h[i] <= h[i - 1] && h[i] < h[i + 1];
+    const alta = h[i] >= h[i - 1] && h[i] > h[i + 1];
+    if (tipo === "alta" ? alta : baja) out.push(t[i]);
+  }
+  return out;
+}
+
+// Ventanas donde coinciden las horas buenas del lugar con la marea que conviene
+function ventanasIdeales(ideal, mareas) {
+  const rangos = ideal.horas.map(r => r.split("-").map(s => {
+    const [hh, mm] = s.split(":").map(Number);
+    return hh * HORA + mm * 60e3;
+  }));
+  const out = [];
+  for (const m of extremosMarea(mareas, ideal.marea)) {
+    const dia = Math.floor(m / DIA) * DIA;
+    for (const [a, b] of rangos) {
+      // Las 2 h alrededor de la marea pueden cruzar la medianoche
+      for (const d of [dia - DIA, dia, dia + DIA]) {
+        const ini = Math.max(m - 2 * HORA, d + a), fin = Math.min(m + 2 * HORA, d + b);
+        if (fin - ini >= 30 * 60e3) out.push({ ini, fin, marea: m });
+      }
+    }
+  }
+  return out.sort((x, y) => x.ini - y.ini);
+}
+
+function horaCR(ms) {
+  const d = new Date(ms), h = d.getUTCHours();
+  return `${h % 12 || 12}:${String(d.getUTCMinutes()).padStart(2, "0")} ${h < 12 ? "a.m." : "p.m."}`;
+}
+function rangoCR(ini, fin) {
+  const [a, b] = [horaCR(ini), horaCR(fin)];
+  return a.slice(-4) === b.slice(-4) ? `${a.slice(0, -5)} – ${b}` : `${a} – ${b}`;
+}
+function cuandoCR(ms, ahora) {
+  const dias = Math.floor(ms / DIA) - Math.floor(ahora / DIA);
+  return dias === 0 ? "hoy" : dias === 1 ? "mañana" : `el ${DIAS_SEMANA[new Date(ms).getUTCDay()]}`;
+}
+
+async function llenarIdealHoy(el, ideal, lng, lat) {
+  let ventanas;
+  try { ventanas = ventanasIdeales(ideal, await cargarMareas(lng, lat)); }
+  catch (e) { console.warn("Sin datos de marea:", e); return; }
+  if (!el.isConnected) return; // la persona ya cambió de pestaña o de lugar
+  const ahora = ahoraCR();
+  const proximas = ventanas.filter(v => v.fin > ahora);
+  if (!proximas.length) return;
+  const hoy = proximas.filter(v => cuandoCR(v.ini, ahora) === "hoy");
+  const tipoMarea = ideal.marea === "alta" ? "alta" : "baja";
+  let etiqueta, valor, ref;
+  if (hoy.length && hoy[0].ini <= ahora) {
+    etiqueta = "Ideal para ir ahora";
+    valor = `Hasta las ${horaCR(hoy[0].fin)}`;
+    ref = hoy[0];
+  } else if (hoy.length) {
+    etiqueta = "Ideal para ir hoy";
+    valor = hoy.map(v => rangoCR(v.ini, v.fin)).join(" y ");
+    ref = hoy[0];
+  } else {
+    ref = proximas[0];
+    etiqueta = "Hoy la marea no acompaña en las horas buenas";
+    valor = `Próxima: ${cuandoCR(ref.ini, ahora)}, ${rangoCR(ref.ini, ref.fin)}`;
+  }
+  el.innerHTML = `
+    <span class="ideal-etiqueta">🕐 ${esc(etiqueta)}</span>
+    <strong>${esc(valor)}</strong>
+    <span class="ideal-detalle">Marea ${tipoMarea} ${cuandoCR(ref.marea, ahora)} a las ${horaCR(ref.marea)} ·
+      <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a></span>`;
+  el.hidden = false;
+}
+
+// Pedido de Juan (3-oct): que la gente pueda irse directo a Waze o Google Maps desde el lugar.
+// Si el lugar trae "llegada" (dónde dejar el carro o dónde arranca el sendero), se navega ahí.
+function htmlComoLlegar(p, [lng, lat]) {
+  const [dLng, dLat] = p.llegada || [lng, lat];
+  const destino = `${dLat},${dLng}`;
+  return `
+    <div class="como-llegar">
+      <span>Cómo llegar</span>
+      <a href="https://waze.com/ul?ll=${destino}&navigate=yes" target="_blank" rel="noopener">Waze</a>
+      <a href="https://www.google.com/maps/dir/?api=1&destination=${destino}" target="_blank" rel="noopener">Google Maps</a>
+    </div>`;
+}
+
 function abrirPanel(feature, el) {
   const p = feature.properties;
   const [lng, lat] = feature.geometry.coordinates;
@@ -530,6 +650,7 @@ function abrirPanel(feature, el) {
       </div>
     </div>
     <div class="panel-contenido">
+      ${htmlComoLlegar(p, [lng, lat])}
       <div class="vista"></div>
     </div>`;
 
@@ -577,9 +698,12 @@ function abrirPanel(feature, el) {
       return;
     }
     const c = CATEGORIAS[cat];
+    const conIdeal = p.horasIdeales && (!c || p.horasIdeales.secciones?.includes(cat));
     vistaEl.innerHTML = `
       ${c ? `<p class="vista-titulo"><img src="${esc(c.icono)}" alt="">${esc(c.label)} en ${esc(p.nombre)}</p>` : ""}
+      ${conIdeal ? `<div class="ideal-hoy" hidden></div>` : ""}
       ${htmlSeccion(c ? textoDeCategoria(p, cat) : (p.entrada || "Conocé este lugar con la guía local."))}`;
+    if (conIdeal) llenarIdealHoy(vistaEl.querySelector(".ideal-hoy"), p.horasIdeales, lng, lat);
   };
   tagsEl.forEach(t => t.addEventListener("click", () => {
     // Tocar la pestaña que ya está elegida vuelve a la vista general

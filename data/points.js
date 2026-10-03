@@ -20,7 +20,7 @@ const POINTS = {
           "familia",
           "atardecer"
         ],
-        "descripcion": "Playa amplia, plana y muy tranquila al norte de Santa Teresa: agua cristalina, oleaje muy bajo, ideal para niños y para quien se anima a surfear por primera vez. También es una de las mejores zonas para ver el atardecer.",
+        "descripcion": "Playa amplia, plana y muy tranquila al norte de Santa Teresa: agua cristalina, oleaje muy bajo, ideal para niños y para quien se anima a surfear por primera vez. También es una de las mejores zonas para ver el atardecer. Entra todo tipo de carro, pero hay un tramo con muchos huecos: cuidado con los carros bajos.",
         "surf": {
           "nivel": "Principiante / Intermedio",
           "marea": "Baja a media",
@@ -35,7 +35,18 @@ const POINTS = {
         },
         "mareas": {
           "alta": "El agua sube rápido por lo plana que es la playa — se puede estar, pero ojo con dejar cosas cerca de la orilla, se mojan.",
-          "baja": "Se abre muchísimo espacio de arena, ideal para las familias. Lo perfecto, por el sol, es que la marea baja caiga entre las 6 y las 11 a.m. o entre las 3 y las 5 p.m. (para surf es distinto). En la tarde, con la marea bajando, el reflejo anaranjado del atardecer sobre el agua que queda en la arena es un espectáculo."
+          "baja": "Se abre muchísimo espacio de arena, ideal para las familias. Por el sol, las mejores horas para estar son de 6 a 11 a.m. y de 3 a 5 p.m.; lo ideal es que a esas horas la marea esté baja (para surf es distinto). En la tarde, con la marea bajando, el reflejo anaranjado del atardecer sobre el agua que queda en la arena es un espectáculo."
+        },
+        "horasIdeales": {
+          "horas": [
+            "06:00-11:00",
+            "15:00-17:00"
+          ],
+          "marea": "baja",
+          "secciones": [
+            "playa",
+            "familia"
+          ]
         },
         "entrada": "Una playa amplia, plana y tranquila al norte de Santa Teresa, con espacio para pasar el día en familia y condiciones que pueden interesarle a quien empieza a surfear. Al final de la tarde, la arena húmeda puede reflejar los colores del cielo.",
         "porCategoria": {
@@ -71,19 +82,23 @@ const POINTS = {
             ]
           },
           "playa": {
-            "texto": "Ancha, plana y de arena clara, con palmeras y almendros al fondo. Playa Hermosa queda a unos 3 km al norte del centro de Santa Teresa, pero se siente en otro ritmo: muy tranquila, con agua cristalina y un mar que casi siempre llega mansito a la orilla.",
+            "texto": "Ancha, plana y de arena clara. Queda al norte de Santa Teresa, pero se siente en otro ritmo: muy tranquila, con agua cristalina y un mar que casi siempre llega mansito a la orilla.",
             "datos": [
               "Arena ancha y plana",
               "Agua cristalina",
               "Oleaje bajo",
+              "Entra todo tipo de carro",
               "Sin sombra en la tarde",
-              "Parqueo con cuidador",
-              "A unos 3 km de Santa Teresa"
+              "Parqueo con cuidador"
             ],
             "bloques": [
               {
                 "titulo": "Cómo cambia con la marea",
-                "texto": "Con marea baja la playa se abre muchísimo: aparece arena de sobra para caminar, correr o tirarse a leer. Lo perfecto es que la marea baja caiga entre las 6 y las 11 a.m. o entre las 3 y las 5 p.m., por el sol. Con marea alta el agua sube rápido por lo plana que es; se puede estar igual, pero dejá las cosas lejos de la orilla."
+                "texto": "Con marea baja la playa se abre muchísimo: aparece arena de sobra para caminar, correr o tirarse a leer. Con marea alta el agua sube rápido por lo plana que es; se puede estar igual, pero dejá las cosas lejos de la orilla."
+              },
+              {
+                "titulo": "Cómo llegar",
+                "texto": "La entrada es para todo tipo de carro, no hace falta 4x4. Eso sí, hay un tramo con muchos huecos: si andás en un carro bajo, tené cuidado."
               },
               {
                 "titulo": "Lo práctico",
@@ -97,14 +112,13 @@ const POINTS = {
               "Playa plana",
               "Olas bajitas",
               "Mucho espacio con marea baja",
-              "Ideal: marea baja de 6 a 11 a.m. o de 3 a 5 p.m.",
               "Sin sombra en la tarde",
               "Parqueo con cuidador"
             ],
             "bloques": [
               {
                 "titulo": "La mejor hora",
-                "texto": "Con marea baja: como la playa es tan plana, se abre muchísimo espacio de arena para jugar. Lo perfecto es que la marea baja caiga entre las 6 y las 11 a.m. o entre las 3 y las 5 p.m.: así no les toca el sol más fuerte del día."
+                "texto": "Con marea baja: como la playa es tan plana, se abre muchísimo espacio de arena para jugar."
               },
               {
                 "titulo": "Con marea alta",
@@ -198,7 +212,17 @@ const POINTS = {
             "perfiles": [
               "familia"
             ],
-            "texto": "En Playa Hermosa no hay pozas, pero al ser un lugar tan plano hay lugar bueno para estar. En las tardes, como el sol está de frente, no hay sombra: si andás con niños, hay que tener cuidado durante las tardes. Las mejores horas para ir en marea baja: perfecto cuando la marea baja es entre las 3 y las 5 p.m., o desde las 6 hasta las 11 a.m., por temas de sol. Para el surf es diferente."
+            "texto": "En Playa Hermosa no hay pozas, pero al ser un lugar tan plano hay lugar bueno para estar. En las tardes, como el sol está de frente, no hay sombra: si andás con niños, hay que tener cuidado durante las tardes. Por temas de sol, las horas ideales para estar son desde las 6 hasta las 11 a.m. y entre las 3 y las 5 p.m.; perfecto si a esas horas la marea está baja. Para el surf es diferente."
+          },
+          {
+            "autor": "Guille",
+            "perfiles": [
+              "nomada",
+              "familia",
+              "solo",
+              "explorador"
+            ],
+            "texto": "La entrada es para todo tipo de carro, solo que hay que tener cuidado: hay un tramo con muchos huecos para carros bajos."
           }
         ]
       }
