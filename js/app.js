@@ -183,6 +183,15 @@ function crearFilaCapa(clave, cat, extraClase = "") {
   return b;
 }
 
+// Deja prendida solo esa categoría, sin alternar: la usa la ficha cuando la persona cambia de
+// sección, para que al salir el mapa muestre los lugares de la sección que dejó (Juan, 4-oct)
+function ponerCategoria(clave) {
+  if (categoriasActivas.size === 1 && categoriasActivas.has(clave)) return;
+  categoriasActivas.clear();
+  categoriasActivas.add(clave);
+  renderMarcadores();
+}
+
 // Regla de Juan: una categoría a la vez. Prender una apaga la que estaba;
 // tocar la que ya está prendida la apaga y el mapa vuelve a "Todas".
 function alternarCategoria(clave) {
@@ -565,24 +574,73 @@ function nivelEn({ t, h }, ms) {
   return h[i] + ((h[i + 1] ?? h[i]) - h[i]) * (ms - t[i]) / paso;
 }
 
-// Ventanas donde coinciden las horas buenas del lugar con la marea que conviene
-function ventanasIdeales(ideal, mareas) {
-  const rangos = ideal.horas.map(r => r.split("-").map(s => {
+// Ventanas donde coinciden las horas buenas del lugar con la marea que conviene. Si el local
+// no dio horas, vale mientras hay luz (del amanecer al atardecer de ese día). "ventana" son las
+// horas antes y después de la marea (por defecto [-2, 2]; ej. [0, 2] = cuando empieza a bajar).
+function ventanasIdeales(ideal, mareas, lng, lat) {
+  if (ideal.surf) return tramosSurf(ideal.surf, mareas, lng, lat).buenas;
+  const rangos = (ideal.horas || []).map(r => r.split("-").map(s => {
     const [hh, mm] = s.split(":").map(Number);
     return hh * HORA + mm * 60e3;
   }));
+  const [antes, despues] = ideal.ventana || [-2, 2];
   const out = [];
   for (const m of extremosMarea(mareas, ideal.marea)) {
     const dia = Math.floor(m / DIA) * DIA;
-    for (const [a, b] of rangos) {
-      // Las 2 h alrededor de la marea pueden cruzar la medianoche
-      for (const d of [dia - DIA, dia, dia + DIA]) {
-        const ini = Math.max(m - 2 * HORA, d + a), fin = Math.min(m + 2 * HORA, d + b);
+    // Las horas alrededor de la marea pueden cruzar la medianoche
+    for (const d of [dia - DIA, dia, dia + DIA]) {
+      const sol = rangos.length ? null : solCR(d, lat, lng);
+      for (const [a, b] of sol ? [[sol.sale * 60e3, sol.pone * 60e3]] : rangos) {
+        const ini = Math.max(m + antes * HORA, d + a), fin = Math.min(m + despues * HORA, d + b);
         if (fin - ini >= 30 * 60e3) out.push({ ini, fin, marea: m });
       }
     }
   }
   return out.sort((x, y) => x.ini - y.ini);
+}
+
+// ---------- Horas buenas y no tan buenas para surfear (Juan, 4-oct) ----------
+// En surf no cuentan las horas del sol ("en medio del agua no hay sombras"): solo la marea.
+// Cada subida o bajada se parte en tercios: baja (el tercio más bajo), media y alta.
+// "surf.mareasBuenas" dice en cuáles trabaja la ola (ej. Playa Hermosa: ["baja", "media"]);
+// el resto del día con luz queda como "no tan buena". De noche no se marca nada.
+function etapaMarea(extremos, h, ms) {
+  const i = extremos.findIndex(e => e.t > ms);
+  if (i < 1 || h == null) return null;
+  const [a, b] = [extremos[i - 1].h, extremos[i].h];
+  const f = (h - Math.min(a, b)) / (Math.abs(b - a) || 1);
+  return f < 1 / 3 ? "baja" : f < 2 / 3 ? "media" : "alta";
+}
+
+function tramosSurf(buenas, mareas, lng, lat) {
+  const extremos = extremosConNivel(mareas);
+  const out = { buenas: [], noTan: [] };
+  const soles = new Map();
+  let actual = null; // { tipo, ini } del tramo que se está armando
+  const cerrar = (t) => {
+    if (actual && t - actual.ini >= 30 * 60e3) out[actual.tipo].push({ ini: actual.ini, fin: t });
+    actual = null;
+  };
+  mareas.t.forEach((t, i) => {
+    const d = Math.floor(t / DIA) * DIA;
+    if (!soles.has(d)) soles.set(d, solCR(d, lat, lng));
+    const sol = soles.get(d);
+    const deDia = t >= d + sol.sale * 60e3 && t <= d + sol.pone * 60e3;
+    const etapa = deDia ? etapaMarea(extremos, mareas.h[i], t) : null;
+    const tipo = etapa ? (buenas.includes(etapa) ? "buenas" : "noTan") : null;
+    if (tipo !== (actual?.tipo ?? null)) {
+      cerrar(t);
+      if (tipo) actual = { tipo, ini: t };
+    }
+  });
+  cerrar(mareas.t[mareas.t.length - 1]);
+  return out;
+}
+
+// "baja a media", "media a alta"... para decirlo en palabras
+const ETAPAS_EN = { baja: "low", media: "mid", alta: "high" };
+function etapasEnPalabras(etapas, en = false) {
+  return etapas.map(e => en ? ETAPAS_EN[e] : e).join(en ? " to " : " a ");
 }
 
 function horaCR(ms) {
@@ -600,7 +658,7 @@ const DIAS_EN = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday
 
 async function llenarIdealHoy(el, ideal, lng, lat) {
   let ventanas;
-  try { ventanas = ventanasIdeales(ideal, await cargarMareas(lng, lat)); }
+  try { ventanas = ventanasIdeales(ideal, await cargarMareas(lng, lat), lng, lat); }
   catch (e) { console.warn("Sin datos de marea:", e); return; }
   if (!el.isConnected) return; // la persona ya cambió de pestaña o de lugar
   const ahora = ahoraCR();
@@ -617,11 +675,18 @@ async function llenarIdealHoy(el, ideal, lng, lat) {
   const proxima = !vHoy.length && !vManana.length
     ? linea(`Next good time: ${DIAS_EN[new Date(proximas[0].ini).getUTCDay()]}`, rangoCR(proximas[0].ini, proximas[0].fin))
     : "";
+  // "paraEn": para qué es la hora, cuando no sirve para todos (ej. El Chorro: solo a pie)
+  const para = ideal.paraEn || "go";
+  const marea = ideal.surf
+    ? `${etapasEnPalabras(ideal.surf, true).replace(/^./, c => c.toUpperCase())} tide`
+    : ideal.ventana?.[0] === 0
+      ? `As the tide starts to ${ideal.marea === "alta" ? "drop" : "rise"}`
+      : `With ${ideal.marea === "alta" ? "high" : "low"} tide`;
   el.innerHTML = `
-    ${linea("Best time to go today", horas(vHoy))}
-    ${linea("Best time to go tomorrow", horas(vManana))}
+    ${linea(`Best time to ${para} today`, horas(vHoy))}
+    ${linea(`Best time to ${para} tomorrow`, horas(vManana))}
     ${proxima}
-    <span class="ideal-detalle">With ${ideal.marea === "alta" ? "high" : "low"} tide · Tide data:
+    <span class="ideal-detalle">${marea} · Tide data:
       <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a></span>`;
   el.hidden = false;
 }
@@ -631,6 +696,8 @@ async function llenarIdealHoy(el, ideal, lng, lat) {
 // de hoy, mañana o pasado en ese lugar; la persona mueve la hora con la barra (o con el dedo
 // sobre la curva), la bolita sigue al mar y abajo sale lo que Guille cuenta de esa marea en
 // ese lugar ("mareas" en data/points.js). Solo sale donde hay esa voz local.
+// Juan (4-oct): la curva muestra siempre la mejor hora para ir ese día ("horasIdeales"):
+// una franja dorada sobre la curva y la hora escrita arriba; al tocarla, la bolita va ahí.
 const DIAS_ES = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 const MAREA_W = 320, MAREA_X0 = 10, MAREA_X1 = 310, MAREA_Y0 = 30, MAREA_Y1 = 100;
 
@@ -648,7 +715,9 @@ function solCR(diaMs, lat, lng) {
   return { sale: 720 - 4 * (lng + ha) - eq + CR, pone: 720 - 4 * (lng - ha) - eq + CR };
 }
 
-async function llenarMarea(el, p, lng, lat) {
+// "sinVoz": en Surf sin "surf.mareasBuenas", la voz de Guille sobre la marea habla de estar en
+// la playa, no de la ola: la caja no sale para no confundir.
+async function llenarMarea(el, p, lng, lat, ideal = null, { sinVoz = false } = {}) {
   let mareas;
   try { mareas = await cargarMareas(lng, lat); }
   catch (e) { console.warn("Sin datos de marea:", e); return; }
@@ -657,6 +726,9 @@ async function llenarMarea(el, p, lng, lat) {
   const hoy = Math.floor(ahora / DIA) * DIA;
   const minutoAhora = Math.floor((ahora - hoy) / 60e3 / 15) * 15;
   const extremos = extremosConNivel(mareas);
+  // En surf: horas buenas (doradas) y no tan buenas, solo por la marea (Juan, 4-oct)
+  const surf = ideal?.surf ? tramosSurf(ideal.surf, mareas, lng, lat) : null;
+  const ideales = surf ? surf.buenas : ideal ? ventanasIdeales(ideal, mareas, lng, lat) : [];
   // La misma escala para los tres días, así se comparan a simple vista
   const visibles = mareas.h.filter((v, i) => v != null && mareas.t[i] >= hoy && mareas.t[i] <= hoy + 3 * DIA);
   if (!visibles.length) return;
@@ -664,7 +736,7 @@ async function llenarMarea(el, p, lng, lat) {
   const X = (m) => MAREA_X0 + m / 1440 * (MAREA_X1 - MAREA_X0);
   const Y = (v) => MAREA_Y1 - (v - bajo) / (alto - bajo || 1) * (MAREA_Y1 - MAREA_Y0);
   const nombres = ["Hoy", "Mañana", DIAS_ES[new Date(hoy + 2 * DIA).getUTCDay()]];
-  const voz = p.mareas;
+  const voz = p.mareas || {};
   let dia = 0, minuto = minutoAhora;
 
   el.innerHTML = `
@@ -684,6 +756,7 @@ async function llenarMarea(el, p, lng, lat) {
         <span class="marea-nivel"></span>
       </div>
     </div>
+    ${ideal ? `<p class="marea-ideal"></p>` : ""}
     <svg class="marea-grafica" viewBox="0 0 ${MAREA_W} 130" role="img" aria-label="Curva de la marea del día">
       <defs>
         <linearGradient id="marea-agua" x1="0" y1="0" x2="0" y2="1">
@@ -698,10 +771,12 @@ async function llenarMarea(el, p, lng, lat) {
         </filter>
       </defs>
       <rect class="marea-noche"/><rect class="marea-noche"/>
+      <g class="marea-franjas"></g>
       <g class="marea-rejilla">${[180, 360, 540, 720, 900, 1080, 1260].map(m =>
         `<line x1="${X(m)}" x2="${X(m)}" y1="${MAREA_Y0 - 12}" y2="${MAREA_Y1 + 6}"/>`).join("")}</g>
       <path class="marea-area" fill="url(#marea-agua)"/>
       <path class="marea-linea" filter="url(#marea-brillo)"/>
+      <path class="marea-linea-ideal" filter="url(#marea-brillo)"/>
       <g class="marea-ext"></g>
       <g class="marea-eje"></g>
       <line class="marea-guia" y1="${MAREA_Y0 - 12}" y2="${MAREA_Y1 + 6}"/>
@@ -753,6 +828,35 @@ async function llenarMarea(el, p, lng, lat) {
       <text class="sol" x="${X(sol.sale)}" y="126" text-anchor="middle">☀ ${horaCR(d0 + sol.sale * 60e3)}</text>
       <text x="${X(720)}" y="126" text-anchor="middle">12 p.m.</text>
       <text class="sol" x="${X(sol.pone)}" y="126" text-anchor="middle">🌅 ${horaCR(d0 + sol.pone * 60e3)}</text>`;
+
+    // La mejor hora para ir ese día: franja dorada, ese tramo de la curva resaltado y la hora
+    // escrita arriba de la curva (cada hora es un botón que lleva la bolita al inicio)
+    // En surf, además, las horas no tan buenas van en una franja apagada (Juan, 4-oct)
+    if (ideal) {
+      const delDia = (lista) => lista.filter(v => v.fin > d0 && v.ini < d0 + DIA)
+        .map(v => ({ ini: Math.max(v.ini, d0), fin: Math.min(v.fin, d0 + DIA) }));
+      const buenas = delDia(ideales), noTan = surf ? delDia(surf.noTan) : [];
+      const xEn = (t) => X((t - d0) / 60e3);
+      const tramo = ({ ini, fin }) => "M" + [ini, ...mareas.t.filter(t => t > ini && t < fin), fin]
+        .map(t => `${xEn(t).toFixed(1)} ${Y(nivelEn(mareas, t)).toFixed(1)}`).join(" L");
+      const franja = (v, clase) => `<rect${clase ? ` class="${clase}"` : ""} x="${xEn(v.ini)}" y="${yNoche}" ` +
+        `width="${xEn(v.fin) - xEn(v.ini)}" height="${altoNoche}" rx="3"/>`;
+      $(".marea-franjas").innerHTML = noTan.map(v => franja(v, "no-tan")).join("") + buenas.map(v => franja(v)).join("");
+      $(".marea-linea-ideal").setAttribute("d", buenas.map(tramo).join(" "));
+      const horas = (vs) => vs.map(v => {
+        const m = Math.min(1425, Math.ceil((v.ini - d0) / 60e3 / 15) * 15);
+        const paso = v.fin <= ahora; // hoy, la que ya se fue queda escrita pero apagada
+        return `<button type="button" data-m="${m}"${paso ? ` class="pasada"` : ""}>${esc(rangoCR(v.ini, v.fin))}</button>` +
+          (paso ? ` <small>(ya pasó)</small>` : "");
+      }).join(" y ");
+      const para = esc(ideal.para || "ir");
+      $(".marea-ideal").innerHTML = surf
+        ? `<span class="marea-ideal-linea"><span aria-hidden="true">★</span> Horas buenas para surfear: ${buenas.length ? horas(buenas) : "ninguna este día"}</span>` +
+          (noTan.length ? `<span class="marea-ideal-linea no-tan">No tan buenas: ${horas(noTan)}</span>` : "")
+        : buenas.length
+          ? `<span aria-hidden="true">★</span> Mejor hora para ${para}: ${horas(buenas)}`
+          : `<span aria-hidden="true">★</span> Este día no hay una hora ideal para ${para}`;
+    }
 
     $(".marea-ext").innerHTML = extremos.filter(e => e.t >= d0 && e.t < d0 + DIA).map(e => {
       const m = (e.t - d0) / 60e3, x = X(m), y = Y(e.h);
@@ -807,7 +911,21 @@ async function llenarMarea(el, p, lng, lat) {
     const ventana = extremos.find(e => Math.abs(e.t - ms) <= 2 * HORA);
     const viene = sube ? "alta" : "baja";
     let titulo, texto;
-    if (ventana && voz[ventana.tipo]) {
+    if (surf) {
+      // En surf, la caja dice si esa hora es buena para la ola, solo por la marea (Juan, 4-oct)
+      titulo = enAhora ? "Ahora mismo, para surfear" : "A esa hora, para surfear";
+      const dentro = (w) => w.ini <= ms && ms < w.fin;
+      const buena = surf.buenas.some(dentro), noTan = surf.noTan.some(dentro);
+      const gusta = `Esta ola trabaja mejor con marea ${etapasEnPalabras(ideal.surf)}.`;
+      texto = buena ? `Hora buena: marea ${etapaMarea(extremos, v, ms)}. ${gusta}`
+        : noTan ? `No tan buena: marea ${etapaMarea(extremos, v, ms)}. ${gusta}`
+        : "Es de noche.";
+      const prox = !buena && surf.buenas.find(w => w.ini > ms);
+      if (prox) {
+        const mismoDia = Math.floor(prox.ini / DIA) === Math.floor(ms / DIA);
+        texto += ` La próxima hora buena empieza ${mismoDia ? "" : `el ${DIAS_ES[new Date(prox.ini).getUTCDay()].toLowerCase()} `}a las ${horaCR(prox.ini)}`; // "a.m." / "p.m." ya cierra con punto
+      }
+    } else if (ventana && voz[ventana.tipo]) {
       titulo = enAhora ? "Ahora mismo, según Guille" : "A esa hora, según Guille";
       texto = voz[ventana.tipo];
     } else if (voz[viene]) {
@@ -818,7 +936,7 @@ async function llenarMarea(el, p, lng, lat) {
       titulo = `Con marea ${otra}, según Guille`;
       texto = voz[otra];
     }
-    $(".marea-voz").hidden = !texto;
+    $(".marea-voz").hidden = !texto || sinVoz;
     $(".marea-voz-titulo").textContent = titulo;
     $(".marea-voz p").textContent = texto || "";
     botonAhora.hidden = enAhora;
@@ -838,6 +956,13 @@ async function llenarMarea(el, p, lng, lat) {
     pintarDia();
     actualizar();
   }));
+  $(".marea-ideal")?.addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-m]");
+    if (!b) return;
+    tocando = false;
+    minuto = +b.dataset.m;
+    actualizar();
+  });
   // Con el dedo o el mouse sobre la curva también se mueve la hora
   const desdePuntero = (e) => {
     const r = svg.getBoundingClientRect();
@@ -885,10 +1010,20 @@ function abrirPanel(feature, el, opciones = {}) {
 
   marcarLugar(el);
 
-  // Juan (3-oct): la ficha ya no lleva la fila de pestañas. Lo que cuenta depende del ícono
-  // que la persona eligió en el mapa (cómo viene pensando); sin ícono, la vista general.
-  // Si el lugar tiene experiencias de "Meet a local", van siempre al final.
+  // Juan (3-oct): la ficha ya no lleva la fila de pestañas de texto. Abre en la sección del
+  // ícono que la persona eligió en el mapa (cómo viene pensando); sin ícono, la vista general.
+  // Juan (4-oct): debajo de "Cómo llegar" van los íconos de las secciones del lugar, para pasar
+  // de una a otra sin salir; la que se elige queda prendida también en el mapa, así al salir
+  // se ven los lugares de esa sección. "Meet a local" sigue siempre al final.
   const tours = toursDelLugar(p);
+  const secciones = p.categorias.filter(c => CATEGORIAS[c]);
+  const iconosSecciones = secciones.length > 1 ? `
+    <nav class="secciones-lugar" aria-label="Secciones de ${esc(p.nombre)}">
+      ${secciones.map(c => `
+        <button type="button" data-cat="${c}" aria-pressed="false" style="--cat: ${CATEGORIAS[c].color}">
+          <img src="${esc(CATEGORIAS[c].icono)}" alt=""><span>${esc(CATEGORIAS[c].label)}</span>
+        </button>`).join("")}
+    </nav>` : "";
 
   // Portada: la foto del lugar si la hay; si no, su vista 3D (y mientras carga,
   // la foto satelital plana del mismo punto)
@@ -913,6 +1048,7 @@ function abrirPanel(feature, el, opciones = {}) {
     </div>`}
     <div class="panel-contenido">
       ${htmlComoLlegar(p, [lng, lat], { ver360: !!p.foto360 && !sobre360 })}
+      ${iconosSecciones}
       <div class="vista"></div>
     </div>`;
 
@@ -934,28 +1070,43 @@ function abrirPanel(feature, el, opciones = {}) {
       ${tours.map(htmlTour).join("")}
     </div>` : "";
   const pintarVista = (cat) => {
+    panelBody.querySelectorAll(".secciones-lugar button")
+      .forEach(b => b.setAttribute("aria-pressed", String(b.dataset.cat === cat)));
     // El ícono de "Meet a local" sobre la foto 360° abre solo esa parte
     if (cat === "tours") {
       vistaEl.innerHTML = meetALocal;
       return;
     }
     const c = CATEGORIAS[cat];
-    const conIdeal = p.horasIdeales && (!c || p.horasIdeales.secciones?.includes(cat));
-    const conMarea = !!p.mareas;
+    // En surf mandan las mareas de la ola ("surf.mareasBuenas"), no las horas del sol (Juan,
+    // 4-oct: en el agua no hay sombra). Fuera de surf, las "horasIdeales" del lugar; sin
+    // "secciones", valen en todas sus secciones.
+    const surf = cat === "surf" && p.surf?.mareasBuenas;
+    const ideal = surf ? { surf, paraEn: "surf" }
+      : p.horasIdeales && (!c || !p.horasIdeales.secciones || p.horasIdeales.secciones.includes(cat))
+        ? p.horasIdeales : null;
+    const conMarea = !!p.mareas || !!surf;
     vistaEl.innerHTML = `
       ${c ? `<p class="vista-titulo"><img src="${esc(c.icono)}" alt="">${esc(c.label)} en ${esc(p.nombre)}</p>` : ""}
       ${htmlSeccion(c ? textoDeCategoria(p, cat) : textoGeneral(p),
-        (conIdeal ? `<div class="ideal-hoy" hidden></div>` : "") +
+        (ideal ? `<div class="ideal-hoy" hidden></div>` : "") +
         (conMarea ? `<div class="marea" hidden></div>` : ""))}
       ${meetALocal}`;
-    if (conIdeal) llenarIdealHoy(vistaEl.querySelector(".ideal-hoy"), p.horasIdeales, lng, lat);
-    if (conMarea) llenarMarea(vistaEl.querySelector(".marea"), p, lng, lat);
+    if (ideal) llenarIdealHoy(vistaEl.querySelector(".ideal-hoy"), ideal, lng, lat);
+    if (conMarea) llenarMarea(vistaEl.querySelector(".marea"), p, lng, lat, ideal, { sinVoz: cat === "surf" && !surf });
   };
   // Abre en la sección que tocaron sobre la 360°; si no, en la categoría con que la persona
   // venía filtrando el mapa
   const filtro = [...categoriasActivas][0];
   pintarVista(opciones.cat || (p.categorias.includes(filtro) ? filtro : null));
   lugarAbierto = { categorias: p.categorias, pintarVista, el };
+  // Cambiar de sección en la ficha (o desde los íconos sobre la 360°) también cambia la
+  // categoría del mapa: al salir, quedan a la vista los lugares de la sección que dejó
+  if (CATEGORIAS[opciones.cat]) ponerCategoria(opciones.cat);
+  panelBody.querySelectorAll(".secciones-lugar button").forEach(b => b.addEventListener("click", () => {
+    ponerCategoria(b.dataset.cat);
+    pintarVista(b.dataset.cat);
+  }));
 
   panel.hidden = false;
   panel.scrollTop = 0;

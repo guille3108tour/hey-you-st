@@ -24,6 +24,10 @@ const POINTS = {
         "surf": {
           "nivel": "Principiante / Intermedio",
           "marea": "Baja a media",
+          "mareasBuenas": [
+            "baja",
+            "media"
+          ],
           "fondo": "Arena",
           "swell": "SW",
           "peligros": "Pocos; playa abierta"
@@ -234,6 +238,59 @@ const POINTS = {
           "servicios": "Entrada: $12 extranjeros / ₡1.600 ticos. Abierto miércoles a domingo, 8am–4pm (cerrado lunes y martes). Al final del sendero hay una llave de agua potable para hidratarse antes de la vuelta."
         },
         "tip": "El sendero no es extremo —cada quien va a su ritmo— pero tiene bastantes subidas y bajadas, así que hay que tomar en cuenta la condición física.",
+        "porCategoria": {
+          "naturaleza": {
+            "texto": "Caminar por Cabo Blanco es como visitar una pieza histórica: es la primera reserva natural absoluta de Costa Rica. Árboles majestuosos, agua cristalina para nadar en el camino y, al final, una playa virgen que se gana con las piernas.",
+            "bloques": [
+              {
+                "titulo": "Qué se ve",
+                "texto": "No es el lugar con más animales de la zona, pero los árboles son impresionantes y en el camino hay tramos de agua cristalina donde nadar. En las rutas cortas se puede andar buscando venados y otros animales."
+              },
+              {
+                "titulo": "El recorrido",
+                "texto": "No es senderismo extremo y cada quien va a su ritmo, pero tiene bastantes subidas y bajadas y se siente agitado: tomá en cuenta tu condición física. Si no querés llegar hasta la playa, hay rutas más cortas entre los árboles."
+              },
+              {
+                "titulo": "Para la vuelta",
+                "texto": "Al final del sendero hay una llave de agua potable para hidratarse antes de regresar."
+              },
+              {
+                "titulo": "Dato de local",
+                "texto": "Antes toda la península era zona de ganadería. Unos extranjeros empezaron a reforestar, y gracias a esas iniciativas se empezó a formar el puente biológico natural de la zona."
+              }
+            ]
+          },
+          "playa": {
+            "texto": "La playa de Cabo Blanco está al final del sendero: se llega caminando, después de un buen esfuerzo, y por eso se siente virgen y paradisíaca.",
+            "bloques": [
+              {
+                "titulo": "Cómo llegar",
+                "texto": "Por el sendero de la reserva, con bastantes subidas y bajadas. No es extremo, pero llegás agitado: andá a tu ritmo."
+              },
+              {
+                "titulo": "Lo práctico",
+                "texto": "Al final hay una llave de agua potable para hidratarse. Acordate de que después de la playa queda toda la caminata de regreso."
+              }
+            ]
+          },
+          "familia": {
+            "texto": "Con niños activos se disfruta muchísimo, y con niños más tranquilos también, si eligen bien la ruta.",
+            "bloques": [
+              {
+                "titulo": "Para qué edades",
+                "texto": "Para llegar hasta la playa, Guille recomienda niños activos de unos 8 o 9 años en adelante, por las subidas y bajadas del sendero."
+              },
+              {
+                "titulo": "Si son más tranquilos",
+                "texto": "Hay rutas cortas que no llegan a la playa: sirven para ver árboles bonitos y jugar a encontrar animales como venados."
+              },
+              {
+                "titulo": "Lo práctico",
+                "texto": "Al final del sendero hay una llave de agua potable. Tomen en cuenta que la vuelta también tiene subidas."
+              }
+            ]
+          }
+        },
         "foto": "",
         "voces": [
           {
@@ -289,7 +346,42 @@ const POINTS = {
           "baja": "Único momento en que se puede cruzar caminando hasta la isla, sobre un arrecife plano con agua a la rodilla (unos 400 m / 10 minutos). Recomendado llegar dos horas antes de la marea más baja para tener unas 4 horas en la isla.",
           "alta": "La isla queda separada de la costa; no se puede cruzar."
         },
+        "horasIdeales": {
+          "marea": "baja"
+        },
         "tip": "El arrecife de la punta es de los mejores lugares de la zona para bucear; incluso sin equipo se ven peces de colores en las pozas de roca. A veces hay mercaditos de artesanos locales en el pueblo de Cabuya.",
+        "porCategoria": {
+          "naturaleza": {
+            "texto": "Frente a Cabuya hay una isla que es el cementerio del pueblo. Solo se llega caminando cuando la marea baja y aparece el cordón de arrecife que la une con la costa.",
+            "bloques": [
+              {
+                "titulo": "Qué se ve",
+                "texto": "En vez de lápidas de concreto con ángeles, las tumbas tienen partes de botes: Cabuya es un pueblo pesquero, y ahí solo se entierra a quienes vivieron en el pueblo. Desde la isla, el verde de Cabuya se ve distinto, desde adentro del mar."
+              },
+              {
+                "titulo": "Cuándo cruzar",
+                "texto": "Solo con marea baja. Llegá unas dos horas antes de la marea más baja: así tenés unas cuatro horas en la isla antes de que el agua vuelva a subir. La franja dorada de la curva te marca esa ventana para hoy."
+              },
+              {
+                "titulo": "Con marea alta",
+                "texto": "La isla queda separada de la costa y no se puede cruzar."
+              }
+            ]
+          },
+          "playa": {
+            "texto": "Cabuya no tiene las playas más espectaculares de la zona, pero es un pueblo muy tranquilo y lindo para pasar, y el cruce a la isla es su gran plan.",
+            "bloques": [
+              {
+                "titulo": "Con la marea",
+                "texto": "Todo depende de la marea: con la baja se abre el paso a la isla; con la alta, la isla queda aislada. Revisá la curva antes de salir."
+              },
+              {
+                "titulo": "En el pueblo",
+                "texto": "A veces hay mercaditos de artesanos locales. Si te topás con uno, es una linda forma de apoyar lo que se hace en Cabuya."
+              }
+            ]
+          }
+        },
         "foto": "",
         "voces": [
           {
@@ -348,6 +440,50 @@ const POINTS = {
           "servicios": "No hay restaurante justo ahí — el más cercano queda unos 10 minutos caminando o en carro; el centro de Montezuma es el punto de abastecimiento más cercano"
         },
         "tip": "Una de las playas favoritas de Guille en la zona, por lo cristalina que es el agua — pero siempre cuidado con las mareas, pueden ponerse peligrosas.",
+        "porCategoria": {
+          "playa": {
+            "texto": "Arena de concha y un agua tan cristalina que, con el mar al pecho, te seguís viendo los pies. Es de las playas favoritas de Guille en la zona.",
+            "bloques": [
+              {
+                "titulo": "Cómo es",
+                "texto": "El agua es muy transparente y tranquila para bañarse, por una corriente propia de esta zona. Acá, del lado de Montezuma, se vive más el amanecer que el atardecer: por eso en la tarde hay sombra."
+              },
+              {
+                "titulo": "La mejor hora",
+                "texto": "En la tarde, después de la 1 o 2 p.m., con la marea subiendo desde la baja. A esa hora además hay sombra."
+              },
+              {
+                "titulo": "Lo práctico",
+                "texto": "No hay restaurante en la playa: el más cercano queda a unos 10 minutos caminando o en carro. Para abastecerte, el centro de Montezuma."
+              },
+              {
+                "titulo": "Ojo con",
+                "texto": "Las corrientes pueden cambiar y ponerse peligrosas. Si empezás a sentirlas, quedate donde puedas controlar bien el agua."
+              }
+            ]
+          },
+          "familia": {
+            "texto": "Agua cristalina, tranquila y con sombra en la tarde: un buen plan con niños, siempre con un adulto al lado.",
+            "bloques": [
+              {
+                "titulo": "La mejor hora",
+                "texto": "En la tarde, después de la 1 o 2 p.m., con la marea subiendo desde la baja. A esa hora además hay sombra."
+              },
+              {
+                "titulo": "Cómo es el agua",
+                "texto": "Tan transparente que se ven los pies con el agua al pecho. Los más pequeños pueden bañarse, siempre bajo la supervisión de un adulto."
+              },
+              {
+                "titulo": "Ojo con",
+                "texto": "Las corrientes. Si se sienten fuertes, quédense donde se pueda controlar bien el agua."
+              },
+              {
+                "titulo": "Lo práctico",
+                "texto": "No hay restaurante en la playa: el más cercano queda a unos 10 minutos caminando o en carro, y el centro de Montezuma es el lugar para abastecerse."
+              }
+            ]
+          }
+        },
         "foto": "",
         "voces": [
           {
@@ -410,6 +546,80 @@ const POINTS = {
           "pozas": "Sí, pozas en el río, ideal para niños y parejas"
         },
         "tip": "Si suben al río, váyanse por la parte derecha para llegar a una catarata pequeña, tranquila y muy bonita — y llévense toda la basura de vuelta.",
+        "porCategoria": {
+          "naturaleza": {
+            "texto": "Un río de agua cristalina, pozas y una catarata pequeña escondida río arriba, a unos 20 minutos caminando desde Montezuma.",
+            "bloques": [
+              {
+                "titulo": "El recorrido",
+                "texto": "Unos 20 minutos por senderos de roca y playa: una caminata accesible para casi todos, aunque no para quien necesita silla de ruedas. Si querés más, subí por la parte derecha del río hasta la catarata pequeña."
+              },
+              {
+                "titulo": "Qué se ve",
+                "texto": "Al fondo del camino hay una roca que parece un horno de pan, y es común encontrarse piedras apiladas en equilibrio. Todavía no sabemos si es una tradición indígena o algo más reciente."
+              },
+              {
+                "titulo": "Qué lo cambia",
+                "texto": "En verano el río baja cristalino."
+              },
+              {
+                "titulo": "Cuidado del lugar",
+                "texto": "Llevate toda tu basura de vuelta."
+              }
+            ]
+          },
+          "cascada": {
+            "texto": "La catarata de Piedra Colorada es pequeña, tranquila y muy bonita. Se llega subiendo por el río.",
+            "bloques": [
+              {
+                "titulo": "Cómo se llega",
+                "texto": "Desde Montezuma son unos 20 minutos caminando por roca y playa hasta el río. De ahí, subí por la parte derecha del río."
+              },
+              {
+                "titulo": "Qué vas a encontrar",
+                "texto": "Pozas en el río para refrescarse y, más arriba, la catarata pequeña. En verano el agua baja cristalina."
+              },
+              {
+                "titulo": "Cuidado del lugar",
+                "texto": "Llevate toda tu basura de vuelta."
+              }
+            ]
+          },
+          "familia": {
+            "texto": "Guille venía de niño todos los domingos con su mamá: el río es súper rico y tiene pozas ideales para los chiquitos.",
+            "bloques": [
+              {
+                "titulo": "Cómo es el agua",
+                "texto": "Pozas en el río, con agua cristalina en verano."
+              },
+              {
+                "titulo": "La caminata",
+                "texto": "Unos 20 minutos desde Montezuma por senderos de roca y playa. Es bastante accesible, aunque no para silla de ruedas."
+              },
+              {
+                "titulo": "Dato de local",
+                "texto": "Hay una roca arcillosa (antes era el doble de grande) y la tradición de toda la vida es embarrarse la cara y el cuerpo, exfoliarse y lavarse en el río."
+              }
+            ]
+          },
+          "bienestar": {
+            "texto": "Barro, río y calma: Piedra Colorada tiene su propio ritual, y en la zona se siente mucha energía indígena.",
+            "bloques": [
+              {
+                "titulo": "El ritual del barro",
+                "texto": "Al lado del río hay una roca arcillosa. La tradición es embarrarse la cara y el cuerpo, exfoliarse y limpiarse en el agua. Antes la roca era el doble de grande."
+              },
+              {
+                "titulo": "Para quién",
+                "texto": "Ideal para parejas, y también para ir con niños."
+              },
+              {
+                "titulo": "Cuidado del lugar",
+                "texto": "Llevate toda tu basura de vuelta."
+              }
+            ]
+          }
+        },
         "foto": "",
         "voces": [
           {
@@ -472,11 +682,102 @@ const POINTS = {
         "familia": {
           "servicios": "Cerca queda el Refugio Nacional Mixto de Vida Silvestre Romelia"
         },
+        "surf": {
+          "marea": "Media a alta",
+          "mareasBuenas": [
+            "media",
+            "alta"
+          ]
+        },
         "mareas": {
-          "alta": "Sube muy rápido y muy alto, igual que en Playa Hermosa — cuidado con lo que se deja cerca de la orilla.",
-          "baja": "Mejor momento para ir: cuando la marea está empezando a bajar."
+          "alta": "Sube muy rápido y muy alto, igual que en Playa Hermosa — cuidado con lo que se deja cerca de la orilla."
+        },
+        "horasIdeales": {
+          "marea": "alta",
+          "ventana": [
+            0,
+            2
+          ]
         },
         "tip": "El acceso es una caminata larga: se pasa por Piedra Colorada y de ahí son unos 25 minutos más por roca, subiendo y después bajando — pero con vistas espectaculares al mar. Mejor ir con compañía.",
+        "porCategoria": {
+          "naturaleza": {
+            "texto": "Una playa larguísima que se gana caminando: se pasa por Piedra Colorada y se sigue por la roca, con el mar abajo.",
+            "bloques": [
+              {
+                "titulo": "El recorrido",
+                "texto": "Después de Piedra Colorada son unos 25 minutos más por roca: primero una subida y después la bajada. Mejor ir con compas: es una buena aventura."
+              },
+              {
+                "titulo": "Qué se ve",
+                "texto": "Vistas espectaculares al mar desde arriba y, al llegar, una playa muy extensa y completamente plana."
+              },
+              {
+                "titulo": "Qué lo cambia",
+                "texto": "La marea. Lo mejor es llegar cuando está empezando a bajar; cuando sube, lo hace muy rápido y muy alto."
+              },
+              {
+                "titulo": "Alrededor",
+                "texto": "Cerca queda el Refugio de Vida Silvestre Romelia."
+              }
+            ]
+          },
+          "playa": {
+            "texto": "Extensa y completamente plana, como Playa Hermosa, pero escondida al final de una caminata.",
+            "bloques": [
+              {
+                "titulo": "Con la marea",
+                "texto": "Por lo plana que es, la marea sube muy rápido y muy alto: dejá tus cosas lejos de la orilla. El mejor momento es cuando empieza a bajar."
+              },
+              {
+                "titulo": "Cómo llegar",
+                "texto": "Caminando: se pasa por Piedra Colorada y de ahí son unos 25 minutos más por roca, con una subida y una bajada."
+              },
+              {
+                "titulo": "Ojo con",
+                "texto": "Es una caminata larga, también de vuelta: mejor ir acompañado."
+              }
+            ]
+          },
+          "surf": {
+            "texto": "Lucas, que es de acá, la recomienda para surfear. Es una playa larga y plana a la que se llega caminando.",
+            "bloques": [
+              {
+                "titulo": "Cómo es la ola",
+                "texto": "Las páginas de surf de la zona la describen como una ola muy constante."
+              },
+              {
+                "titulo": "Para qué nivel",
+                "texto": "Según esas páginas, es buena para principiantes."
+              },
+              {
+                "titulo": "Cuándo funciona",
+                "texto": "Con marea media a alta y swell del sur. Calza con lo que dicen los locales: llegar cuando la marea empieza a bajar después de la alta."
+              },
+              {
+                "titulo": "Ojo con",
+                "texto": "La marea sube muy rápido y muy alto: dejá tus cosas lejos de la orilla."
+              }
+            ]
+          },
+          "familia": {
+            "texto": "Plana como Playa Hermosa, así que también sirve para ir con niños, siempre que aguanten la caminata.",
+            "bloques": [
+              {
+                "titulo": "La mejor hora",
+                "texto": "Cuando la marea empieza a bajar. La franja dorada de la curva te marca la de hoy."
+              },
+              {
+                "titulo": "Con marea alta",
+                "texto": "Sube muy rápido y muy alto: tómenlo en cuenta con los niños y dejen las cosas lejos de la orilla."
+              },
+              {
+                "titulo": "La caminata",
+                "texto": "Se pasa por Piedra Colorada y son unos 25 minutos más por roca, con subida y bajada. Piénsenlo según qué tanto les gusta caminar a los niños."
+              }
+            ]
+          }
+        },
         "foto": "",
         "voces": [
           {
@@ -518,8 +819,55 @@ const POINTS = {
           "sombra": "Sí, zona privada (aunque parte del día agarra algo de sol)"
         },
         "mareas": {
-          "alta": "A la hora del atardecer se arma una playa de arena perfecta para que los peques jueguen, siempre supervisados por las corrientes.",
+          "alta": "A la hora del atardecer se arma una playa de arena perfecta para quedarse a ver el espectáculo. Ojo con las corrientes.",
           "baja": "Los que corren pueden seguir hasta el final del peñón, pero solo con marea baja."
+        },
+        "horasIdeales": {
+          "marea": "baja",
+          "para": "caminar hasta el peñón",
+          "paraEn": "walk to the peñón"
+        },
+        "entrada": "Un rincón con sombra para sentarse a bajar revoluciones, ideal para parejas, nómadas y para quien sale a caminar o correr. El atardecer acá es un espectáculo.",
+        "porCategoria": {
+          "bienestar": {
+            "texto": "Hay una sombra privada donde uno se sienta a meditar: las revoluciones bajan y todo empieza a funcionar.",
+            "bloques": [
+              {
+                "titulo": "Para quién",
+                "texto": "Para parejas, nómadas y cualquiera que necesite un rato de calma. Si estás en un proceso de sanación, Guille recomienda caminar hasta acá a la hora del atardecer."
+              },
+              {
+                "titulo": "Sol y sombra",
+                "texto": "Tiene partes privadas con sombra, aunque en algún momento del día agarra un poco de sol."
+              }
+            ]
+          },
+          "playa": {
+            "texto": "Una playa para caminar y quedarse, más que para meterse al agua.",
+            "bloques": [
+              {
+                "titulo": "Con la marea",
+                "texto": "Con marea baja se puede caminar o correr hasta el final del peñón; con marea alta, no. La franja dorada de la curva te marca la ventana de hoy."
+              },
+              {
+                "titulo": "Ojo con",
+                "texto": "Hay corrientes peligrosas: al agua, solo quien tiene experiencia en el mar."
+              }
+            ]
+          },
+          "atardecer": {
+            "texto": "Caminar hasta Villa Flor a la hora del atardecer y sentarse a ver el espectáculo es de los rituales que Guille más recomienda.",
+            "bloques": [
+              {
+                "titulo": "A qué hora llegar",
+                "texto": "La hora del atardecer de hoy sale en la curva de la marea, junto al 🌅. Llegá con tiempo para caminar sin apuro."
+              },
+              {
+                "titulo": "Con la marea",
+                "texto": "Con marea alta, a esa hora se arma una playa de arena perfecta para quedarse a verlo."
+              }
+            ]
+          }
         },
         "foto": "",
         "foto360": {
@@ -539,7 +887,6 @@ const POINTS = {
           {
             "autor": "Guille",
             "perfiles": [
-              "familia",
               "explorador"
             ],
             "texto": "Es especial para familias: tiene partes privadas bonitas, y aunque agarra un poco de sol se disfruta estar ahí. Si sos pro en el surf y querés que tu familia esté cómoda mientras te ve, que los peques siempre estén supervisados — en marea alta, para el atardecer, jugar en la arena es un espectáculo. Es lo que siempre he visto hacer a las mamás de acá. Para los que corren, los invito a llegar hasta el final del peñón, pero solo en marea baja."
@@ -557,19 +904,150 @@ const POINTS = {
         ]
       },
       "properties": {
-        "id": "eso-beach",
-        "nombre": "Eso Beach",
+        "id": "playa-brunelas",
+        "nombre": "Playa Brunelas",
         "categorias": [
-          "playa"
+          "playa",
+          "surf",
+          "familia",
+          "atardecer"
         ],
+        "surf": {
+          "nivel": "Intermedio / Avanzado",
+          "marea": "Baja a media",
+          "mareasBuenas": [
+            "baja",
+            "media"
+          ],
+          "fondo": "Arena",
+          "swell": "S / SW"
+        },
+        "mareas": {
+          "baja": "Es la mejor hora: de 2 horas antes a 2 horas después de la marea más baja. Los niños pueden jugar en la orilla, y si la marea baja cae en la tarde, mejor todavía. Igual hay que tener cuidado: la playa no es completamente plana y hay huecos donde uno se puede hundir de repente."
+        },
+        "horasIdeales": {
+          "marea": "baja",
+          "secciones": [
+            "playa",
+            "familia",
+            "atardecer"
+          ]
+        },
+        "entrada": "Una playa muy extensa y casi sin rocas, donde la gente del pueblo se junta a ver el atardecer. Hay sombra de almendros y cocos, y con marea baja es cuando mejor se disfruta.",
+        "porCategoria": {
+          "playa": {
+            "texto": "Super extensa y casi sin rocas: en cualquier punto encontrás tu espacio sin sentirla llena. Es donde la gente local se reúne al atardecer.",
+            "bloques": [
+              {
+                "titulo": "Cómo es",
+                "texto": "Es tan espaciosa que la podés chantar donde querás. Casi no tiene rocas, y eso la hace más calmada. A diferencia de Playa Hermosa, acá hay almendros y cocos para estar a la sombra."
+              },
+              {
+                "titulo": "Con la marea",
+                "texto": "Lo mejor es de 2 horas antes a 2 horas después de la marea más baja; si esa marea baja cae en la tarde, mejor todavía. La franja dorada de la curva te marca la de hoy."
+              },
+              {
+                "titulo": "Cómo llegar",
+                "texto": "El carro no entra hasta la playa: dejalo arriba, en la calle principal o cerca, donde quepa. En moto se llega, pero lo mejor es entrar caminando."
+              },
+              {
+                "titulo": "Lo práctico",
+                "texto": "Cerca hay casetillas locales que venden cervezas, cocos y piñas coladas. En la zona hay puestos de salvavidas."
+              },
+              {
+                "titulo": "Ojo con",
+                "texto": "No es completamente plana: hay huecos donde uno se puede hundir de repente. Tené cuidado con la marea, y con el sol aunque haya sombra."
+              }
+            ]
+          },
+          "surf": {
+            "texto": "Una playa especial para surfear, pero con mucha gente y muchos surfistas locales en el agua.",
+            "bloques": [
+              {
+                "titulo": "Cómo es la ola",
+                "texto": "Beach break de fondo de arena, con picos que abren a la izquierda y a la derecha. Tiene caras más paradas y secciones más fuertes que otras olas de la zona, y cuando se juntan el banco de arena, el swell y el viento, hasta tubos."
+              },
+              {
+                "titulo": "Para qué nivel",
+                "texto": "Intermedio, o principiante que ya tenga algo de experiencia: con tanta gente en el agua, hay que saber controlar la ola. Las páginas de surf la recomiendan para intermedios y avanzados."
+              },
+              {
+                "titulo": "Cuándo funciona",
+                "texto": "Con marea baja a media y swell del sur o del suroeste. La curva de abajo te marca las horas buenas y las no tan buenas de hoy."
+              },
+              {
+                "titulo": "Ojo con",
+                "texto": "Los picos principales se llenan. Cuando el swell crece, hay corrientes más fuertes y revolcadas más pesadas. En la arena hay huecos donde uno se puede hundir de repente, y en la zona hay puestos de salvavidas."
+              }
+            ]
+          },
+          "familia": {
+            "texto": "Con la marea baja, los niños pueden jugar en la orilla, y en la zona hay puestos de salvavidas.",
+            "bloques": [
+              {
+                "titulo": "La mejor hora",
+                "texto": "Con la marea bien baja: de 2 horas antes a 2 horas después de la más baja."
+              },
+              {
+                "titulo": "Sol y sombra",
+                "texto": "Hay almendros y cocos para estar a la sombra, pero igual tengan mucho cuidado con el sol."
+              },
+              {
+                "titulo": "Ojo con",
+                "texto": "No es completamente plana: hay huecos donde uno se puede hundir de repente. Estén pendientes de la marea."
+              },
+              {
+                "titulo": "Lo práctico",
+                "texto": "El carro se deja arriba, en la calle principal, y se entra caminando. Cerca hay casetillas locales con cocos y bebidas."
+              }
+            ]
+          },
+          "atardecer": {
+            "texto": "Es donde todas las personas locales se reúnen a ver el atardecer, y verlo acá es mágico.",
+            "bloques": [
+              {
+                "titulo": "A qué hora llegar",
+                "texto": "La hora del atardecer de hoy sale en la curva de la marea, junto al 🌅. Si la marea baja cae en la tarde, se junta todo."
+              },
+              {
+                "titulo": "Para quién",
+                "texto": "Ideal para caminar en pareja o solo, y para quedarse a ver cómo se pone el sol."
+              },
+              {
+                "titulo": "Antes o después",
+                "texto": "Cerca hay casetillas locales que venden cervezas, cocos y piñas coladas."
+              }
+            ]
+          }
+        },
         "foto": "",
         "foto360": {
-          "src": "img/360/eso-beach.jpg",
+          "src": "img/360/playa-brunelas.jpg",
           "yaw": 125,
           "minPitch": -35,
           "maxPitch": 60
         },
-        "voces": []
+        "voces": [
+          {
+            "autor": "Guille",
+            "perfiles": [
+              "familia",
+              "solo",
+              "explorador"
+            ],
+            "texto": "Hoy fui a esta playa (tengo que buscar el nombre local) y es de las playas más increíbles que he conocido desde hace mucho tiempo. Es súper especial para el surf, nivel intermedio, o principiante pero ya con un poquito de experiencia, porque hay muchos surfistas locales y mucha gente, entonces hay que poder controlar una ola. El punto de atardecer es increíble. Las mejores horas para ir son cuando la marea está súper baja, porque los niños pueden jugar en las orillas; cerca hay puntos de lifeguard, salvavidas que te pueden proteger ante cualquier inconveniente. No se puede acceder en carro: mejor dejarlo arriba en la calle principal o cerca, donde quepa. Se puede accesar en moto, pero mejor caminando. El lugar es súper espacioso, la podés chantar donde vos querás; ideal para caminatas en pareja o solo, y solamente ver el atardecer es mágico. La hora perfecta es de dos horas antes a dos horas después de la marea más baja."
+          },
+          {
+            "autor": "Guille",
+            "perfiles": [
+              "nomada",
+              "familia",
+              "solo",
+              "explorador"
+            ],
+            "texto": "Es un lugar muy interesante para el atardecer: es donde todas las personas locales se reúnen. Hay fácil acceso para los carros, aunque no hay parqueo adentro hasta la playa; es mejor dejarlo ya sea por La Morella o por la calle principal. Es una playa súper extensa donde en cualquier punto te vas a sentir no tan lleno. Casi no tiene rocas, eso ayuda a que todo esté más calmado; sin embargo no es un lugar completamente plano: hay huecos donde uno se puede hundir de repente, entonces hay que tener cuidado con la marea. Es muy tuanis para ir en marea baja, dos horas antes y dos horas después de la más baja, y si la marea está baja para la tarde también es muy bueno. A diferencia de Playa Hermosa, acá sí hay almendros y cocos, donde las personas pueden estar en sombra, pero también hay que tener mucha precaución con el sol. Cerca hay casetillas locales donde venden cervezas, cocos y piñas coladas."
+          }
+        ]
       }
     },
     {
@@ -618,7 +1096,72 @@ const POINTS = {
         "mareas": {
           "baja": "La piscina natural se forma entre 2 horas antes y 2 horas después de la marea más baja — es el único momento recomendado para meterse; con marea alta no hay piscina protegida."
         },
+        "horasIdeales": {
+          "marea": "baja"
+        },
         "tip": "Ir justo con la marea baja a la hora del atardecer: el sol pegando sobre el agua de la piscina natural, con la Reserva Cabo Blanco de fondo, le da un toque mágico extra al lugar.",
+        "porCategoria": {
+          "playa": {
+            "texto": "Con marea baja, el peñón arma una piscina natural de agua cristalina, casi sin oleaje y con la Reserva Cabo Blanco de fondo. Fuera de esa ventana, la magia se pierde.",
+            "bloques": [
+              {
+                "titulo": "Con la marea",
+                "texto": "La piscina se forma de 2 horas antes a 2 horas después de la marea más baja. Es el único momento recomendado para meterse: con marea alta no hay piscina protegida."
+              },
+              {
+                "titulo": "Cómo llegar",
+                "texto": "En 4x4: el camino es de piedra de principio a fin y está muy feo para un carro bajo."
+              }
+            ]
+          },
+          "familia": {
+            "texto": "Una piscina natural rodeada de naturaleza, tranquila y cristalina: con la marea correcta, es un lugar increíble para la familia.",
+            "bloques": [
+              {
+                "titulo": "La mejor hora",
+                "texto": "De 2 horas antes a 2 horas después de la marea más baja, cuando se forma la piscina. La franja dorada de la curva te marca la de hoy."
+              },
+              {
+                "titulo": "Cómo es el agua",
+                "texto": "Cristalina y sin mucho oleaje mientras dura la piscina. Con marea alta no hay piscina protegida y no se recomienda meterse."
+              },
+              {
+                "titulo": "Lo práctico",
+                "texto": "Se llega en 4x4: el camino es de piedra todo el trayecto."
+              }
+            ]
+          },
+          "naturaleza": {
+            "texto": "Piscina natural, peñón y la Reserva Cabo Blanco enfrente: Playa Suecos se siente mágica cuando la marea baja.",
+            "bloques": [
+              {
+                "titulo": "Qué se ve",
+                "texto": "Una piscina natural rodeada de naturaleza, con vistas increíbles a la Reserva Cabo Blanco."
+              },
+              {
+                "titulo": "Qué lo cambia",
+                "texto": "La marea. La piscina solo existe de 2 horas antes a 2 horas después de la más baja."
+              },
+              {
+                "titulo": "Cómo llegar",
+                "texto": "En 4x4: el camino es de piedra de principio a fin."
+              }
+            ]
+          },
+          "atardecer": {
+            "texto": "Si la marea baja coincide con el atardecer, no te lo perdás: el sol toca el agua de la piscina y le da un toque mágico extra.",
+            "bloques": [
+              {
+                "titulo": "A qué hora llegar",
+                "texto": "Fijate en la curva de la marea: si la franja dorada llega hasta el 🌅, ese día se juntan la piscina y el atardecer."
+              },
+              {
+                "titulo": "Cómo llegar",
+                "texto": "En 4x4: el camino es de piedra de principio a fin."
+              }
+            ]
+          }
+        },
         "foto": "",
         "voces": [
           {
@@ -673,6 +1216,67 @@ const POINTS = {
           "servicios": "Sin costo de entrada. Se puede dejar el carro en la calle principal, aunque lo ideal es pagar por parqueo cuando hay disponible."
         },
         "tip": "El agua está fría, y si sentís que algo te muerde no te asustés — son pececitos y camarones de la zona.",
+        "porCategoria": {
+          "cascada": {
+            "texto": "Es de los lugares más atractivos de la península: una catarata de tres niveles que se formó por una falla en la roca. Empezá por el primero.",
+            "bloques": [
+              {
+                "titulo": "Cómo se llega",
+                "texto": "Unos 25 minutos caminando sobre el río hasta el primer nivel, pasando casi por la montaña con cuerdas. Hay que agarrarse duro y tener algo de fuerza, pero el destino es precioso."
+              },
+              {
+                "titulo": "Qué vas a encontrar",
+                "texto": "En el primer nivel te podés meter debajo de la catarata. El agua está fría, y si sentís que algo te muerde, tranquilo: son pececitos y camarones."
+              },
+              {
+                "titulo": "Para quién",
+                "texto": "Para quien tiene algo de fuerza. Con niños, después de los 7 u 8 años. Para personas mayores, mucho cuidado: el acceso es difícil."
+              },
+              {
+                "titulo": "Lo práctico",
+                "texto": "Es gratis, no se paga entrada. Lo ideal es pagar parqueo; si no, se puede dejar el carro en la calle principal."
+              }
+            ]
+          },
+          "naturaleza": {
+            "texto": "Una caminata sobre el río, con cuerdas y roca, que termina en una de las caídas de agua más lindas de la península.",
+            "bloques": [
+              {
+                "titulo": "El recorrido",
+                "texto": "Unos 25 minutos sobre el río hasta el primer nivel, con tramos donde hay que agarrarse duro de las cuerdas. Hace falta algo de fuerza."
+              },
+              {
+                "titulo": "Qué se ve",
+                "texto": "Tres niveles de catarata; el primero es el que se recomienda conocer primero. En el agua hay pececitos y camarones de la zona."
+              },
+              {
+                "titulo": "Precauciones",
+                "texto": "Para personas mayores, mucho cuidado: el acceso es difícil."
+              }
+            ]
+          },
+          "familia": {
+            "texto": "Apta para familias con niños de 7 u 8 años en adelante: el acceso es un poco complicado, pero el premio es meterse debajo de la catarata.",
+            "bloques": [
+              {
+                "titulo": "Para qué edades",
+                "texto": "Después de los 7 u 8 años. Si el papá o la mamá tiene fuerza para ayudarles en los tramos de cuerda, pueden ir."
+              },
+              {
+                "titulo": "La caminata",
+                "texto": "Unos 25 minutos sobre el río hasta el primer nivel, con tramos donde hay que agarrarse de cuerdas."
+              },
+              {
+                "titulo": "Cómo es el agua",
+                "texto": "Fría. En el primer nivel se puede estar debajo de la catarata. Si algo les muerde los pies, son pececitos y camarones."
+              },
+              {
+                "titulo": "Lo práctico",
+                "texto": "Es gratis. Lo ideal es pagar parqueo; si no, se puede dejar el carro en la calle principal."
+              }
+            ]
+          }
+        },
         "foto": "",
         "voces": [
           {
@@ -723,7 +1327,52 @@ const POINTS = {
           "baja": "Es la ventana para ir caminando — conviene salir unas 2 horas antes de la marea más baja, para tener unas 4 horas de margen ida y vuelta por la playa.",
           "alta": "El agua de la catarata llega hasta el mar y tapa tramos del camino por la playa — no es el momento para caminar hasta ahí."
         },
+        "horasIdeales": {
+          "marea": "baja",
+          "para": "ir caminando",
+          "paraEn": "walk there"
+        },
         "tip": "En carro desde Montezuma: virar en la escuela \"La Abuela\" hacia el Tango Mar Beachfront Boutique Hotel — camino de tierra, no hace falta 4x4.",
+        "porCategoria": {
+          "cascada": {
+            "texto": "Una zona muy mágica: el agua de la catarata llega hasta el océano. Se llega en carro, o con una caminata por la playa que depende de la marea.",
+            "bloques": [
+              {
+                "titulo": "Cómo se llega",
+                "texto": "En carro, hasta Tango Mar: una media hora desde Cóbano y sin pasar por la playa, así que la marea no te cambia el acceso. Desde Santa Teresa o Montezuma te queda lejos. A pie son hora y media de ida y hora y media de vuelta por la playa."
+              },
+              {
+                "titulo": "Qué la cambia",
+                "texto": "La marea, solo si vas caminando. Salí unas 2 horas antes de la marea más baja para tener unas 4 horas de ida y vuelta a tu ritmo. Si te agarra la marea subiendo, hay tramos que se tapan y te toca apurarte."
+              },
+              {
+                "titulo": "Qué vas a encontrar",
+                "texto": "Con marea alta, el agua de la catarata llega hasta el mar: una vista preciosa."
+              }
+            ]
+          },
+          "naturaleza": {
+            "texto": "La caminata a El Chorro es de las más mágicas de la zona: playa virgen, lugares con refugios y una catarata que termina en el mar.",
+            "bloques": [
+              {
+                "titulo": "El recorrido",
+                "texto": "Hora y media de ida y hora y media de vuelta por la playa, pasando por playa virgen y lugares con refugios."
+              },
+              {
+                "titulo": "Qué lo cambia",
+                "texto": "La marea. Salí unas 2 horas antes de la más baja para tener unas 4 horas de margen. La franja dorada de la curva te marca la ventana de hoy."
+              },
+              {
+                "titulo": "Ojo con",
+                "texto": "Si salís tarde y la marea empieza a subir, hay tramos que se tapan y toca volver rápido."
+              },
+              {
+                "titulo": "Si preferís no caminar",
+                "texto": "En carro se llega hasta Tango Mar, una media hora desde Cóbano, sin pasar por la playa."
+              }
+            ]
+          }
+        },
         "foto": "",
         "voces": [
           {
