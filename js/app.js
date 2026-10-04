@@ -172,7 +172,8 @@ function crearFilaCapa(clave, cat, extraClase = "") {
   b.className = "capa" + (extraClase ? " " + extraClase : "");
   b.dataset.cat = clave;
   b.setAttribute("aria-pressed", "false");
-  b.setAttribute("aria-label", cat.label); // en celular se ve solo el ícono
+  b.setAttribute("aria-label", cat.label); // se ve solo el ícono (desde el 3-oct también en compu)
+  b.title = cat.label; // en compu, el nombre aparece al pasar el mouse
   if (cat.color) b.style.setProperty("--cat", cat.color);
   b.innerHTML =
     '<span class="capa-icono"></span><span class="capa-label"></span><span class="capa-switch"></span>';
@@ -195,15 +196,17 @@ function alternarCategoria(clave) {
   const filtro = [...categoriasActivas][0];
   if (lugarAbierto && (!filtro || lugarAbierto.categorias.includes(filtro))) {
     lugarAbierto.pintarVista(filtro || null);
-  } else {
+  } else if (!panel.hidden) {
     cerrarPanel();
   }
 }
 
 listaCapasEl.appendChild(crearFilaCapa("todos", CAT_TODAS, "capa-todas"));
-for (const [clave, cat] of Object.entries(CATEGORIAS)) {
-  listaCapasEl.appendChild(crearFilaCapa(clave, cat));
-}
+Object.entries(CATEGORIAS).forEach(([clave, cat], i) => {
+  const fila = crearFilaCapa(clave, cat);
+  fila.style.setProperty("--i", i); // al abrir el mapa saltan una detrás de otra
+  listaCapasEl.appendChild(fila);
+});
 
 // Refleja el estado de los interruptores y el conteo de lugares visibles.
 function sincronizarCapas(visibles) {
@@ -214,8 +217,7 @@ function sincronizarCapas(visibles) {
     b.setAttribute("aria-pressed", String(prendida));
   }
   conteoEl.textContent = visibles === 1 ? "1 lugar en el mapa" : `${visibles} lugares en el mapa`;
-  // En la fila de íconos del celular: sin filtro van todos a color; con uno elegido,
-  // ese resalta y el resto se apaga
+  // Sin filtro van todos a color; con uno elegido, ese resalta y el resto se apaga
   capasEl.classList.toggle("filtrando", !todas);
 }
 
@@ -244,6 +246,7 @@ for (const feature of LUGARES) {
     e.stopPropagation();
     abrirLugar(feature, el);
   });
+  el.addEventListener("animationend", () => el.classList.remove("aparece"));
 
   // opacityWhenCovered: en modo 3D MapLibre atenúa los marcadores "tapados" por el terreno;
   // para una guía preferimos que siempre se vean.
@@ -263,20 +266,37 @@ function pintarMarcador(el, clave) {
   el.replaceChildren(crearIcono(cat));
 }
 
+// Juan (3-oct): al abrir no se ve ningún lugar, solo la barra de categorías. Al elegir una,
+// sus lugares aparecen saltando ("pop"), uno detrás de otro de norte a sur.
 function renderMarcadores() {
-  const todas = categoriasActivas.size === 0;
+  const nuevos = [];
   let visibles = 0;
   for (const m of marcadores) {
     const cats = m.feature.properties.categorias;
-    // Con filtros activos, el ícono muestra la PRIMERA categoría buscada que el
-    // lugar cumple (un lugar con surf y niños se ve como "niños" cuando el
-    // visitante está buscando lugares para niños).
-    const coincide = todas ? null : cats.find(c => categoriasActivas.has(c));
-    if (!todas && !coincide) { m.marker.remove(); continue; }
+    // El ícono muestra la PRIMERA categoría buscada que el lugar cumple (un lugar con surf
+    // y niños se ve como "niños" cuando el visitante está buscando lugares para niños).
+    const coincide = cats.find(c => categoriasActivas.has(c));
+    // El lugar abierto o marcado (el que parpadea) se queda aunque no sea de la categoría
+    // elegida: es la referencia de dónde venía la persona (Juan, 3-oct)
+    const referencia = m.el.classList.contains("activo") || m.el.classList.contains("marcado");
+    if (!coincide && !referencia) {
+      m.marker.remove();
+      m.enMapa = false;
+      continue;
+    }
     pintarMarcador(m.el, coincide || cats[0]);
-    m.marker.addTo(map);
+    if (!m.enMapa) {
+      m.marker.addTo(map);
+      m.enMapa = true;
+      nuevos.push(m);
+    }
     visibles++;
   }
+  nuevos.sort((a, b) => b.feature.geometry.coordinates[1] - a.feature.geometry.coordinates[1])
+    .forEach((m, i) => {
+      m.el.style.setProperty("--aparece-espera", `${i * 70}ms`);
+      m.el.classList.add("aparece");
+    });
   sincronizarCapas(visibles);
 }
 renderMarcadores();
@@ -872,15 +892,10 @@ function abrirPanel(feature, el, opciones = {}) {
 
   marcarLugar(el);
 
-  // Las categorías del lugar son pestañas: tocar "Surf" cuenta cómo es el surf ahí.
-  // Si el lugar tiene tours, "Meet a local" va de última.
+  // Juan (3-oct): la ficha ya no lleva la fila de pestañas. Lo que cuenta depende del ícono
+  // que la persona eligió en el mapa (cómo viene pensando); sin ícono, la vista general.
+  // Si el lugar tiene experiencias de "Meet a local", van siempre al final.
   const tours = toursDelLugar(p);
-  const pestana = (clave, { icono, label }) => `<button type="button" class="tag" data-cat="${clave}" aria-pressed="false">` +
-    `<img class="tag-ico" src="${esc(icono)}" alt="">${esc(label)}</button>`;
-  const tags = p.categorias
-    .filter(c => CATEGORIAS[c])
-    .map(c => pestana(c, CATEGORIAS[c]))
-    .join("") + (tours.length ? pestana("tours", TAB_TOURS) : "");
 
   // Portada: la foto del lugar si la hay; si no, su vista 3D (y mientras carga,
   // la foto satelital plana del mismo punto)
@@ -903,7 +918,6 @@ function abrirPanel(feature, el, opciones = {}) {
   const textoHero = `
       <div class="hero-texto">
         <h2>${esc(p.nombre)}</h2>
-        <div class="tags">${tags}</div>
       </div>`;
   panelBody.innerHTML = `
     ${sobre360 ? `<div class="hero">${textoHero}</div>` : `
@@ -957,13 +971,15 @@ function abrirPanel(feature, el, opciones = {}) {
   // El panel muestra el texto breve de la sección elegida. "Preguntale al local" se quitó
   // el 2-oct (pedido de Juan): la ficha ya da buena información por sí sola.
   const vistaEl = panelBody.querySelector(".vista");
-  const tagsEl = [...panelBody.querySelectorAll(".tag")];
+  const meetALocal = tours.length ? `
+    <div class="vista-meet">
+      <p class="vista-titulo"><img src="${esc(TAB_TOURS.icono)}" alt="">${esc(TAB_TOURS.label)}</p>
+      ${tours.map(htmlTour).join("")}
+    </div>` : "";
   const pintarVista = (cat) => {
-    tagsEl.forEach(t => t.setAttribute("aria-pressed", String(t.dataset.cat === cat)));
+    // El ícono de "Meet a local" sobre la foto 360° abre solo esa parte
     if (cat === "tours") {
-      vistaEl.innerHTML = `
-        <p class="vista-titulo"><img src="${esc(TAB_TOURS.icono)}" alt="">Tours en ${esc(p.nombre)}</p>
-        ${tours.map(htmlTour).join("")}`;
+      vistaEl.innerHTML = meetALocal;
       return;
     }
     const c = CATEGORIAS[cat];
@@ -973,19 +989,16 @@ function abrirPanel(feature, el, opciones = {}) {
       ${c ? `<p class="vista-titulo"><img src="${esc(c.icono)}" alt="">${esc(c.label)} en ${esc(p.nombre)}</p>` : ""}
       ${htmlSeccion(c ? textoDeCategoria(p, cat) : textoGeneral(p),
         (conIdeal ? `<div class="ideal-hoy" hidden></div>` : "") +
-        (conMarea ? `<div class="marea" hidden></div>` : ""))}`;
+        (conMarea ? `<div class="marea" hidden></div>` : ""))}
+      ${meetALocal}`;
     if (conIdeal) llenarIdealHoy(vistaEl.querySelector(".ideal-hoy"), p.horasIdeales, lng, lat);
     if (conMarea) llenarMarea(vistaEl.querySelector(".marea"), p, lng, lat);
   };
-  tagsEl.forEach(t => t.addEventListener("click", () => {
-    // Tocar la pestaña que ya está elegida vuelve a la vista general
-    pintarVista(t.getAttribute("aria-pressed") === "true" ? null : t.dataset.cat);
-  }));
-  // Abre en la pestaña que tocaron sobre la 360°; si no, en la categoría con que la persona
+  // Abre en la sección que tocaron sobre la 360°; si no, en la categoría con que la persona
   // venía filtrando el mapa
   const filtro = [...categoriasActivas][0];
   pintarVista(opciones.cat || (p.categorias.includes(filtro) ? filtro : null));
-  lugarAbierto = { categorias: p.categorias, pintarVista };
+  lugarAbierto = { categorias: p.categorias, pintarVista, el };
 
   panel.hidden = false;
   panel.scrollTop = 0;
@@ -993,7 +1006,8 @@ function abrirPanel(feature, el, opciones = {}) {
   // Al tocar una sección sobre la 360°, la ficha sube hasta arriba (pedido de Juan, 3-oct);
   // su ✕ devuelve a la foto. Mientras tanto la foto se queda quieta.
   if (sobre360) congelarFoto(true);
-  if (anchoMovil.matches) ponerAltura(sobre360 ? "alta" : "media");
+  // En el teléfono la ficha abre en toda la pantalla (Juan, 3-oct); la ✕ vuelve al mapa
+  if (anchoMovil.matches) ponerAltura("alta");
   encuadreLibre = false; // ya estamos viendo un lugar: no volver al encuadre general
   if (sobre360) return; // el mapa está detrás de la foto; ya se movió al abrirla
 
@@ -1009,6 +1023,7 @@ function abrirPanel(feature, el, opciones = {}) {
 }
 
 function cerrarPanel() {
+  const elCerrado = lugarAbierto?.el;
   panel.hidden = true;
   panel.classList.remove("sobre-360");
   lugarAbierto = null;
@@ -1017,7 +1032,9 @@ function cerrarPanel() {
   desmontarVista360();
   // Encima de la 360°, cerrar la ficha vuelve a la foto (que vuelve a moverse); el lugar sigue marcado
   congelarFoto(false);
-  if (inmersivo.hidden) marcarLugar(null);
+  // En el mapa, el lugar que se estaba viendo queda parpadeando con su nombre, igual que al
+  // salir de la 360° (Juan, 3-oct), para buscar otro punto u otra categoría sin perderse
+  if (inmersivo.hidden) marcarLugar(elCerrado?.isConnected ? elCerrado : null, { conNombre: true });
 }
 
 // El lugar abierto se agranda con un halo. "marcado" suma su nombre y un aro que late: es como
@@ -1027,6 +1044,9 @@ function marcarLugar(el, { conNombre = false } = {}) {
     .forEach(m => m.classList.remove("activo", "marcado"));
   if (el) el.classList.add("activo");
   if (el && conNombre) el.classList.add("marcado");
+  renderMarcadores(); // si el que dejó de estar marcado no es de la categoría elegida, se va
+  // El lugar seleccionado lanza sus mini oleadas por las curvas; sin lugar, se apagan
+  ondasEn(el ? marcadores.find(m => m.el === el)?.feature.geometry.coordinates ?? null : null);
 }
 
 // ---------- Modo inmersivo ----------
@@ -1289,13 +1309,12 @@ let alturaAntesDeBajar = "media"; // a dónde vuelve la hoja cuando la suben con
 
 function pxDeAltura(nombre) {
   const alto = panel.parentElement.clientHeight;
-  const barra = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--topbar-alto")) || 62;
   const media = Math.round(alto * 0.62);
   if (nombre === "baja") return 60;
   if (nombre === "media") return media;
   // Encima de la 360° la ficha sube casi hasta arriba, dejando una franja de la foto (Juan, 3-oct)
   if (panel.classList.contains("sobre-360")) return alto - 56;
-  return Math.max(media, alto - barra - 84); // alta: justo debajo de "Explorá el mapa"
+  return alto; // alta: toda la pantalla (Juan, 3-oct: "que se desplegara toda si fuese un teléfono")
 }
 
 function ponerAltura(nombre) {
@@ -1303,6 +1322,7 @@ function ponerAltura(nombre) {
   alturaActual = nombre;
   panel.style.height = pxDeAltura(nombre) + "px";
   panel.classList.toggle("baja", nombre === "baja");
+  panel.classList.toggle("completa", nombre === "alta"); // en toda la pantalla se esconde la barra de arriba
   if (nombre === "baja") panel.scrollTop = 0;
   // Sobre la 360°: con la ficha bajada la foto vuelve a moverse; al subirla, se queda quieta
   if (panel.classList.contains("sobre-360") && !panel.hidden) congelarFoto(nombre !== "baja");
@@ -1312,7 +1332,7 @@ function ponerAltura(nombre) {
 // En escritorio (o al cerrar) la ficha vuelve a medirse sola con el CSS
 function soltarAltura() {
   panel.style.height = "";
-  panel.classList.remove("baja", "arrastrando");
+  panel.classList.remove("baja", "completa", "arrastrando");
   alturaActual = "media";
 }
 
@@ -1621,7 +1641,7 @@ const SEPARACION_CURVAS = {
   14: [10, 50],
   15: [5, 25],
 };
-const CAPAS_CURVAS = ["curvas-brillo", "curvas-linea", "curvas-etiquetas"];
+const CAPAS_CURVAS = ["curvas-brillo", "curvas-linea", "curvas-ola", "curvas-etiquetas"];
 
 function agregarCurvas() {
   if (!demCurvas) return;
@@ -1636,7 +1656,10 @@ function agregarCurvas() {
       })],
       maxzoom: 15,
       attribution: "Curvas: AWS Terrain Tiles",
+      // Todas las curvas de una misma altura comparten id: así la ola de luz las enciende juntas
+      promoteId: { curvas: "ele" },
     });
+    luzPintada.clear(); // fuente nueva (cambio de estilo): arranca toda apagada
   }
   // Debajo de los nombres del mapa; sin batimetría (en el mar no hay curvas)
   const antes = primeraEtiqueta();
@@ -1648,6 +1671,11 @@ function agregarCurvas() {
   }
   if (!map.getLayer("curvas-linea")) {
     map.addLayer({ id: "curvas-linea", type: "line", ...base, filter: enTierra,
+      layout: { "line-join": "round", "line-cap": "round" } }, antes);
+  }
+  // La ola de luz (ver más abajo): encima de las curvas, apagada mientras no pasa
+  if (!map.getLayer("curvas-ola")) {
+    map.addLayer({ id: "curvas-ola", type: "line", ...base, filter: enTierra,
       layout: { "line-join": "round", "line-cap": "round" } }, antes);
   }
   if (!map.getLayer("curvas-etiquetas")) {
@@ -1663,6 +1691,7 @@ function agregarCurvas() {
       } }, antes);
   }
   pintarCurvas();
+  map.once("idle", () => olaCurvas());
 }
 
 function quitarCurvas() {
@@ -1696,11 +1725,193 @@ function pintarCurvas() {
     ? porZoom(9, ["case", maestra, 0.45, 0.15], 12, ["case", maestra, 0.85, 0.35], 15, ["case", maestra, 1, 0.6])
     : porZoom(9, ["case", maestra, 0.3, 0.1], 12, ["case", maestra, 0.55, 0.25], 15, ["case", maestra, 0.75, 0.45]));
 
+  // La ola: blanca casi pura sobre lo oscuro, turquesa fuerte sobre lo claro
+  map.setPaintProperty("curvas-ola", "line-color", neon ? "#e8fffd" : "#0fb5bd");
+  map.setPaintProperty("curvas-ola", "line-width",
+    porZoom(9, ["case", maestra, 2, 1.2], 14, ["case", maestra, 4, 2.4]));
+  map.setPaintProperty("curvas-ola", "line-blur", porZoom(9, 0.8, 14, 1.6));
+  map.setPaintProperty("curvas-ola", "line-opacity", ["coalesce", ["feature-state", "luz"], 0]);
+
   map.setPaintProperty("curvas-etiquetas", "text-color", neon ? "#8ffff6" : "#0b6f75");
   map.setPaintProperty("curvas-etiquetas", "text-halo-color",
     neon ? "rgba(3, 14, 22, 0.85)" : "rgba(255, 255, 255, 0.85)");
   map.setPaintProperty("curvas-etiquetas", "text-halo-width", 1.2);
 }
+
+// ---------- La ola de luz por las curvas ----------
+// Idea de Juan (3-oct): las curvas de nivel simbolizan la conexión (cada línea une todos
+// los puntos que están a la misma altura) y tienen que transmitir sinceridad, aventura y
+// conexión. Una ola de luz sube por ellas desde el mar hasta la montaña al abrir el mapa y
+// cada vez que se abre un lugar: el mapa responde. Sigue la altura real del terreno.
+const OLA_TOPE = 800, OLA_PASO = 5, OLA_ANCHO = 70, OLA_DURACION = 2600; // metros y ms
+let olaAnimacion = null;
+const luzPintada = new Map(); // altura → luz que ya tiene, para no repintar lo que no cambió
+
+// "frentes": las alturas por donde va pasando la luz en este momento
+function pintarOla(frentes, intensidad = 1, ancho = OLA_ANCHO) {
+  if (!map.getSource("curvas")) return;
+  for (let ele = OLA_PASO; ele <= OLA_TOPE; ele += OLA_PASO) {
+    const luz = intensidad * Math.max(0, ...frentes.map(f => 1 - Math.abs(ele - f) / ancho));
+    if (Math.abs((luzPintada.get(ele) ?? 0) - luz) < 0.01) continue;
+    luzPintada.set(ele, luz);
+    map.setFeatureState({ source: "curvas", sourceLayer: "curvas", id: ele }, { luz });
+  }
+}
+
+// Sin "desde", la ola sube del mar a la montaña; con "desde" (una altura), se abre desde ahí
+function olaCurvas(desde = null) {
+  if (!curvasActivas || !map.getLayer("curvas-ola")) return;
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  cancelAnimationFrame(olaAnimacion);
+  cancelAnimationFrame(dedo.anim);
+  dedo.luz = dedo.objetivo = 0;
+  const recorrido = desde == null ? OLA_TOPE + 2 * OLA_ANCHO : Math.max(desde, OLA_TOPE - desde) + OLA_ANCHO;
+  const inicio = performance.now();
+  const paso = (ahora) => {
+    const t = Math.min(1, (ahora - inicio) / OLA_DURACION);
+    const d = (1 - (1 - t) ** 2) * recorrido; // arranca rápido y se va calmando
+    pintarOla(desde == null ? [d - OLA_ANCHO] : [desde + d, desde - d]);
+    if (t < 1) olaAnimacion = requestAnimationFrame(paso);
+  };
+  olaAnimacion = requestAnimationFrame(paso);
+}
+
+// La altura de la curva que pasa más cerca de un punto de la pantalla (null si no hay)
+function alturaEn(punto, radio = 14) {
+  if (!map.getLayer("curvas-linea")) return null;
+  const caja = [[punto.x - radio, punto.y - radio], [punto.x + radio, punto.y + radio]];
+  const cerca = map.queryRenderedFeatures(caja, { layers: ["curvas-linea"] });
+  return cerca.length ? cerca[0].properties.ele : null;
+}
+
+// ---------- Las mini oleadas del lugar seleccionado ----------
+// Juan (3-oct): solo el lugar seleccionado (el que está abierto o queda marcado, parpadeando)
+// lanza mini oleadas de luz por las curvas de nivel, hasta 1 km a su alrededor, como una
+// piedra que cae al agua. Siguen saliendo mientras el lugar siga marcado, aunque la persona
+// cambie de categoría; se apagan al tocar el mapa o abrir otro lugar. Se dibujan en una capa
+// transparente encima del mapa, sobre las mismas curvas reales que muestra el mapa.
+const ONDA_RADIO_M = 1000, ONDA_CADA = 700, ONDA_VIDA = 2100; // metros y ms
+const ondaCanvas = document.createElement("canvas");
+ondaCanvas.className = "onda-curvas";
+map.getCanvas().after(ondaCanvas); // debajo de los marcadores, encima del mapa
+const ondaCtx = ondaCanvas.getContext("2d");
+let ondaLugar = null;      // [lng, lat] del lugar seleccionado
+let ondaInicio = 0;
+let ondaAnimacion = null;
+let ondaCurvas = null;     // las curvas alrededor del lugar, ya pasadas a la pantalla
+
+function ajustarOndaCanvas() {
+  const c = map.getCanvas(), dpr = window.devicePixelRatio || 1;
+  ondaCanvas.width = c.clientWidth * dpr;
+  ondaCanvas.height = c.clientHeight * dpr;
+  ondaCanvas.style.width = c.clientWidth + "px";
+  ondaCanvas.style.height = c.clientHeight + "px";
+  ondaCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ondaCurvas = null;
+}
+ajustarOndaCanvas();
+map.on("resize", ajustarOndaCanvas);
+// Si el mapa se mueve o cargan curvas nuevas, se vuelven a leer las curvas alrededor del lugar
+map.on("move", () => { ondaCurvas = null; });
+map.on("sourcedata", (e) => { if (e.sourceId === "curvas") ondaCurvas = null; });
+
+function ondasEn(coords) {
+  ondaLugar = coords;
+  ondaInicio = performance.now();
+  ondaCurvas = null;
+  if (ondaLugar && !ondaAnimacion) ondaAnimacion = requestAnimationFrame(pintarOndas);
+}
+
+function leerCurvasAlrededor() {
+  const [lng, lat] = ondaLugar;
+  const centro = map.project(ondaLugar);
+  const borde = map.project([lng + ONDA_RADIO_M / (111320 * Math.cos(lat * Math.PI / 180)), lat]);
+  const radio = Math.hypot(borde.x - centro.x, borde.y - centro.y);
+  const finas = new Path2D(), maestras = new Path2D();
+  const caja = [[centro.x - radio, centro.y - radio], [centro.x + radio, centro.y + radio]];
+  for (const f of map.queryRenderedFeatures(caja, { layers: ["curvas-linea"] })) {
+    const g = f.geometry;
+    const lineas = g.type === "LineString" ? [g.coordinates] : g.type === "MultiLineString" ? g.coordinates : [];
+    const camino = f.properties.level > 0 ? maestras : finas;
+    for (const linea of lineas) {
+      linea.forEach((c, k) => {
+        const p = map.project(c);
+        if (k) camino.lineTo(p.x, p.y);
+        else camino.moveTo(p.x, p.y);
+      });
+    }
+  }
+  return { centro, radio, finas, maestras };
+}
+
+function pintarOndas(ahora) {
+  ondaCtx.clearRect(0, 0, ondaCanvas.width, ondaCanvas.height);
+  if (!ondaLugar) { ondaAnimacion = null; return; }
+  ondaAnimacion = requestAnimationFrame(pintarOndas);
+  if (!curvasActivas || !map.getLayer("curvas-linea") || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  ondaCurvas ??= leerCurvasAlrededor();
+  const { centro, radio, finas, maestras } = ondaCurvas;
+  if (radio < 8) return; // tan lejos que 1 km casi no se ve
+  const neon = estiloActual === "noche" || sateliteActivo;
+  const edad = ahora - ondaInicio;
+  const ultima = Math.floor(edad / ONDA_CADA);
+  // Las oleadas que están vivas ahora: cada una sale del lugar, se frena y se apaga en 1 km
+  for (let k = Math.max(0, ultima - Math.ceil(ONDA_VIDA / ONDA_CADA)); k <= ultima; k++) {
+    const t = (edad - k * ONDA_CADA) / ONDA_VIDA;
+    if (t <= 0 || t >= 1) continue;
+    const r = radio * (1 - (1 - t) ** 2);
+    const ancho = Math.max(5, radio * 0.16);
+    ondaCtx.save();
+    ondaCtx.beginPath();
+    ondaCtx.arc(centro.x, centro.y, r, 0, Math.PI * 2);
+    ondaCtx.arc(centro.x, centro.y, Math.max(0, r - ancho), 0, Math.PI * 2, true);
+    ondaCtx.clip();
+    ondaCtx.globalAlpha = 1 - t;
+    ondaCtx.strokeStyle = neon ? "#e8fffd" : "#0fb5bd";
+    ondaCtx.shadowColor = neon ? "#00f0ff" : "rgba(15, 181, 189, 0.7)";
+    ondaCtx.shadowBlur = 8;
+    ondaCtx.lineJoin = ondaCtx.lineCap = "round";
+    ondaCtx.lineWidth = 1.8;
+    ondaCtx.stroke(finas);
+    ondaCtx.lineWidth = 3;
+    ondaCtx.stroke(maestras);
+    ondaCtx.restore();
+  }
+}
+
+// Cambio de Juan (3-oct): nada de tocar el cerro. Las curvas responden solas mientras la
+// persona recorre el mapa con los dedos (arrastrar, acercar, girar): se enciende la curva
+// de la altura que pasa por el centro de la pantalla, sube y baja con el terreno, y al
+// soltar se apaga suave. Solo con los movimientos de la persona, no con los automáticos.
+const DEDO_ANCHO = 30; // metros: brilla la curva de esa altura y apenas sus vecinas
+const dedo = { altura: null, luz: 0, objetivo: 0, anim: null };
+
+function seguirDedo() {
+  cancelAnimationFrame(dedo.anim);
+  const paso = () => {
+    dedo.luz += (dedo.objetivo - dedo.luz) * 0.15;
+    if (Math.abs(dedo.objetivo - dedo.luz) < 0.01) dedo.luz = dedo.objetivo;
+    pintarOla(dedo.altura == null ? [] : [dedo.altura], dedo.luz, DEDO_ANCHO);
+    if (dedo.luz !== dedo.objetivo) dedo.anim = requestAnimationFrame(paso);
+  };
+  dedo.anim = requestAnimationFrame(paso);
+}
+
+map.on("move", (e) => {
+  if (!e.originalEvent || !curvasActivas) return;
+  const c = map.getContainer();
+  const ele = alturaEn({ x: c.clientWidth / 2, y: c.clientHeight / 2 }, 24);
+  if (ele == null) return;
+  cancelAnimationFrame(olaAnimacion); // si la ola de entrada iba pasando, la persona manda
+  dedo.altura = dedo.altura == null ? ele : dedo.altura + (ele - dedo.altura) * 0.5;
+  dedo.objetivo = 1;
+  seguirDedo();
+});
+map.on("moveend", () => {
+  if (dedo.objetivo === 0) return;
+  dedo.objetivo = 0;
+  seguirDedo();
+});
 
 btnCurvas.classList.toggle("activo", curvasActivas);
 btnCurvas.addEventListener("click", () => {

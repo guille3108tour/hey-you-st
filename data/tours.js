@@ -1,5 +1,5 @@
 /*
-  Tours que muestra la página: cada uno aparece en la pestaña "Meet a local" (la última) de los
+  Tours que muestra la página: cada uno aparece en "Meet a local", al final de la ficha de los
   lugares que lista en "lugares" (el id del lugar en data/points.js). Este archivo SÍ se
   publica: no lleva correos, webs ni nada que el local no haya aceptado mostrar.
 

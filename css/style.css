@@ -178,6 +178,23 @@ select.ctrl option { color: var(--texto); }
 }
 .marker:hover, .marker.activo { transform: scale(1.18); }
 
+/* La onda de luz por las curvas alrededor de un lugar (ver "La onda alrededor de un lugar") */
+.onda-curvas { position: absolute; top: 0; left: 0; pointer-events: none; }
+
+/* Al elegir una categoría, sus lugares saltan al mapa uno detrás de otro (Juan, 3-oct).
+   Se anima lo de adentro: el marcador mismo lo mueve MapLibre con su propio transform. */
+.marker.aparece > * {
+  animation: marcador-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: var(--aparece-espera, 0ms);
+}
+@keyframes marcador-pop {
+  from { opacity: 0; transform: translateY(-14px) scale(0.2); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marker.aparece > * { animation: none; }
+}
+
 /* Al salir de la foto 360°, el lugar queda marcado: su nombre debajo y un aro que late, para
    que la persona sepa dónde queda en el mapa (pedido de Juan, 3-oct) */
 .marker.marcado { z-index: 2; }
@@ -410,6 +427,9 @@ select.ctrl option { color: var(--texto); }
   color: #8ffff6;
 }
 .vista-titulo img { width: 22px; height: 22px; object-fit: contain; }
+/* "Meet a local" siempre al final de la ficha, separado de lo que cuenta el lugar */
+.vista-meet { margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.14); }
+.vista > .vista-meet:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
 
 .panel-body { padding: 0; }
 .panel-contenido { padding: 12px 16px 16px; }
@@ -1222,40 +1242,82 @@ select.ctrl option { color: var(--texto); }
 .capa[aria-pressed="true"] .capa-switch { background: var(--cat, #22c55e); }
 .capa[aria-pressed="true"] .capa-switch::after { transform: translateX(15px); }
 
+/* Solo los íconos, sin tabla (Juan, 3-oct: "este tablero no es necesario, quiero solamente
+   los íconos que necesito"; el mapa ya es lo interactivo). Siempre a la vista ("dejar los
+   íconos activados"): al abrir el mapa saltan uno por uno ("pop"). Se toca uno y quedan
+   solo esos lugares; se toca de nuevo y vuelven todos. En compu van en columna a la
+   izquierda; en celular, en fila abajo (ver "Móvil"). En compu el nombre sale con el mouse. */
+.capas {
+  width: auto;
+  gap: 8px;
+  align-items: flex-start;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  overflow: visible;
+}
+.capas-cabecera, .capa-todas, .capa-label, .capa-switch { display: none; }
+.capas-lista,
+.capas.colapsada .capas-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0;
+  overflow: visible;
+}
+.capa {
+  width: auto;
+  flex: 0 0 auto;
+  padding: 4px;
+  border-radius: 50%;
+  background: rgba(14, 32, 45, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: capa-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: calc(0.3s + var(--i, 0) * 70ms);
+}
+@keyframes capa-pop {
+  from { opacity: 0; transform: scale(0.3); }
+  to { opacity: 1; transform: none; }
+}
+.capa-icono { width: 38px; height: 38px; }
+/* Sin filtro, todos a color; con uno elegido, ese resalta con su color y el resto se apaga */
+.capas:not(.filtrando) .capa-icono { filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.45)); }
+.capa[aria-pressed="true"] { background: rgba(255, 255, 255, 0.2); box-shadow: inset 0 0 0 2px var(--cat); }
+@media (prefers-reduced-motion: reduce) {
+  .capa { animation: none; }
+}
+
 @media (max-width: 640px) {
-  /* En celular la barra de categorías es solo una fila de íconos, sin nombres ni "Todas"
-     (pedido de Juan, 29-sep): se toca la tabla y quedan solo los lugares de surf; se toca
-     de nuevo y vuelven todos. Va abajo, a mano del pulgar. */
+  /* En celular el botón de categorías va abajo, a mano del pulgar, y las opciones saltan
+     hacia la derecha (pedido de Juan, 29-sep y 3-oct). */
   .capas {
     top: auto;
     bottom: 28px; /* deja ver el crédito del mapa abajo */
     left: 12px;
-    width: auto;
     max-width: calc(100% - 24px);
     max-height: none;
-    border-radius: 999px;
+    flex-direction: row;
+    align-items: center;
     transition: opacity 0.25s, transform 0.25s, bottom 0.38s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
-  .capas-cabecera, .capa-todas, .capa-label, .capa-switch { display: none; }
   .capas-lista,
-  .capas.colapsada .capas-lista {
-    display: flex;
-    flex-direction: row;
-    gap: 0;
-    padding: 5px 8px;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-  .capa { width: auto; flex: 0 0 auto; padding: 3px; border-radius: 50%; }
-  .capa-icono { width: 38px; height: 38px; }
-  /* Sin filtro, todos a color; con uno elegido, ese resalta con su color y el resto se apaga */
-  .capas:not(.filtrando) .capa-icono { filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.45)); }
-  .capa[aria-pressed="true"] { background: rgba(255, 255, 255, 0.14); box-shadow: inset 0 0 0 2px var(--cat); }
+  .capas.colapsada .capas-lista { flex-direction: row; gap: 4px; padding: 0; }
+  .capa { padding: 3px; }
+  .capa-icono { width: 34px; height: 34px; }
   /* Con la ficha abierta la fila se esconde; con la ficha bajada, flota justo encima de la barrita */
   main:has(.panel:not([hidden]):not(.baja)) .capas { opacity: 0; transform: translateY(12px); pointer-events: none; }
   main:has(.panel.baja:not([hidden])) .capas { bottom: 72px; transition-delay: 0.2s; } /* aparece cuando la hoja ya bajó */
   /* El ayudante de coordenadas es para cargar lugares desde la compu, no para el visitante */
   .coords { display: none; }
+
+  /* Con la ficha en toda la pantalla (Juan, 3-oct), la barra de arriba se esconde para que
+     no tape la ✕; al cerrar o bajar la ficha, vuelve */
+  .topbar { transition: opacity 0.25s; }
+  body:has(.panel.completa:not([hidden])) .topbar { opacity: 0; pointer-events: none; }
 
   /* Barra de arriba en celular: logo, nombre y un solo botón de capas. El estilo, el
      satélite, el 3D y las curvas se abren en un menú de vidrio debajo (pedido de Juan,
