@@ -471,7 +471,9 @@ function htmlSeccion(sec, extra = "") {
 // botón aparte. La pestaña cuenta el tour completo y, si lo quieren, se reserva con Juan por
 // WhatsApp. Nunca se muestra quién da el tour ni su contacto. Los tours y en qué lugares
 // aparecen están en data/tours.js ("lugares").
-const TAB_TOURS = { label: "Tours", icono: "img/iconos/tours.png" };
+// Pacto con Juan (3-oct): la pestaña se llama "Meet a local", no "Tours". La idea nace para
+// hacer comunidad: lo que se ofrece es conocer a un local, no comprar un tour.
+const TAB_TOURS = { label: "Meet a local", icono: "img/iconos/tours.png" };
 
 function toursDelLugar(p) {
   return TOURS.filter(t => t.lugares?.includes(p.id));
@@ -492,7 +494,7 @@ function htmlTour(t) {
       <div class="datos">${t.incluye.map(i => `<span class="dato">${esc(i)}</span>`).join("")}</div>
       <p class="tour-texto">${esc(t.texto)}</p>
       <p class="tour-precio${t.precio ? "" : " a-confirmar"}">${esc(t.precio || "Precio según la fecha y el grupo: te lo confirmamos por WhatsApp.")}</p>
-      ${botonWhatsApp(`Hola Juan 👋 Vi en Hey You ST el tour "${t.titulo}" y me interesa. Somos ___ personas y nos gustaría ir el ___.`, "Quiero este tour: escribile a Juan")}
+      ${botonWhatsApp(`Hola Juan 👋 Vi en Hey You ST "${t.titulo}" y me interesa. Somos ___ personas y nos gustaría ir el ___.`, "Me interesa: escribile a Juan")}
     </article>`;
 }
 
@@ -622,7 +624,7 @@ function abrirPanel(feature, el, opciones = {}) {
   marcarLugar(el);
 
   // Las categorías del lugar son pestañas: tocar "Surf" cuenta cómo es el surf ahí.
-  // Si el lugar tiene tours, "Tours" va de última.
+  // Si el lugar tiene tours, "Meet a local" va de última.
   const tours = toursDelLugar(p);
   const pestana = (clave, { icono, label }) => `<button type="button" class="tag" data-cat="${clave}" aria-pressed="false">` +
     `<img class="tag-ico" src="${esc(icono)}" alt="">${esc(label)}</button>`;

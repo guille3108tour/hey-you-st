@@ -1,5 +1,5 @@
 /*
-  Tours que muestra la página: cada uno aparece en la pestaña "Tours" (la última) de los
+  Tours que muestra la página: cada uno aparece en la pestaña "Meet a local" (la última) de los
   lugares que lista en "lugares" (el id del lugar en data/points.js). Este archivo SÍ se
   publica: por eso no lleva nombre del proveedor, teléfono, correo ni web. La reserva
   siempre pasa por Juan (regla de negocio, ver CLAUDE.md): el botón abre su WhatsApp.
