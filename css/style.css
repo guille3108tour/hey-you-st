@@ -451,6 +451,174 @@ select.ctrl option { color: var(--texto); }
 .ideal-detalle { display: block; margin-top: 4px; font-size: 11.5px; color: rgba(255, 255, 255, 0.65); }
 .ideal-detalle a { color: inherit; }
 
+/* La marea del lugar, hora por hora (idea de Juan, 3-oct: hablar de mareas es su sello).
+   Pensada para el teléfono y con aire futurista (pedido de Juan): un tablero con la hora
+   grande, la curva que brilla, la bolita con onda de sonar y la barra fácil de agarrar. */
+.marea {
+  margin: 0 0 14px;
+  padding: 14px 14px 12px;
+  border-radius: 18px;
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(34, 230, 223, 0.16), transparent 70%),
+    rgba(4, 18, 28, 0.55);
+  border: 1px solid rgba(143, 255, 246, 0.22);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 24px rgba(34, 230, 223, 0.08);
+}
+.marea-cabeza { display: flex; flex-direction: column; gap: 10px; }
+.marea-titulo { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #8ffff6; }
+.marea-dias {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+  padding: 3px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.marea-dias button {
+  font: inherit;
+  font-size: 12.5px;
+  padding: 7px 0;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+.marea-dias button[aria-pressed="true"] {
+  background: #22e6df;
+  color: #04222b;
+  font-weight: 700;
+  box-shadow: 0 0 14px rgba(34, 230, 223, 0.45);
+}
+
+/* Tablero: cómo está el mar a la izquierda, la hora elegida a la derecha */
+.marea-hud { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; margin-top: 14px; }
+.marea-estado { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.marea-flecha {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 16px;
+  font-weight: 700;
+  color: #04222b;
+  background: #22e6df;
+  box-shadow: 0 0 16px rgba(34, 230, 223, 0.55);
+}
+.marea-estado strong { display: block; font-size: 18px; line-height: 1.15; color: #fff; }
+.marea-siguiente { display: block; margin-top: 2px; font-size: 12px; line-height: 1.3; color: rgba(255, 255, 255, 0.7); }
+.marea-reloj { flex: none; text-align: right; }
+.marea-hora {
+  display: block;
+  font-size: 32px;
+  font-weight: 200;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+  text-shadow: 0 0 18px rgba(143, 255, 246, 0.35);
+}
+.marea-hora small { margin-left: 3px; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; color: #8ffff6; text-shadow: none; }
+.marea-nivel {
+  display: block;
+  margin-top: 5px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  color: rgba(143, 255, 246, 0.8);
+}
+
+/* La curva */
+.marea-grafica {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 10px;
+  overflow: visible;
+  touch-action: pan-y;
+  cursor: ew-resize;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.marea-rejilla line { stroke: rgba(143, 255, 246, 0.12); stroke-width: 1; stroke-dasharray: 1 3; }
+.marea-noche { fill: rgba(0, 6, 14, 0.45); }
+.marea-linea { fill: none; stroke: #22e6df; stroke-width: 2.4; stroke-linejoin: round; stroke-linecap: round; }
+.marea-ext circle { fill: #8ffff6; }
+.marea-ext g { transition: opacity 0.2s; }
+.marea-ext text, .marea-eje text { font-size: 10px; fill: rgba(255, 255, 255, 0.72); }
+.marea-eje .sol { fill: #fdba74; }
+.marea-guia { stroke: rgba(143, 255, 246, 0.55); stroke-width: 1; stroke-dasharray: 2 3; }
+.marea-sonar { fill: none; stroke: #8ffff6; stroke-width: 1.5; }
+.marea-halo { fill: rgba(143, 255, 246, 0.25); }
+.marea-punto { fill: #fff; stroke: #22e6df; stroke-width: 2.5; }
+
+/* La barra: gruesa y con la bolita grande, para el dedo */
+.marea-control { display: flex; align-items: center; gap: 10px; }
+.marea-barra {
+  --p: 50%;
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  margin: 16px 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #22e6df var(--p), rgba(255, 255, 255, 0.14) var(--p));
+  outline: none;
+}
+.marea-barra::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #fff;
+  border: 4px solid #22e6df;
+  box-shadow: 0 0 0 6px rgba(34, 230, 223, 0.2), 0 0 18px rgba(34, 230, 223, 0.7);
+  cursor: grab;
+}
+.marea-barra::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  border: 4px solid #22e6df;
+  box-shadow: 0 0 0 6px rgba(34, 230, 223, 0.2), 0 0 18px rgba(34, 230, 223, 0.7);
+  cursor: grab;
+}
+.marea-barra:active::-webkit-slider-thumb { cursor: grabbing; }
+.marea-barra:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 6px rgba(143, 255, 246, 0.55), 0 0 18px rgba(34, 230, 223, 0.7); }
+.marea-ahora {
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(34, 230, 223, 0.5);
+  background: rgba(34, 230, 223, 0.08);
+  color: #8ffff6;
+  cursor: pointer;
+}
+.marea-ahora[hidden], .marea-voz[hidden] { display: none; }
+
+/* La voz de Guille para esa marea */
+.marea-voz {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(143, 255, 246, 0.14);
+}
+.marea-voz-titulo { display: block; font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #8ffff6; }
+.panel .marea-voz p { margin: 4px 0 0; font-size: 14px; line-height: 1.5; font-style: italic; color: rgba(255, 255, 255, 0.9); }
+@media (prefers-reduced-motion: reduce) {
+  .marea-dias button, .marea-ext g { transition: none; }
+}
+
 /* Irse a Waze o Google Maps desde el lugar (pedido de Juan, 3-oct) */
 .como-llegar { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
 .como-llegar span {

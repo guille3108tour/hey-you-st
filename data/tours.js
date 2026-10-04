@@ -1,8 +1,12 @@
 /*
   Tours que muestra la página: cada uno aparece en la pestaña "Meet a local" (la última) de los
   lugares que lista en "lugares" (el id del lugar en data/points.js). Este archivo SÍ se
-  publica: por eso no lleva nombre del proveedor, teléfono, correo ni web. La reserva
-  siempre pasa por Juan (regla de negocio, ver CLAUDE.md): el botón abre su WhatsApp.
+  publica: no lleva correos, webs ni nada que el local no haya aceptado mostrar.
+
+  Cambio de Juan (3-oct): "local" (nombre de pila) y "whatsapp" (con código de país, sin +
+  ni espacios, ej. "50688887777") hacen que el botón le escriba directo a ese local. Llenarlos
+  solo cuando Juan ya habló con esa persona: que aceptó la comisión de palabra y que su número
+  salga en la página. Vacíos, el botón le escribe a Juan.
 
   Los datos salen de las fichas de los aliados en data/points.js (big-tuna-cabuya,
   nato-surf-hermosa, zuma-tours-montezuma) y de lo que contó Guille en sus "voces".
@@ -18,6 +22,8 @@ const TOURS = [
     duracion: "2 horas",
     incluye: ["Tabla", "Instructor local", "Principiante e intermedio"],
     precio: "$100 clase individual · $75 por persona en grupo",
+    local: "",
+    whatsapp: "",
     texto: "Con un instructor que creció ahí mismo y tiene una energía increíble para enseñar. Habla español y también inglés nativo, así que si querés practicar tu español mientras aprendés a surfear, es la persona ideal.",
   },
   {
@@ -38,6 +44,8 @@ const TOURS = [
     duracion: "4–5 horas o 8 horas",
     incluye: ["Capitán local", "Sashimi recién pescado"],
     precio: null,
+    local: "",
+    whatsapp: "",
     texto: "Con un capitán nacido y criado en Cabuya, pescando desde chiquito. El de 8 horas es para retarte con un atún grande (hasta unos 20 kg, a veces 20 minutos de pelea); el de 4 a 5 horas es más familiar, con peces más chicos y vistas increíbles. No hay mejor sashimi que el que se hace ahí mismo en el bote, con menos de 20 minutos de haberse pescado.",
   },
 ];

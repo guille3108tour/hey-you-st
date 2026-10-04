@@ -468,9 +468,11 @@ function htmlSeccion(sec, extra = "") {
 
 // ---------- Tours del lugar ----------
 // Pedido de Juan (2-oct): los tours van como la última pestaña de cada lugar, no como un
-// botón aparte. La pestaña cuenta el tour completo y, si lo quieren, se reserva con Juan por
-// WhatsApp. Nunca se muestra quién da el tour ni su contacto. Los tours y en qué lugares
-// aparecen están en data/tours.js ("lugares").
+// botón aparte. La pestaña cuenta el tour completo y, si lo quieren, se escribe por WhatsApp.
+// Cambio de Juan (3-oct): al inicio él no va a tener tiempo de contestar, así que si el tour
+// trae "local" y "whatsapp" el botón le escribe directo a ese local (comisión de palabra con
+// Juan; por eso son pocos y de confianza). Si no, le escribe a Juan. Los tours y en qué
+// lugares aparecen están en data/tours.js ("lugares").
 // Pacto con Juan (3-oct): la pestaña se llama "Meet a local", no "Tours". La idea nace para
 // hacer comunidad: lo que se ofrece es conocer a un local, no comprar un tour.
 const TAB_TOURS = { label: "Meet a local", icono: "img/iconos/tours.png" };
@@ -479,14 +481,16 @@ function toursDelLugar(p) {
   return TOURS.filter(t => t.lugares?.includes(p.id));
 }
 
-function botonWhatsApp(mensaje, etiqueta) {
-  if (!CONTACTO_JUAN.whatsapp) return `<span class="reservar reservar-pronto">Reservas por WhatsApp muy pronto</span>`;
-  const url = `https://wa.me/${CONTACTO_JUAN.whatsapp}?text=${encodeURIComponent(mensaje)}`;
+function botonWhatsApp(mensaje, etiqueta, numero = CONTACTO_JUAN.whatsapp) {
+  if (!numero) return `<span class="reservar reservar-pronto">Reservas por WhatsApp muy pronto</span>`;
+  const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
   return `<a class="reservar" href="${esc(url)}" target="_blank" rel="noopener">${esc(etiqueta)}</a>`;
 }
 
-// El mensaje ya trae los huecos de cuántos son y qué día: es lo primero que Juan necesita
+// El mensaje ya trae los huecos de cuántos son y qué día: es lo primero que se necesita.
+// "Vi en Hey You ST" no se quita: así el local (y Juan) saben que esa persona vino por la guía.
 function htmlTour(t) {
+  const local = t.local && t.whatsapp ? t.local : null;
   return `
     <article class="tour">
       <h3>${esc(t.titulo)}</h3>
@@ -494,7 +498,8 @@ function htmlTour(t) {
       <div class="datos">${t.incluye.map(i => `<span class="dato">${esc(i)}</span>`).join("")}</div>
       <p class="tour-texto">${esc(t.texto)}</p>
       <p class="tour-precio${t.precio ? "" : " a-confirmar"}">${esc(t.precio || "Precio según la fecha y el grupo: te lo confirmamos por WhatsApp.")}</p>
-      ${botonWhatsApp(`Hola Juan 👋 Vi en Hey You ST "${t.titulo}" y me interesa. Somos ___ personas y nos gustaría ir el ___.`, "Me interesa: escribile a Juan")}
+      ${botonWhatsApp(`Hola ${local || "Juan"} 👋 Vi en Hey You ST "${t.titulo}" y me interesa. Somos ___ personas y nos gustaría ir el ___.`,
+        `Me interesa: escribile a ${local || "Juan"}`, local ? t.whatsapp : CONTACTO_JUAN.whatsapp)}
     </article>`;
 }
 
@@ -527,16 +532,27 @@ function ahoraCR() {
   return Date.parse(f.replace(" ", "T") + "Z");
 }
 
-// Momentos de marea más baja (o más alta) de la serie
-function extremosMarea({ t, h }, tipo) {
+// Todas las mareas altas y bajas de la serie, con su hora y su nivel
+function extremosConNivel({ t, h }) {
   const out = [];
   for (let i = 1; i < h.length - 1; i++) {
     if (h[i] == null || h[i - 1] == null || h[i + 1] == null) continue;
-    const baja = h[i] <= h[i - 1] && h[i] < h[i + 1];
-    const alta = h[i] >= h[i - 1] && h[i] > h[i + 1];
-    if (tipo === "alta" ? alta : baja) out.push(t[i]);
+    if (h[i] <= h[i - 1] && h[i] < h[i + 1]) out.push({ t: t[i], h: h[i], tipo: "baja" });
+    if (h[i] >= h[i - 1] && h[i] > h[i + 1]) out.push({ t: t[i], h: h[i], tipo: "alta" });
   }
   return out;
+}
+
+// Momentos de marea más baja (o más alta) de la serie
+function extremosMarea(mareas, tipo) {
+  return extremosConNivel(mareas).filter(e => e.tipo === tipo).map(e => e.t);
+}
+
+// Nivel del mar a cualquier hora, entre dos datos de 15 minutos
+function nivelEn({ t, h }, ms) {
+  const paso = t[1] - t[0];
+  const i = Math.min(t.length - 2, Math.max(0, Math.floor((ms - t[0]) / paso)));
+  return h[i] + ((h[i + 1] ?? h[i]) - h[i]) * (ms - t[i]) / paso;
 }
 
 // Ventanas donde coinciden las horas buenas del lugar con la marea que conviene
@@ -597,6 +613,239 @@ async function llenarIdealHoy(el, ideal, lng, lat) {
     ${proxima}
     <span class="ideal-detalle">With ${ideal.marea === "alta" ? "high" : "low"} tide · Tide data:
       <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a></span>`;
+  el.hidden = false;
+}
+
+// ---------- La marea del lugar, hora por hora ----------
+// Idea de Juan (3-oct): hablar de las mareas con la gente es su sello. La curva muestra el mar
+// de hoy, mañana o pasado en ese lugar; la persona mueve la hora con la barra (o con el dedo
+// sobre la curva), la bolita sigue al mar y abajo sale lo que Guille cuenta de esa marea en
+// ese lugar ("mareas" en data/points.js). Solo sale donde hay esa voz local.
+const DIAS_ES = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+const MAREA_W = 320, MAREA_X0 = 10, MAREA_X1 = 310, MAREA_Y0 = 30, MAREA_Y1 = 100;
+
+// Amanecer y atardecer aproximados (fórmula de la NOAA), en minutos del día en hora tica
+function solCR(diaMs, lat, lng) {
+  const n = Math.round((diaMs - Date.UTC(new Date(diaMs).getUTCFullYear(), 0, 1)) / DIA) + 1;
+  const g = 2 * Math.PI / 365 * (n - 1);
+  const eq = 229.18 * (0.000075 + 0.001868 * Math.cos(g) - 0.032077 * Math.sin(g)
+    - 0.014615 * Math.cos(2 * g) - 0.040849 * Math.sin(2 * g));
+  const dec = 0.006918 - 0.399912 * Math.cos(g) + 0.070257 * Math.sin(g) - 0.006758 * Math.cos(2 * g)
+    + 0.000907 * Math.sin(2 * g) - 0.002697 * Math.cos(3 * g) + 0.00148 * Math.sin(3 * g);
+  const rad = Math.PI / 180, la = lat * rad;
+  const ha = Math.acos(Math.cos(90.833 * rad) / (Math.cos(la) * Math.cos(dec)) - Math.tan(la) * Math.tan(dec)) / rad;
+  const CR = -360; // UTC-6, Costa Rica no cambia la hora
+  return { sale: 720 - 4 * (lng + ha) - eq + CR, pone: 720 - 4 * (lng - ha) - eq + CR };
+}
+
+async function llenarMarea(el, p, lng, lat) {
+  let mareas;
+  try { mareas = await cargarMareas(lng, lat); }
+  catch (e) { console.warn("Sin datos de marea:", e); return; }
+  if (!el.isConnected) return; // la persona ya cambió de pestaña o de lugar
+  const ahora = ahoraCR();
+  const hoy = Math.floor(ahora / DIA) * DIA;
+  const minutoAhora = Math.floor((ahora - hoy) / 60e3 / 15) * 15;
+  const extremos = extremosConNivel(mareas);
+  // La misma escala para los tres días, así se comparan a simple vista
+  const visibles = mareas.h.filter((v, i) => v != null && mareas.t[i] >= hoy && mareas.t[i] <= hoy + 3 * DIA);
+  if (!visibles.length) return;
+  const bajo = Math.min(...visibles), alto = Math.max(...visibles);
+  const X = (m) => MAREA_X0 + m / 1440 * (MAREA_X1 - MAREA_X0);
+  const Y = (v) => MAREA_Y1 - (v - bajo) / (alto - bajo || 1) * (MAREA_Y1 - MAREA_Y0);
+  const nombres = ["Hoy", "Mañana", DIAS_ES[new Date(hoy + 2 * DIA).getUTCDay()]];
+  const voz = p.mareas;
+  let dia = 0, minuto = minutoAhora;
+
+  el.innerHTML = `
+    <div class="marea-cabeza">
+      <span class="marea-titulo">🌊 La marea en ${esc(p.nombre)}</span>
+      <div class="marea-dias" role="group" aria-label="Día">
+        ${nombres.map((n, i) => `<button type="button" data-dia="${i}">${n}</button>`).join("")}
+      </div>
+    </div>
+    <div class="marea-hud" aria-live="polite">
+      <div class="marea-estado">
+        <span class="marea-flecha" aria-hidden="true"></span>
+        <div><strong></strong><span class="marea-siguiente"></span></div>
+      </div>
+      <div class="marea-reloj">
+        <span class="marea-hora"></span>
+        <span class="marea-nivel"></span>
+      </div>
+    </div>
+    <svg class="marea-grafica" viewBox="0 0 ${MAREA_W} 130" role="img" aria-label="Curva de la marea del día">
+      <defs>
+        <linearGradient id="marea-agua" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#22e6df" stop-opacity="0.45">
+            <animate attributeName="stop-opacity" values="0.3;0.55;0.3" dur="4s" repeatCount="indefinite"/>
+          </stop>
+          <stop offset="1" stop-color="#22e6df" stop-opacity="0.02"/>
+        </linearGradient>
+        <filter id="marea-brillo" x="-20%" y="-60%" width="140%" height="220%">
+          <feGaussianBlur stdDeviation="2.4" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <rect class="marea-noche"/><rect class="marea-noche"/>
+      <g class="marea-rejilla">${[180, 360, 540, 720, 900, 1080, 1260].map(m =>
+        `<line x1="${X(m)}" x2="${X(m)}" y1="${MAREA_Y0 - 12}" y2="${MAREA_Y1 + 6}"/>`).join("")}</g>
+      <path class="marea-area" fill="url(#marea-agua)"/>
+      <path class="marea-linea" filter="url(#marea-brillo)"/>
+      <g class="marea-ext"></g>
+      <g class="marea-eje"></g>
+      <line class="marea-guia" y1="${MAREA_Y0 - 12}" y2="${MAREA_Y1 + 6}"/>
+      <circle class="marea-sonar" r="6">
+        <animate attributeName="r" values="6;22" dur="2.2s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.8;0" dur="2.2s" repeatCount="indefinite"/>
+      </circle>
+      <circle class="marea-halo" r="10"/>
+      <circle class="marea-punto" r="5.5" filter="url(#marea-brillo)"/>
+    </svg>
+    <div class="marea-control">
+      <input type="range" class="marea-barra" min="0" max="1425" step="15" aria-label="Hora del día">
+      <button type="button" class="marea-ahora">Ahora</button>
+    </div>
+    <div class="marea-voz"><span class="marea-voz-titulo"></span><p></p></div>
+    <span class="ideal-detalle">Marea: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>
+      · amanecer y atardecer aproximados</span>`;
+
+  const $ = (s) => el.querySelector(s);
+  const svg = $(".marea-grafica"), barra = $(".marea-barra"), botonAhora = $(".marea-ahora");
+  const ponerAttrs = (nodo, attrs) => Object.entries(attrs).forEach(([k, v]) => nodo.setAttribute(k, v));
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) el.querySelectorAll("animate").forEach(a => a.remove());
+
+  // En el teléfono, mientras la persona mueve la hora, un toquecito por cada hora y uno más
+  // fuerte al pasar por la marea más alta o más baja (solo donde el teléfono lo permite)
+  let tocando = false, ultimaHora = null, ultimoPico = null;
+  const vibrar = (ms) => { if (tocando && navigator.vibrate) navigator.vibrate(ms); };
+
+  const pintarDia = () => {
+    const d0 = hoy + dia * DIA;
+    el.querySelectorAll(".marea-dias button")
+      .forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.dia === dia)));
+    const puntos = [];
+    mareas.t.forEach((t, i) => {
+      if (t >= d0 && t <= d0 + DIA && mareas.h[i] != null)
+        puntos.push(`${X((t - d0) / 60e3).toFixed(1)} ${Y(mareas.h[i]).toFixed(1)}`);
+    });
+    const linea = "M" + puntos.join(" L");
+    $(".marea-linea").setAttribute("d", linea);
+    $(".marea-area").setAttribute("d", `${linea} L${MAREA_X1} ${MAREA_Y1 + 6} L${MAREA_X0} ${MAREA_Y1 + 6} Z`);
+
+    // La noche va más oscura: la playa se vive de día
+    const sol = solCR(d0, lat, lng);
+    const yNoche = MAREA_Y0 - 12, altoNoche = MAREA_Y1 + 6 - yNoche;
+    const [noche1, noche2] = el.querySelectorAll(".marea-noche");
+    ponerAttrs(noche1, { x: MAREA_X0, y: yNoche, width: X(sol.sale) - MAREA_X0, height: altoNoche });
+    ponerAttrs(noche2, { x: X(sol.pone), y: yNoche, width: MAREA_X1 - X(sol.pone), height: altoNoche });
+    $(".marea-eje").innerHTML = `
+      <text class="sol" x="${X(sol.sale)}" y="126" text-anchor="middle">☀ ${horaCR(d0 + sol.sale * 60e3)}</text>
+      <text x="${X(720)}" y="126" text-anchor="middle">12 p.m.</text>
+      <text class="sol" x="${X(sol.pone)}" y="126" text-anchor="middle">🌅 ${horaCR(d0 + sol.pone * 60e3)}</text>`;
+
+    $(".marea-ext").innerHTML = extremos.filter(e => e.t >= d0 && e.t < d0 + DIA).map(e => {
+      const m = (e.t - d0) / 60e3, x = X(m), y = Y(e.h);
+      const tx = Math.min(MAREA_X1 - 32, Math.max(MAREA_X0 + 32, x));
+      return `<g data-m="${m}"><circle cx="${x}" cy="${y}" r="2.5"/>` +
+        `<text x="${tx}" y="${e.tipo === "alta" ? y - 7 : y + 14}" text-anchor="middle">` +
+        `${e.tipo === "alta" ? "Alta" : "Baja"} ${horaCR(e.t)}</text></g>`;
+    }).join("");
+  };
+
+  const actualizar = () => {
+    const ms = hoy + dia * DIA + minuto * 60e3;
+    const v = nivelEn(mareas, ms), x = X(minuto), y = Y(v);
+    ponerAttrs($(".marea-punto"), { cx: x, cy: y });
+    ponerAttrs($(".marea-halo"), { cx: x, cy: y });
+    ponerAttrs($(".marea-guia"), { x1: x, x2: x });
+    ponerAttrs($(".marea-sonar"), { cx: x, cy: y });
+    // Las etiquetas de alta y baja se apartan cuando la bolita pasa encima
+    el.querySelectorAll(".marea-ext g")
+      .forEach(g => { g.style.opacity = Math.abs(+g.dataset.m - minuto) < 75 ? 0.15 : 1; });
+    barra.value = minuto;
+    barra.style.setProperty("--p", `${minuto / 1425 * 100}%`);
+
+    const [reloj, sufijo] = horaCR(ms).split(" ");
+    $(".marea-hora").innerHTML = `${reloj}<small>${sufijo}</small>`;
+    $(".marea-nivel").textContent = `Nivel ${Math.round((v - bajo) / (alto - bajo || 1) * 100)}%`;
+
+    const hora = Math.floor(minuto / 60);
+    if (ultimaHora !== null && hora !== ultimaHora) vibrar(6);
+    ultimaHora = hora;
+    const pico = extremos.find(e => Math.abs(e.t - ms) < 8 * 60e3) || null;
+    if (pico && pico !== ultimoPico) vibrar(30);
+    ultimoPico = pico;
+
+    const sube = nivelEn(mareas, ms + 15 * 60e3) > v;
+    const cerca = extremos.find(e => Math.abs(e.t - ms) <= HORA);
+    const prox = extremos.find(e => e.t > ms);
+    let siguiente = "";
+    if (prox) {
+      siguiente = prox === cerca
+        ? `${prox.tipo === "alta" ? "La más alta" : "La más baja"} a las ${horaCR(prox.t)}`
+        : `${prox.tipo === "alta" ? "Sube hasta las" : "Baja hasta las"} ${horaCR(prox.t)}`;
+      if (Math.floor(prox.t / DIA) !== Math.floor(ms / DIA)) siguiente += " del día siguiente";
+    }
+    $(".marea-flecha").textContent = cerca ? (cerca.tipo === "alta" ? "▲" : "▼") : (sube ? "↗" : "↘");
+    $(".marea-estado strong").textContent = cerca
+      ? `Marea ${cerca.tipo}` : (sube ? "Subiendo" : "Bajando");
+    $(".marea-siguiente").textContent = siguiente;
+
+    // Criterio de Juan: la marea "está" baja (o alta) de 2 h antes a 2 h después de su punto
+    const enAhora = dia === 0 && minuto === minutoAhora;
+    const ventana = extremos.find(e => Math.abs(e.t - ms) <= 2 * HORA);
+    const viene = sube ? "alta" : "baja";
+    let titulo, texto;
+    if (ventana && voz[ventana.tipo]) {
+      titulo = enAhora ? "Ahora mismo, según Guille" : "A esa hora, según Guille";
+      texto = voz[ventana.tipo];
+    } else if (voz[viene]) {
+      titulo = "Lo que viene, según Guille";
+      texto = voz[viene];
+    } else {
+      const otra = viene === "alta" ? "baja" : "alta";
+      titulo = `Con marea ${otra}, según Guille`;
+      texto = voz[otra];
+    }
+    $(".marea-voz").hidden = !texto;
+    $(".marea-voz-titulo").textContent = titulo;
+    $(".marea-voz p").textContent = texto || "";
+    botonAhora.hidden = enAhora;
+  };
+
+  barra.addEventListener("input", () => { tocando = true; minuto = +barra.value; actualizar(); });
+  barra.addEventListener("change", () => { tocando = false; });
+  botonAhora.addEventListener("click", () => {
+    tocando = false;
+    if (dia !== 0) { dia = 0; pintarDia(); }
+    minuto = minutoAhora;
+    actualizar();
+  });
+  el.querySelectorAll(".marea-dias button").forEach(b => b.addEventListener("click", () => {
+    tocando = false;
+    dia = +b.dataset.dia;
+    pintarDia();
+    actualizar();
+  }));
+  // Con el dedo o el mouse sobre la curva también se mueve la hora
+  const desdePuntero = (e) => {
+    const r = svg.getBoundingClientRect();
+    const vx = (e.clientX - r.left) / r.width * MAREA_W;
+    minuto = Math.min(1425, Math.max(0, Math.round((vx - MAREA_X0) / (MAREA_X1 - MAREA_X0) * 1440 / 15) * 15));
+    actualizar();
+  };
+  let arrastrando = false;
+  svg.addEventListener("pointerdown", (e) => {
+    arrastrando = tocando = true;
+    try { svg.setPointerCapture(e.pointerId); } catch { /* sin captura igual sigue al dedo */ }
+    desdePuntero(e);
+  });
+  svg.addEventListener("pointermove", (e) => { if (arrastrando) desdePuntero(e); });
+  ["pointerup", "pointercancel"].forEach(t => svg.addEventListener(t, () => { arrastrando = tocando = false; }));
+
+  pintarDia();
+  actualizar();
   el.hidden = false;
 }
 
@@ -719,11 +968,14 @@ function abrirPanel(feature, el, opciones = {}) {
     }
     const c = CATEGORIAS[cat];
     const conIdeal = p.horasIdeales && (!c || p.horasIdeales.secciones?.includes(cat));
+    const conMarea = !!p.mareas;
     vistaEl.innerHTML = `
       ${c ? `<p class="vista-titulo"><img src="${esc(c.icono)}" alt="">${esc(c.label)} en ${esc(p.nombre)}</p>` : ""}
       ${htmlSeccion(c ? textoDeCategoria(p, cat) : textoGeneral(p),
-        conIdeal ? `<div class="ideal-hoy" hidden></div>` : "")}`;
+        (conIdeal ? `<div class="ideal-hoy" hidden></div>` : "") +
+        (conMarea ? `<div class="marea" hidden></div>` : ""))}`;
     if (conIdeal) llenarIdealHoy(vistaEl.querySelector(".ideal-hoy"), p.horasIdeales, lng, lat);
+    if (conMarea) llenarMarea(vistaEl.querySelector(".marea"), p, lng, lat);
   };
   tagsEl.forEach(t => t.addEventListener("click", () => {
     // Tocar la pestaña que ya está elegida vuelve a la vista general
@@ -1145,7 +1397,7 @@ let gestoHoja = null; // null = sin decidir, "hoja" o "scroll"
 panel.addEventListener("touchstart", (e) => {
   gestoHoja = null;
   if (!anchoMovil.matches || e.touches.length !== 1) return;
-  if (e.target.closest(".panel-asa, .hero-3d, .hero-360, input")) return;
+  if (e.target.closest(".panel-asa, .hero-3d, .hero-360, .marea-grafica, input")) return;
   gestoHoja = { y0: e.touches[0].clientY, x0: e.touches[0].clientX, modo: null };
 }, { passive: true });
 
