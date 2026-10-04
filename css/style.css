@@ -307,45 +307,6 @@ select.ctrl option { color: var(--texto); }
   filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.5));
 }
 
-/* Foto 360° propia del lugar: ocupa la portada cuando está en ese modo */
-/* (".hero > " le gana al position: relative que el visor le pone a su contenedor) */
-.hero > .hero-360 { position: absolute; inset: 0; display: none; }
-.hero[data-modo="360"] > .hero-360 { display: block; }
-.hero[data-modo="360"] .hero-3d { display: none; }
-/* Los controles del visor (pantalla completa) van a la derecha, debajo del selector */
-.hero-360 .pnlm-controls-container { left: auto; right: 10px; top: 46px; }
-.hero-360 .pnlm-load-box { display: none; } /* mientras carga se ve la foto plana, sin cartel */
-
-/* Selector 360° / 3D, a la izquierda del botón de cerrar */
-.hero-modos {
-  position: absolute;
-  top: 10px;
-  right: 48px;
-  z-index: 3;
-  display: flex;
-  gap: 2px;
-  padding: 2px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  background: rgba(14, 32, 45, 0.55);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-}
-.hero-modos button {
-  border: none;
-  background: none;
-  color: #fff;
-  font: inherit;
-  font-size: 11.5px;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 999px;
-  cursor: pointer;
-}
-.hero-modos button[aria-pressed="true"] {
-  background: rgba(34, 230, 223, 0.35);
-  box-shadow: 0 0 8px rgba(34, 230, 223, 0.45);
-}
 /* Degradado hacia el vidrio: la foto se funde con el panel y el nombre se lee */
 .hero::after {
   content: "";
@@ -661,6 +622,29 @@ select.ctrl option { color: var(--texto); }
   transition: background 0.15s;
 }
 .como-llegar a:hover { background: rgba(255, 255, 255, 0.22); }
+
+/* La foto 360° se abre desde acá, junto a "Cómo llegar" (Juan, 4-oct): ya no sale sola al
+   tocar el lugar. Turquesa, como los títulos, para que se note que es algo distinto. */
+.ver-360 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin: -4px 0 14px;
+  padding: 9px 14px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: #8ffff6;
+  background: rgba(34, 230, 223, 0.14);
+  border: 1px solid rgba(34, 230, 223, 0.45);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.ver-360::before { content: "◎"; font-size: 15px; line-height: 1; }
+.ver-360:hover { background: rgba(34, 230, 223, 0.24); }
 
 /* Botón para reservar un tour: la conversación es con Juan, no con el proveedor */
 .reservar {
@@ -1318,6 +1302,8 @@ select.ctrl option { color: var(--texto); }
      no tape la ✕; al cerrar o bajar la ficha, vuelve */
   .topbar { transition: opacity 0.25s; }
   body:has(.panel.completa:not([hidden])) .topbar { opacity: 0; pointer-events: none; }
+  /* Sus botones también: si no, el de capas, invisible, se quedaba con el toque de la ✕ */
+  body:has(.panel.completa:not([hidden])) .topbar > * { pointer-events: none; }
 
   /* Barra de arriba en celular: logo, nombre y un solo botón de capas. El estilo, el
      satélite, el 3D y las curvas se abren en un menú de vidrio debajo (pedido de Juan,

@@ -404,10 +404,10 @@ function desmontarVista3D() {
 }
 
 // ---------- Foto 360° propia del lugar ----------
-// Cuando un lugar tiene su toma 360° ("foto360" en data/points.js), la portada la
-// muestra con un visor libre (Pannellum). El visor se descarga solo la primera vez
-// que hace falta, así el mapa no carga nada extra para los lugares sin 360°.
-let visor360 = null;
+// Cuando un lugar tiene su toma 360° ("foto360" en data/points.js), el botón "Ver foto 360°"
+// de la ficha la abre a pantalla completa con un visor libre (Pannellum, ver "Modo inmersivo").
+// El visor se descarga solo la primera vez que hace falta, así el mapa no carga nada extra
+// para los lugares sin 360°.
 let pannellumListo = null;
 
 function cargarPannellum() {
@@ -450,16 +450,6 @@ async function crearVisor360(contenedor, foto360, ajustes = {}) {
     mouseZoom: false,         // la rueda sigue bajando el panel
     ...ajustes,
   });
-}
-
-async function montarVista360(contenedor, foto360) {
-  desmontarVista360();
-  visor360 = await crearVisor360(contenedor, foto360);
-}
-
-function desmontarVista360() {
-  if (visor360) visor360.destroy();
-  visor360 = null;
 }
 
 // ---------- Texto breve según la pestaña elegida ----------
@@ -871,7 +861,9 @@ async function llenarMarea(el, p, lng, lat) {
 
 // Pedido de Juan (3-oct): que la gente pueda irse directo a Waze o Google Maps desde el lugar.
 // Si el lugar trae "llegada" (dónde dejar el carro o dónde arranca el sendero), se navega ahí.
-function htmlComoLlegar(p, [lng, lat]) {
+// Juan (4-oct): la foto 360° ya no se abre sola al tocar el lugar; queda un botón acá, junto a
+// "Cómo llegar", que la abre a pantalla completa.
+function htmlComoLlegar(p, [lng, lat], { ver360 = false } = {}) {
   const [dLng, dLat] = p.llegada || [lng, lat];
   const destino = `${dLat},${dLng}`;
   return `
@@ -879,7 +871,8 @@ function htmlComoLlegar(p, [lng, lat]) {
       <span>Cómo llegar</span>
       <a href="https://waze.com/ul?ll=${destino}&navigate=yes" target="_blank" rel="noopener">Waze</a>
       <a href="https://www.google.com/maps/dir/?api=1&destination=${destino}" target="_blank" rel="noopener">Google Maps</a>
-    </div>`;
+    </div>
+    ${ver360 ? `<button type="button" class="ver-360">Ver foto 360°</button>` : ""}`;
 }
 
 // opciones.sobre360: la ficha se abre encima de la foto 360° a pantalla completa (ver
@@ -899,22 +892,13 @@ function abrirPanel(feature, el, opciones = {}) {
 
   // Portada: la foto del lugar si la hay; si no, su vista 3D (y mientras carga,
   // la foto satelital plana del mismo punto)
+  // (La foto 360° no va en la portada: se abre con su botón, junto a "Cómo llegar")
   const portada = p.foto || fotoSatelital(lng, lat);
   const con3d = !p.foto;
-  const con360 = !!p.foto360;
-  const CREDITO_3D = "Vista 3D · Esri · AWS Terrain";
-  const CREDITO_360 = "Foto 360° · tomada por un local";
-  const credito = p.foto && !con360 ? "" : `<span class="hero-credito">${con360 ? CREDITO_360 : CREDITO_3D}</span>`;
-  // Con foto 360° la portada tiene dos modos: la toma propia y la vista del mapa
-  const modos = con360 ? `
-      <div class="hero-modos" role="group" aria-label="Cómo ver el lugar">
-        <button type="button" data-modo="360">360°</button>
-        <button type="button" data-modo="mapa">${con3d ? "3D" : "Foto"}</button>
-      </div>` : "";
+  const credito = con3d ? `<span class="hero-credito">Vista 3D · Esri · AWS Terrain</span>` : "";
 
-  // Las vistas del lugar anterior se van con el HTML viejo
+  // La vista del lugar anterior se va con el HTML viejo
   desmontarVista3D();
-  desmontarVista360();
   const textoHero = `
       <div class="hero-texto">
         <h2>${esc(p.nombre)}</h2>
@@ -924,13 +908,11 @@ function abrirPanel(feature, el, opciones = {}) {
     <div class="hero">
       <img class="hero-foto" src="${esc(portada)}" alt="${esc(p.nombre)}">
       ${con3d ? `<div class="hero-3d"></div>` : ""}
-      ${con360 ? `<div class="hero-360"></div>` : ""}
-      ${modos}
       ${credito}
       ${textoHero}
     </div>`}
     <div class="panel-contenido">
-      ${htmlComoLlegar(p, [lng, lat])}
+      ${htmlComoLlegar(p, [lng, lat], { ver360: !!p.foto360 && !sobre360 })}
       <div class="vista"></div>
     </div>`;
 
@@ -939,34 +921,9 @@ function abrirPanel(feature, el, opciones = {}) {
   if (!heroFoto) { /* encima de la 360°: sin portada */ }
   else if (heroFoto.complete && heroFoto.naturalWidth) mostrarFoto();
   else heroFoto.addEventListener("load", mostrarFoto, { once: true });
-  const heroEl = panelBody.querySelector(".hero");
-  const mostrarMapa3D = () => {
-    if (con3d) montarVista3D(panelBody.querySelector(".hero-3d"), lng, lat, CATEGORIAS[p.categorias[0]]);
-  };
-  if (sobre360) {
-    // La foto ya está detrás, a pantalla completa: la ficha no monta otra vista
-  } else if (con360) {
-    // Arranca en la toma propia (lo más real que tenemos del lugar); un toque pasa al 3D
-    const creditoEl = heroEl.querySelector(".hero-credito");
-    const ponerModo = (modo) => {
-      heroEl.dataset.modo = modo;
-      heroEl.querySelectorAll(".hero-modos button")
-        .forEach(b => b.setAttribute("aria-pressed", String(b.dataset.modo === modo)));
-      creditoEl.textContent = modo === "360" ? CREDITO_360 : (con3d ? CREDITO_3D : "");
-      if (modo === "360") {
-        desmontarVista3D();
-        montarVista360(heroEl.querySelector(".hero-360"), p.foto360);
-      } else {
-        desmontarVista360();
-        mostrarMapa3D();
-      }
-    };
-    heroEl.querySelectorAll(".hero-modos button")
-      .forEach(b => b.addEventListener("click", () => ponerModo(b.dataset.modo)));
-    ponerModo("360");
-  } else {
-    mostrarMapa3D();
-  }
+  // Encima de la 360° la foto ya está detrás, a pantalla completa: la ficha no monta otra vista
+  if (!sobre360 && con3d) montarVista3D(panelBody.querySelector(".hero-3d"), lng, lat, CATEGORIAS[p.categorias[0]]);
+  panelBody.querySelector(".ver-360")?.addEventListener("click", () => abrirInmersivo(feature, el));
 
   // El panel muestra el texto breve de la sección elegida. "Preguntale al local" se quitó
   // el 2-oct (pedido de Juan): la ficha ya da buena información por sí sola.
@@ -1029,7 +986,6 @@ function cerrarPanel() {
   lugarAbierto = null;
   soltarAltura();
   desmontarVista3D();
-  desmontarVista360();
   // Encima de la 360°, cerrar la ficha vuelve a la foto (que vuelve a moverse); el lugar sigue marcado
   congelarFoto(false);
   // En el mapa, el lugar que se estaba viendo queda parpadeando con su nombre, igual que al
@@ -1050,10 +1006,10 @@ function marcarLugar(el, { conNombre = false } = {}) {
 }
 
 // ---------- Modo inmersivo ----------
-// Idea de Juan (3-oct): al tocar un lugar con foto 360°, la foto llena la pantalla; abajo
-// flotan los íconos de sus secciones, y al tocar uno sube la ficha con esa sección encima de
-// la foto. Cerrar la ficha vuelve a la foto; la ✕ de arriba vuelve al mapa. Por ahora solo
-// lo usan los lugares con "foto360" (Villa Flor); los demás abren la ficha de siempre.
+// Idea de Juan (3-oct): la foto 360° llena la pantalla; abajo flotan los íconos de sus
+// secciones, y al tocar uno sube la ficha con esa sección encima de la foto. Cerrar esa ficha
+// vuelve a la foto. Desde el 4-oct se entra con el botón "Ver foto 360°" de la ficha (ya no al
+// tocar el lugar), y la ✕ de arriba vuelve a la ficha de la playa que se está viendo.
 const inmersivo = document.getElementById("inmersivo");
 let visorInmersivo = null;
 let sincronizarGiro = null; // actualiza el botón del giroscopio (ver prepararGiroscopio)
@@ -1077,9 +1033,9 @@ function congelarFoto(congelar) {
   }
 }
 
+// Juan (4-oct): todo lugar abre su ficha; la foto 360° se abre desde su botón en la ficha
 function abrirLugar(feature, el) {
-  if (feature.properties.foto360) abrirInmersivo(feature, el);
-  else abrirPanel(feature, el);
+  abrirPanel(feature, el);
 }
 
 // ---------- Pasar de una playa a otra (opción 1 de Juan, 3-oct) ----------
@@ -1134,7 +1090,7 @@ function abrirInmersivo(feature, el, opciones = {}) {
     <div class="inm-360${opciones.desde ? ` entra-${opciones.desde}` : ""}"></div>
     <div class="inm-arriba">
       <h2>${esc(p.nombre)}</h2>
-      <button type="button" class="inm-cerrar" aria-label="Volver al mapa">✕</button>
+      <button type="button" class="inm-cerrar" aria-label="Volver a la ficha">✕</button>
     </div>
     <span class="inm-credito">Foto 360° · tomada por un local</span>
     ${pista}
@@ -1272,15 +1228,12 @@ function cerrarInmersivo() {
   document.body.classList.remove("con-inmersivo");
 }
 
-// Pedido de Juan (3-oct): al salir de la foto, el lugar queda marcado en el mapa (con su nombre
-// y un aro que late) y el mapa se acerca a él, para que la persona sepa dónde queda.
+// Al salir de la foto se vuelve a la ficha de donde se entró (4-oct). Si se pasó de playa
+// deslizando, es la ficha de la última que se vio; el mapa se acerca a ella detrás.
 function salirDeLaFoto() {
   const m = marcadores.find(x => x.feature.properties.id === lugarInmersivo);
   cerrarInmersivo();
-  if (!m) return;
-  marcarLugar(m.el, { conNombre: true });
-  map.flyTo({ center: m.feature.geometry.coordinates, zoom: Math.max(map.getZoom(), 14),
-    duration: sinMovimiento.matches ? 0 : 800 });
+  if (m) abrirPanel(m.feature, m.el);
 }
 
 // Escape: primero cierra la ficha; si no hay ficha, sale de la foto. Con la foto sola, las
@@ -1412,12 +1365,12 @@ panelAsa.addEventListener("click", (e) => { if (e.detail === 0) alternarHoja(); 
 // abajo baja la hoja; si todavía no está en su altura máxima, deslizar hacia arriba la
 // sube antes de ponerse a leer. En cualquier otro caso el dedo hace scroll normal. Se
 // decide en el primer movimiento, que es el único en que el navegador deja frenar el scroll.
-// La vista 3D y la 360° se quedan con el dedo (ahí se gira el lugar), y el campo de texto también.
+// La vista 3D se queda con el dedo (ahí se gira el lugar), y el campo de texto también.
 let gestoHoja = null; // null = sin decidir, "hoja" o "scroll"
 panel.addEventListener("touchstart", (e) => {
   gestoHoja = null;
   if (!anchoMovil.matches || e.touches.length !== 1) return;
-  if (e.target.closest(".panel-asa, .hero-3d, .hero-360, .marea-grafica, input")) return;
+  if (e.target.closest(".panel-asa, .hero-3d, .marea-grafica, input")) return;
   gestoHoja = { y0: e.touches[0].clientY, x0: e.touches[0].clientX, modo: null };
 }, { passive: true });
 
