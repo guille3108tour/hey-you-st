@@ -2,23 +2,160 @@
    Hey You ST · Península de Nicoya — lógica del mapa
    ========================================================= */
 
+// ---------- Idioma ----------
+// Juan (6-oct): la página habla inglés y español. Abre en inglés, porque la mayoría de quienes
+// visitan Santa Teresa lo hablan, y recuerda en el teléfono el idioma que eligió cada persona
+// (botón EN / ES de la barra de arriba). Los textos de la página están en TEXTOS; los de cada
+// lugar y cada tour, en su campo "en" (data/points.js y data/tours.js). Lo que todavía no
+// esté traducido sale en español. El tono del inglés, pedido de Juan: de guía local, pero
+// siempre corporativo.
+const IDIOMAS = ["en", "es"];
+let idioma = "en";
+try {
+  const guardado = localStorage.getItem("hey-idioma");
+  if (IDIOMAS.includes(guardado)) idioma = guardado;
+} catch { /* sin almacenamiento (ej. ventana privada): queda en inglés */ }
+const enIngles = () => idioma === "en";
+
+const DIAS_ES = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+const DIAS_EN = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const ETAPAS_EN = { baja: "low", media: "mid", alta: "high" };
+
+// Cada texto es [español, inglés]. Los que llevan datos adentro (una hora, un nombre) son
+// funciones. Se piden con txt("clave", ...datos).
+const TEXTOS = {
+  titulo:           ["Hey You ST · Guía local de Santa Teresa", "Hey You ST · Santa Teresa Local Guide"],
+  subtitulo:        ["Península de Nicoya · Santa Teresa", "Nicoya Peninsula · Santa Teresa"],
+  terrenoTitulo:    ["Ver el terreno en 3D", "View the terrain in 3D"],
+  explorar:         ["Explorá el mapa", "Explore the map"],
+  categoriasToggle: ["Mostrar u ocultar las categorías", "Show or hide the categories"],
+  conteo:           [n => n === 1 ? "1 lugar en el mapa" : `${n} lugares en el mapa`,
+                     n => n === 1 ? "1 place on the map" : `${n} places on the map`],
+  cerrar:           ["Cerrar", "Close"],
+  bajarFicha:       ["Bajar la ficha para ver el mapa", "Lower the panel to see the map"],
+  subirFicha:       ["Subir la ficha", "Raise the panel"],
+  coordsAyuda:      ["Hacé clic en el mapa para ver las coordenadas de un punto", "Click the map to see a point's coordinates"],
+  copiar:           ["Copiar", "Copy"],
+  copiado:          ["¡Copiado!", "Copied!"],
+  copiarAMano:      ["Seleccioná y copiá", "Select and copy"],
+
+  // Ficha del lugar
+  textoGeneral:     ["Conocé este lugar con la guía local.", "Discover this place with our local guide."],
+  comoLlegar:       ["Cómo llegar", "Directions"],
+  ver360:           ["Ver foto 360°", "View 360° photo"],
+  credito3d:        ["Vista 3D · Esri · AWS Terrain", "3D view · Esri · AWS Terrain"],
+  seccionesDe:      [n => `Secciones de ${n}`, n => `Sections of ${n}`],
+  tituloSeccion:    [(cat, n) => `${cat.label} en ${n}`, (cat, n) => `${cat.enSeccion || cat.en} at ${n}`],
+
+  // Meet a local
+  reservasPronto:   ["Reservas por WhatsApp muy pronto", "WhatsApp booking coming soon"],
+  precioAConfirmar: ["Precio según la fecha y el grupo: te lo confirmamos por WhatsApp.",
+                     "Pricing depends on the date and the size of your group. We will confirm it on WhatsApp."],
+  mensajeTour:      [(quien, titulo) => `Hola ${quien} 👋 Vi en Hey You ST "${titulo}" y me interesa. Somos ___ personas y nos gustaría ir el ___.`,
+                     (quien, titulo) => `Hi ${quien} 👋 I saw "${titulo}" on Hey You ST and I'm interested. We are ___ people and we'd like to go on ___.`],
+  botonTour:        [quien => `Me interesa: escribile a ${quien}`, quien => `I'm interested: message ${quien}`],
+
+  // Las líneas de la mejor hora de hoy y mañana
+  mejorHoy:         [para => `Mejor hora para ${para} hoy`, para => `Best time to ${para} today`],
+  mejorManana:      [para => `Mejor hora para ${para} mañana`, para => `Best time to ${para} tomorrow`],
+  paraDefecto:      ["ir", "go"],
+  ahoraHasta:       [h => `ahora, hasta las ${h}`, h => `now, until ${h}`],
+  y:                [" y ", " and "],
+  sinVentana:       ["ninguna buena", "no good window"],
+  proximaBuena:     [dia => `Próxima buena hora: ${dia}`, dia => `Next good time: ${dia}`],
+  mareaDeSurf:      [etapas => `Marea ${etapas}`, etapas => `${etapas.replace(/^./, c => c.toUpperCase())} tide`],
+  alEmpezarA:       [marea => `Cuando la marea empieza a ${marea === "alta" ? "bajar" : "subir"}`,
+                     marea => `As the tide starts to ${marea === "alta" ? "drop" : "rise"}`],
+  conMarea:         [marea => `Con marea ${marea}`, marea => `With ${ETAPAS_EN[marea]} tide`],
+  datosMarea:       ["Datos de marea", "Tide data"],
+
+  // La curva de la marea
+  mareaEn:          [n => `🌊 La marea en ${n}`, n => `🌊 The tide at ${n}`],
+  dia:              ["Día", "Day"],
+  hoy:              ["Hoy", "Today"],
+  manana:           ["Mañana", "Tomorrow"],
+  dias:             [DIAS_ES, DIAS_EN],
+  curvaAria:        ["Curva de la marea del día", "Tide curve for the day"],
+  horaDelDia:       ["Hora del día", "Time of day"],
+  ahora:            ["Ahora", "Now"],
+  fuentesMarea:     ["Marea", "Tide"],
+  solAproximado:    ["amanecer y atardecer aproximados", "approximate sunrise and sunset"],
+  yaPaso:           ["(ya pasó)", "(past)"],
+  horasSurf:        [h => `Horas buenas para surfear: ${h}`, h => `Good hours to surf: ${h}`],
+  ningunaEsteDia:   ["ninguna este día", "none this day"],
+  noTanBuenas:      [h => `No tan buenas: ${h}`, h => `Not as good: ${h}`],
+  mejorHoraPara:    [(para, h) => `Mejor hora para ${para}: ${h}`, (para, h) => `Best time to ${para}: ${h}`],
+  sinHoraIdeal:     [para => `Este día no hay una hora ideal para ${para}`, para => `No ideal time to ${para} this day`],
+  extremo:          [(tipo, h) => `${tipo === "alta" ? "Alta" : "Baja"} ${h}`, (tipo, h) => `${tipo === "alta" ? "High" : "Low"} ${h}`],
+  nivel:            [n => `Nivel ${n}%`, n => `Level ${n}%`],
+  picoA:            [(tipo, h) => `${tipo === "alta" ? "La más alta" : "La más baja"} a las ${h}`,
+                     (tipo, h) => `${tipo === "alta" ? "High" : "Low"} tide at ${h}`],
+  haciaA:           [(tipo, h) => `${tipo === "alta" ? "Sube hasta las" : "Baja hasta las"} ${h}`,
+                     (tipo, h) => `${tipo === "alta" ? "Rising until" : "Falling until"} ${h}`],
+  diaSiguiente:     [" del día siguiente", " the next day"],
+  mareaTipo:        [tipo => `Marea ${tipo}`, tipo => `${tipo === "alta" ? "High" : "Low"} tide`],
+  subiendo:         ["Subiendo", "Rising"],
+  bajando:          ["Bajando", "Falling"],
+  surfAhora:        ["Ahora mismo, para surfear", "Right now, for surfing"],
+  surfAEsaHora:     ["A esa hora, para surfear", "At that time, for surfing"],
+  olaGusta:         [etapas => `Esta ola trabaja mejor con marea ${etapas}.`, etapas => `This wave works best on a ${etapas} tide.`],
+  horaBuena:        [etapa => `Hora buena: marea ${etapa}.`, etapa => `Good time: ${ETAPAS_EN[etapa]} tide.`],
+  horaNoTan:        [etapa => `No tan buena: marea ${etapa}.`, etapa => `Not as good: ${ETAPAS_EN[etapa]} tide.`],
+  deNoche:          ["Es de noche.", "It's dark at that hour."],
+  // "a.m." / "p.m." ya cierra con punto
+  proximaHoraBuena: [(dia, h) => ` La próxima hora buena empieza ${dia ? `el ${dia.toLowerCase()} ` : ""}a las ${h}`,
+                     (dia, h) => ` The next good window starts ${dia ? `on ${dia} ` : ""}at ${h}`],
+  guilleAhora:      ["Ahora mismo, según Guille", "Right now, according to Guille"],
+  guilleAEsaHora:   ["A esa hora, según Guille", "At that time, according to Guille"],
+  guilleViene:      ["Lo que viene, según Guille", "What's coming, according to Guille"],
+  guilleConMarea:   [marea => `Con marea ${marea}, según Guille`, marea => `At ${ETAPAS_EN[marea]} tide, according to Guille`],
+
+  // Foto 360°
+  pistaTactil:      ["Deslizá a la izquierda o a la derecha para ir a otra playa", "Swipe left or right to visit another beach"],
+  pistaTeclado:     ["Usá las flechas ← → del teclado para ir a otra playa", "Use the ← → arrow keys to visit another beach"],
+  volverFicha:      ["Volver a la ficha", "Back to the details"],
+  credito360:       ["Foto 360° · tomada por un local", "360° photo · taken by a local"],
+  giroActivo:       ["📱 Siguiendo tu teléfono · tocá para soltar", "📱 Following your phone · tap to release"],
+  giroInactivo:     ["📱 Mirá alrededor moviendo el teléfono", "📱 Move your phone to look around"],
+};
+
+function txt(clave, ...datos) {
+  const v = TEXTOS[clave][enIngles() ? 1 : 0];
+  return typeof v === "function" ? v(...datos) : v;
+}
+
+// Un lugar o un tour con sus textos en el idioma elegido: lo que trae en "en" reemplaza al
+// español, y lo que todavía no está traducido queda en español
+function traducido(x) {
+  if (!enIngles() || !x.en) return x;
+  const out = { ...x, ...x.en };
+  if (x.porCategoria) out.porCategoria = { ...x.porCategoria, ...x.en.porCategoria };
+  if (x.mareas) out.mareas = { ...x.mareas, ...x.en.mareas };
+  return out;
+}
+
 // Categorías disponibles. El ícono 3D y el color se usan en chips y marcadores.
 // Los íconos se generan siempre con el mismo prompt de estilo: ver
 // img/iconos/PROMPT-DE-ESTILO.md antes de agregar una categoría nueva.
 // El emoji queda de respaldo por si la imagen no carga.
+// "en" es el nombre en inglés; "enSeccion", cómo se titula esa sección de la ficha en inglés
+// ("Surfing at Playa Hermosa"), cuando no es el mismo nombre.
 const CATEGORIAS = {
-  surf:       { label: "Surf",        icono: "img/iconos/surf.png",       emoji: "🏄", color: "#0ea5e9" },
-  familia:    { label: "Con niños",   icono: "img/iconos/familia.png",    emoji: "👧", color: "#f59e0b" },
-  playa:      { label: "Playas",      icono: "img/iconos/playa.png",      emoji: "🏖️", color: "#eab308" },
-  atardecer:  { label: "Atardecer",   icono: "img/iconos/atardecer.png",  emoji: "🌅", color: "#f97316" },
-  cascada:    { label: "Cascadas",    icono: "img/iconos/cascada.png",    emoji: "💧", color: "#06b6d4" },
-  naturaleza: { label: "Naturaleza",  icono: "img/iconos/naturaleza.png", emoji: "🌿", color: "#22c55e" },
-  comida:     { label: "Comida",      icono: "img/iconos/comida.png",     emoji: "🍽️", color: "#ef4444" },
-  bienestar:  { label: "Bienestar",   icono: "img/iconos/bienestar.png",  emoji: "🧘", color: "#8b5cf6" },
-  tours:      { label: "Tours",       icono: "img/iconos/tours.png",      emoji: "🚤", color: "#6366f1" },
-  transporte: { label: "Transporte",  icono: "img/iconos/transporte.png", emoji: "🚙", color: "#64748b" },
-  hospedaje:  { label: "Hospedaje",   icono: "img/iconos/hospedaje.png",  emoji: "🏨", color: "#ec4899" },
+  surf:       { label: "Surf",        en: "Surf",       enSeccion: "Surfing",    icono: "img/iconos/surf.png",       emoji: "🏄", color: "#0ea5e9" },
+  familia:    { label: "Con niños",   en: "With kids",                           icono: "img/iconos/familia.png",    emoji: "👧", color: "#f59e0b" },
+  playa:      { label: "Playas",      en: "Beaches",    enSeccion: "Beach time", icono: "img/iconos/playa.png",      emoji: "🏖️", color: "#eab308" },
+  atardecer:  { label: "Atardecer",   en: "Sunset",                              icono: "img/iconos/atardecer.png",  emoji: "🌅", color: "#f97316" },
+  cascada:    { label: "Cascadas",    en: "Waterfalls", enSeccion: "Waterfall",  icono: "img/iconos/cascada.png",    emoji: "💧", color: "#06b6d4" },
+  naturaleza: { label: "Naturaleza",  en: "Nature",                              icono: "img/iconos/naturaleza.png", emoji: "🌿", color: "#22c55e" },
+  comida:     { label: "Comida",      en: "Food",                                icono: "img/iconos/comida.png",     emoji: "🍽️", color: "#ef4444" },
+  bienestar:  { label: "Bienestar",   en: "Wellness",                            icono: "img/iconos/bienestar.png",  emoji: "🧘", color: "#8b5cf6" },
+  tours:      { label: "Tours",       en: "Tours",                               icono: "img/iconos/tours.png",      emoji: "🚤", color: "#6366f1" },
+  transporte: { label: "Transporte",  en: "Transport",                           icono: "img/iconos/transporte.png", emoji: "🚙", color: "#64748b" },
+  hospedaje:  { label: "Hospedaje",   en: "Lodging",                             icono: "img/iconos/hospedaje.png",  emoji: "🏨", color: "#ec4899" },
 };
+
+// El nombre de una categoría (o de "Todas", o de "Meet a local") en el idioma elegido
+const rotulo = (cat) => (enIngles() && cat.en) || cat.label;
 
 // Por ahora la guía arranca con lo local (decisión de Juan, 2026-09-28): estas
 // categorías quedan en pausa. Sus lugares siguen guardados en data/points.js;
@@ -42,7 +179,7 @@ const LUGARES = POINTS.features
 const CONTACTO_JUAN = { whatsapp: "50689889988" };
 
 // La fila "Todas" del panel no es una categoría, pero usa el mismo set de íconos.
-const CAT_TODAS = { label: "Todas", icono: "img/iconos/todas.png", emoji: "🗺️", color: "#0ea5e9" };
+const CAT_TODAS = { label: "Todas", en: "All", icono: "img/iconos/todas.png", emoji: "🗺️", color: "#0ea5e9" };
 
 // Devuelve el <img> del ícono 3D de una categoría. Si la imagen no carga
 // (ruta mala, sin conexión), cae al emoji para que la fila nunca quede vacía.
@@ -92,12 +229,13 @@ function margenEncuadre() {
     : { top: 90, bottom: 50, left: 270, right: 50 };
 }
 
-// Fuentes gratuitas (sin API key)
+// Fuentes gratuitas (sin API key). La imagen satelital ya no es una capa del mapa (Juan,
+// 6-oct): solo se usa en la portada 3D de la ficha de cada lugar.
 const OFM = "https://tiles.openfreemap.org/styles/";
 const TILES_SATELITE = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
 const TILES_TERRENO  = "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png";
 
-// Paletas propias: se aplican encima del estilo "bright" de OpenFreeMap.
+// Paleta propia: se aplica encima del estilo "bright" de OpenFreeMap.
 // Cambiá cualquier color aquí y se refleja en el mapa.
 const PALETA_PURAVIDA = {
   fondo: "#f6f0e1", mar: "#79c4d8", selva: "#8fbf7f", pasto: "#d3e4bd", arena: "#f3e3ae",
@@ -106,27 +244,20 @@ const PALETA_PURAVIDA = {
   limites: "#bfae8c", texto: "#33423a", textoAgua: "#1f6f83",
 };
 
-const PALETA_PAPEL = {
-  fondo: "#efe6cf", mar: "#a7c8c6", selva: "#a9b98a", pasto: "#d8d9b4", arena: "#e8dcb4",
-  urbano: "#e9dfc4", edificios: "#dccfb0",
-  viaBorde: "#b59a72", viaMenor: "#f7efdc", viaMayor: "#e8cf9d", autopista: "#d9b077", sendero: "#a89673",
-  limites: "#a08d6a", texto: "#4a3f2f", textoAgua: "#3f6b6d",
-};
-
-// Estilos disponibles en el selector. "url" es el estilo base de OpenFreeMap
-// y "paleta" (opcional) lo recolorea.
+// Estilos del mapa. "url" es el estilo base de OpenFreeMap y "paleta" (opcional) lo recolorea.
+// Juan (6-oct): Papel y Minimal se quitaron (quedan en el historial de git), y "de momento" el
+// mapa va siempre en Noche, sin botón para elegir. Pura Vida queda guardado acá: para volver a
+// usarlo, basta con cambiar ESTILO.
 const ESTILOS = {
-  puravida: { nombre: "🌴 Pura Vida", url: OFM + "bright", paleta: PALETA_PURAVIDA },
-  papel:    { nombre: "🗺️ Papel",     url: OFM + "bright", paleta: PALETA_PAPEL },
-  minimal:  { nombre: "⚪ Minimal",   url: OFM + "positron" },
-  noche:    { nombre: "🌙 Noche",     url: OFM + "dark" },
+  puravida: { url: OFM + "bright", paleta: PALETA_PURAVIDA },
+  noche:    { url: OFM + "dark" },
 };
-const ESTILO_INICIAL = "puravida";
+const ESTILO = "noche";
 
 // ---------- Mapa ----------
 const map = new maplibregl.Map({
   container: "map",
-  style: ESTILOS[ESTILO_INICIAL].url,
+  style: ESTILOS[ESTILO].url,
   bounds: LIMITES_LUGARES,
   fitBoundsOptions: { padding: margenEncuadre(), maxZoom: 13 },
   attributionControl: { compact: true },
@@ -134,7 +265,12 @@ const map = new maplibregl.Map({
 
 map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "top-right");
 map.addControl(new maplibregl.GeolocateControl({ trackUserLocation: true }), "top-right");
-map.addControl(new maplibregl.ScaleControl({ unit: "metric" }), "bottom-right");
+// Juan (6-oct): abajo no va nada, ni la escala. Los créditos de los mapas sí tienen que estar
+// (la licencia de OpenStreetMap lo pide), pero quedan recogidos en el botoncito ⓘ: se leen
+// al tocarlo. MapLibre los abre solos al cargar; acá se cierran apenas el mapa termina.
+map.once("idle", () => {
+  map.getContainer().querySelector(".maplibregl-ctrl-attrib")?.classList.remove("maplibregl-compact-show");
+});
 
 // El encuadre inicial se calcula al crear el mapa, cuando el contenedor todavía
 // puede no tener su tamaño final (el layout no terminó de acomodarse, o la ventana
@@ -172,15 +308,20 @@ function crearFilaCapa(clave, cat, extraClase = "") {
   b.className = "capa" + (extraClase ? " " + extraClase : "");
   b.dataset.cat = clave;
   b.setAttribute("aria-pressed", "false");
-  b.setAttribute("aria-label", cat.label); // se ve solo el ícono (desde el 3-oct también en compu)
-  b.title = cat.label; // en compu, el nombre aparece al pasar el mouse
   if (cat.color) b.style.setProperty("--cat", cat.color);
   b.innerHTML =
     '<span class="capa-icono"></span><span class="capa-label"></span><span class="capa-switch"></span>';
   b.querySelector(".capa-icono").appendChild(crearIcono(cat));
-  b.querySelector(".capa-label").textContent = cat.label;
+  nombrarFilaCapa(b, cat);
   b.addEventListener("click", () => alternarCategoria(clave));
   return b;
+}
+
+// El nombre de la fila, en el idioma elegido (se vuelve a poner al cambiar de idioma)
+function nombrarFilaCapa(b, cat) {
+  b.setAttribute("aria-label", rotulo(cat)); // se ve solo el ícono (desde el 3-oct también en compu)
+  b.title = rotulo(cat); // en compu, el nombre aparece al pasar el mouse
+  b.querySelector(".capa-label").textContent = rotulo(cat);
 }
 
 // Deja prendida solo esa categoría, sin alternar: la usa la ficha cuando la persona cambia de
@@ -225,7 +366,7 @@ function sincronizarCapas(visibles) {
     const prendida = clave === "todos" ? todas : categoriasActivas.has(clave);
     b.setAttribute("aria-pressed", String(prendida));
   }
-  conteoEl.textContent = visibles === 1 ? "1 lugar en el mapa" : `${visibles} lugares en el mapa`;
+  conteoEl.textContent = txt("conteo", visibles);
   // Sin filtro van todos a color; con uno elegido, ese resalta y el resto se apaga
   capasEl.classList.toggle("filtrando", !todas);
 }
@@ -248,8 +389,7 @@ const marcadores = []; // { feature, marker, el }
 for (const feature of LUGARES) {
   const el = document.createElement("div");
   el.className = "marker";
-  el.title = feature.properties.nombre;
-  el.dataset.nombre = feature.properties.nombre; // la etiqueta del lugar marcado (css: .marker.marcado)
+  nombrarMarcador(el, feature);
 
   el.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -263,6 +403,12 @@ for (const feature of LUGARES) {
     .setLngLat(feature.geometry.coordinates);
 
   marcadores.push({ feature, marker, el });
+}
+
+// El nombre del lugar en el idioma elegido: al pasar el mouse, y la etiqueta del lugar
+// marcado (css: .marker.marcado)
+function nombrarMarcador(el, feature) {
+  el.title = el.dataset.nombre = traducido(feature.properties).nombre;
 }
 
 // Pinta el marcador con el ícono 3D y el color de una categoría.
@@ -326,7 +472,7 @@ function esc(s) {
 }
 
 // Portada de respaldo mientras un lugar no tenga foto propia: la vista satelital
-// real del punto, de Esri World Imagery (la misma fuente gratis de la capa Satélite).
+// real del punto, de Esri World Imagery (gratis, sin API key).
 function fotoSatelital(lng, lat) {
   const dx = 0.0037, dy = 0.0019; // unos 800 × 420 m alrededor del punto
   const bbox = [lng - dx, lat - dy, lng + dx, lat + dy].join(",");
@@ -471,7 +617,7 @@ function textoDeCategoria(p, cat) {
 // Sin entrada todavía (ej. Villa Flor), la ficha muestra la descripción armada con lo que
 // contó el local, antes que una frase genérica
 function textoGeneral(p) {
-  return p.entrada || p.descripcion || "Conocé este lugar con la guía local.";
+  return p.entrada || p.descripcion || txt("textoGeneral");
 }
 
 // Una sección es un texto corto o, desde el 2-oct (pedido de Juan: más detalle por categoría),
@@ -497,28 +643,30 @@ function htmlSeccion(sec, extra = "") {
 const TAB_TOURS = { label: "Meet a local", icono: "img/iconos/tours.png" };
 
 function toursDelLugar(p) {
-  return TOURS.filter(t => t.lugares?.includes(p.id));
+  return TOURS.filter(tour => tour.lugares?.includes(p.id));
 }
 
 function botonWhatsApp(mensaje, etiqueta, numero = CONTACTO_JUAN.whatsapp) {
-  if (!numero) return `<span class="reservar reservar-pronto">Reservas por WhatsApp muy pronto</span>`;
+  if (!numero) return `<span class="reservar reservar-pronto">${esc(txt("reservasPronto"))}</span>`;
   const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
   return `<a class="reservar" href="${esc(url)}" target="_blank" rel="noopener">${esc(etiqueta)}</a>`;
 }
 
 // El mensaje ya trae los huecos de cuántos son y qué día: es lo primero que se necesita.
 // "Vi en Hey You ST" no se quita: así el local (y Juan) saben que esa persona vino por la guía.
-function htmlTour(t) {
-  const local = t.local && t.whatsapp ? t.local : null;
+// En inglés el mensaje también sale en inglés: lo manda la persona que visita.
+function htmlTour(tourOriginal) {
+  const tour = traducido(tourOriginal);
+  const local = tour.local && tour.whatsapp ? tour.local : null;
   return `
     <article class="tour">
-      <h3>${esc(t.titulo)}</h3>
-      <p class="tour-meta">📍 ${esc(t.salida)}<br>⏱ ${esc(t.duracion)}</p>
-      <div class="datos">${t.incluye.map(i => `<span class="dato">${esc(i)}</span>`).join("")}</div>
-      <p class="tour-texto">${esc(t.texto)}</p>
-      <p class="tour-precio${t.precio ? "" : " a-confirmar"}">${esc(t.precio || "Precio según la fecha y el grupo: te lo confirmamos por WhatsApp.")}</p>
-      ${botonWhatsApp(`Hola ${local || "Juan"} 👋 Vi en Hey You ST "${t.titulo}" y me interesa. Somos ___ personas y nos gustaría ir el ___.`,
-        `Me interesa: escribile a ${local || "Juan"}`, local ? t.whatsapp : CONTACTO_JUAN.whatsapp)}
+      <h3>${esc(tour.titulo)}</h3>
+      <p class="tour-meta">📍 ${esc(tour.salida)}<br>⏱ ${esc(tour.duracion)}</p>
+      <div class="datos">${tour.incluye.map(i => `<span class="dato">${esc(i)}</span>`).join("")}</div>
+      <p class="tour-texto">${esc(tour.texto)}</p>
+      <p class="tour-precio${tour.precio ? "" : " a-confirmar"}">${esc(tour.precio || txt("precioAConfirmar"))}</p>
+      ${botonWhatsApp(txt("mensajeTour", local || "Juan", tour.titulo),
+        txt("botonTour", local || "Juan"), local ? tour.whatsapp : CONTACTO_JUAN.whatsapp)}
     </article>`;
 }
 
@@ -637,10 +785,9 @@ function tramosSurf(buenas, mareas, lng, lat) {
   return out;
 }
 
-// "baja a media", "media a alta"... para decirlo en palabras
-const ETAPAS_EN = { baja: "low", media: "mid", alta: "high" };
-function etapasEnPalabras(etapas, en = false) {
-  return etapas.map(e => en ? ETAPAS_EN[e] : e).join(en ? " to " : " a ");
+// "baja a media", "media a alta"... para decirlo en palabras ("low to mid" en inglés)
+function etapasEnPalabras(etapas) {
+  return etapas.map(e => enIngles() ? ETAPAS_EN[e] : e).join(enIngles() ? " to " : " a ");
 }
 
 function horaCR(ms) {
@@ -652,10 +799,9 @@ function rangoCR(ini, fin) {
   return a.slice(-4) === b.slice(-4) ? `${a.slice(0, -5)} – ${b}` : `${a} – ${b}`;
 }
 
-// Juan (3-oct): dos líneas, hoy y mañana, arriba de los bloques, y en inglés como él las
-// escribió ("Best time to go today at xxx" / "Best time to go tomorrow xxx").
-const DIAS_EN = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-
+// Juan (3-oct): dos líneas, hoy y mañana, arriba de los bloques, en inglés como él las
+// escribió ("Best time to go today at xxx" / "Best time to go tomorrow xxx"). Desde que la
+// página es bilingüe (6-oct), en español salen en español.
 async function llenarIdealHoy(el, ideal, lng, lat) {
   let ventanas;
   try { ventanas = ventanasIdeales(ideal, await cargarMareas(lng, lat), lng, lat); }
@@ -667,26 +813,26 @@ async function llenarIdealHoy(el, ideal, lng, lat) {
   if (!proximas.length) return;
   const delDia = (n) => proximas.filter(v => Math.floor(v.ini / DIA) === hoy + n);
   const horas = (vs) => vs.length
-    ? vs.map(v => v.ini <= ahora ? `now, until ${horaCR(v.fin)}` : rangoCR(v.ini, v.fin)).join(" and ")
-    : "no good window";
-  const linea = (texto, valor) => `<span class="ideal-linea">🕐 ${texto}: <strong>${esc(valor)}</strong></span>`;
+    ? vs.map(v => v.ini <= ahora ? txt("ahoraHasta", horaCR(v.fin)) : rangoCR(v.ini, v.fin)).join(txt("y"))
+    : txt("sinVentana");
+  const linea = (texto, valor) => `<span class="ideal-linea">🕐 ${esc(texto)}: <strong>${esc(valor)}</strong></span>`;
   const [vHoy, vManana] = [delDia(0), delDia(1)];
   // Si ni hoy ni mañana hay ventana, se avisa cuál es la próxima
   const proxima = !vHoy.length && !vManana.length
-    ? linea(`Next good time: ${DIAS_EN[new Date(proximas[0].ini).getUTCDay()]}`, rangoCR(proximas[0].ini, proximas[0].fin))
+    ? linea(txt("proximaBuena", txt("dias")[new Date(proximas[0].ini).getUTCDay()]), rangoCR(proximas[0].ini, proximas[0].fin))
     : "";
-  // "paraEn": para qué es la hora, cuando no sirve para todos (ej. El Chorro: solo a pie)
-  const para = ideal.paraEn || "go";
+  // "para" / "paraEn": para qué es la hora, cuando no sirve para todos (ej. El Chorro: solo a pie)
+  const para = (enIngles() ? ideal.paraEn : ideal.para) || txt("paraDefecto");
   const marea = ideal.surf
-    ? `${etapasEnPalabras(ideal.surf, true).replace(/^./, c => c.toUpperCase())} tide`
+    ? txt("mareaDeSurf", etapasEnPalabras(ideal.surf))
     : ideal.ventana?.[0] === 0
-      ? `As the tide starts to ${ideal.marea === "alta" ? "drop" : "rise"}`
-      : `With ${ideal.marea === "alta" ? "high" : "low"} tide`;
+      ? txt("alEmpezarA", ideal.marea)
+      : txt("conMarea", ideal.marea);
   el.innerHTML = `
-    ${linea(`Best time to ${para} today`, horas(vHoy))}
-    ${linea(`Best time to ${para} tomorrow`, horas(vManana))}
+    ${linea(txt("mejorHoy", para), horas(vHoy))}
+    ${linea(txt("mejorManana", para), horas(vManana))}
     ${proxima}
-    <span class="ideal-detalle">${marea} · Tide data:
+    <span class="ideal-detalle">${esc(marea)} · ${txt("datosMarea")}:
       <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a></span>`;
   el.hidden = false;
 }
@@ -698,7 +844,6 @@ async function llenarIdealHoy(el, ideal, lng, lat) {
 // ese lugar ("mareas" en data/points.js). Solo sale donde hay esa voz local.
 // Juan (4-oct): la curva muestra siempre la mejor hora para ir ese día ("horasIdeales"):
 // una franja dorada sobre la curva y la hora escrita arriba; al tocarla, la bolita va ahí.
-const DIAS_ES = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 const MAREA_W = 320, MAREA_X0 = 10, MAREA_X1 = 310, MAREA_Y0 = 30, MAREA_Y1 = 100;
 
 // Amanecer y atardecer aproximados (fórmula de la NOAA), en minutos del día en hora tica
@@ -735,14 +880,14 @@ async function llenarMarea(el, p, lng, lat, ideal = null, { sinVoz = false } = {
   const bajo = Math.min(...visibles), alto = Math.max(...visibles);
   const X = (m) => MAREA_X0 + m / 1440 * (MAREA_X1 - MAREA_X0);
   const Y = (v) => MAREA_Y1 - (v - bajo) / (alto - bajo || 1) * (MAREA_Y1 - MAREA_Y0);
-  const nombres = ["Hoy", "Mañana", DIAS_ES[new Date(hoy + 2 * DIA).getUTCDay()]];
+  const nombres = [txt("hoy"), txt("manana"), txt("dias")[new Date(hoy + 2 * DIA).getUTCDay()]];
   const voz = p.mareas || {};
   let dia = 0, minuto = minutoAhora;
 
   el.innerHTML = `
     <div class="marea-cabeza">
-      <span class="marea-titulo">🌊 La marea en ${esc(p.nombre)}</span>
-      <div class="marea-dias" role="group" aria-label="Día">
+      <span class="marea-titulo">${esc(txt("mareaEn", p.nombre))}</span>
+      <div class="marea-dias" role="group" aria-label="${txt("dia")}">
         ${nombres.map((n, i) => `<button type="button" data-dia="${i}">${n}</button>`).join("")}
       </div>
     </div>
@@ -757,7 +902,7 @@ async function llenarMarea(el, p, lng, lat, ideal = null, { sinVoz = false } = {
       </div>
     </div>
     ${ideal ? `<p class="marea-ideal"></p>` : ""}
-    <svg class="marea-grafica" viewBox="0 0 ${MAREA_W} 130" role="img" aria-label="Curva de la marea del día">
+    <svg class="marea-grafica" viewBox="0 0 ${MAREA_W} 130" role="img" aria-label="${txt("curvaAria")}">
       <defs>
         <linearGradient id="marea-agua" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stop-color="#22e6df" stop-opacity="0.45">
@@ -788,12 +933,12 @@ async function llenarMarea(el, p, lng, lat, ideal = null, { sinVoz = false } = {
       <circle class="marea-punto" r="5.5" filter="url(#marea-brillo)"/>
     </svg>
     <div class="marea-control">
-      <input type="range" class="marea-barra" min="0" max="1425" step="15" aria-label="Hora del día">
-      <button type="button" class="marea-ahora">Ahora</button>
+      <input type="range" class="marea-barra" min="0" max="1425" step="15" aria-label="${txt("horaDelDia")}">
+      <button type="button" class="marea-ahora">${txt("ahora")}</button>
     </div>
     <div class="marea-voz"><span class="marea-voz-titulo"></span><p></p></div>
-    <span class="ideal-detalle">Marea: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>
-      · amanecer y atardecer aproximados</span>`;
+    <span class="ideal-detalle">${txt("fuentesMarea")}: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>
+      · ${txt("solAproximado")}</span>`;
 
   const $ = (s) => el.querySelector(s);
   const svg = $(".marea-grafica"), barra = $(".marea-barra"), botonAhora = $(".marea-ahora");
@@ -847,15 +992,15 @@ async function llenarMarea(el, p, lng, lat, ideal = null, { sinVoz = false } = {
         const m = Math.min(1425, Math.ceil((v.ini - d0) / 60e3 / 15) * 15);
         const paso = v.fin <= ahora; // hoy, la que ya se fue queda escrita pero apagada
         return `<button type="button" data-m="${m}"${paso ? ` class="pasada"` : ""}>${esc(rangoCR(v.ini, v.fin))}</button>` +
-          (paso ? ` <small>(ya pasó)</small>` : "");
-      }).join(" y ");
-      const para = esc(ideal.para || "ir");
+          (paso ? ` <small>${txt("yaPaso")}</small>` : "");
+      }).join(txt("y"));
+      const para = esc((enIngles() ? ideal.paraEn : ideal.para) || txt("paraDefecto"));
       $(".marea-ideal").innerHTML = surf
-        ? `<span class="marea-ideal-linea"><span aria-hidden="true">★</span> Horas buenas para surfear: ${buenas.length ? horas(buenas) : "ninguna este día"}</span>` +
-          (noTan.length ? `<span class="marea-ideal-linea no-tan">No tan buenas: ${horas(noTan)}</span>` : "")
+        ? `<span class="marea-ideal-linea"><span aria-hidden="true">★</span> ${txt("horasSurf", buenas.length ? horas(buenas) : txt("ningunaEsteDia"))}</span>` +
+          (noTan.length ? `<span class="marea-ideal-linea no-tan">${txt("noTanBuenas", horas(noTan))}</span>` : "")
         : buenas.length
-          ? `<span aria-hidden="true">★</span> Mejor hora para ${para}: ${horas(buenas)}`
-          : `<span aria-hidden="true">★</span> Este día no hay una hora ideal para ${para}`;
+          ? `<span aria-hidden="true">★</span> ${txt("mejorHoraPara", para, horas(buenas))}`
+          : `<span aria-hidden="true">★</span> ${txt("sinHoraIdeal", para)}`;
     }
 
     $(".marea-ext").innerHTML = extremos.filter(e => e.t >= d0 && e.t < d0 + DIA).map(e => {
@@ -863,7 +1008,7 @@ async function llenarMarea(el, p, lng, lat, ideal = null, { sinVoz = false } = {
       const tx = Math.min(MAREA_X1 - 32, Math.max(MAREA_X0 + 32, x));
       return `<g data-m="${m}"><circle cx="${x}" cy="${y}" r="2.5"/>` +
         `<text x="${tx}" y="${e.tipo === "alta" ? y - 7 : y + 14}" text-anchor="middle">` +
-        `${e.tipo === "alta" ? "Alta" : "Baja"} ${horaCR(e.t)}</text></g>`;
+        `${txt("extremo", e.tipo, horaCR(e.t))}</text></g>`;
     }).join("");
   };
 
@@ -882,7 +1027,7 @@ async function llenarMarea(el, p, lng, lat, ideal = null, { sinVoz = false } = {
 
     const [reloj, sufijo] = horaCR(ms).split(" ");
     $(".marea-hora").innerHTML = `${reloj}<small>${sufijo}</small>`;
-    $(".marea-nivel").textContent = `Nivel ${Math.round((v - bajo) / (alto - bajo || 1) * 100)}%`;
+    $(".marea-nivel").textContent = txt("nivel", Math.round((v - bajo) / (alto - bajo || 1) * 100));
 
     const hora = Math.floor(minuto / 60);
     if (ultimaHora !== null && hora !== ultimaHora) vibrar(6);
@@ -896,14 +1041,12 @@ async function llenarMarea(el, p, lng, lat, ideal = null, { sinVoz = false } = {
     const prox = extremos.find(e => e.t > ms);
     let siguiente = "";
     if (prox) {
-      siguiente = prox === cerca
-        ? `${prox.tipo === "alta" ? "La más alta" : "La más baja"} a las ${horaCR(prox.t)}`
-        : `${prox.tipo === "alta" ? "Sube hasta las" : "Baja hasta las"} ${horaCR(prox.t)}`;
-      if (Math.floor(prox.t / DIA) !== Math.floor(ms / DIA)) siguiente += " del día siguiente";
+      siguiente = prox === cerca ? txt("picoA", prox.tipo, horaCR(prox.t)) : txt("haciaA", prox.tipo, horaCR(prox.t));
+      if (Math.floor(prox.t / DIA) !== Math.floor(ms / DIA)) siguiente += txt("diaSiguiente");
     }
     $(".marea-flecha").textContent = cerca ? (cerca.tipo === "alta" ? "▲" : "▼") : (sube ? "↗" : "↘");
     $(".marea-estado strong").textContent = cerca
-      ? `Marea ${cerca.tipo}` : (sube ? "Subiendo" : "Bajando");
+      ? txt("mareaTipo", cerca.tipo) : txt(sube ? "subiendo" : "bajando");
     $(".marea-siguiente").textContent = siguiente;
 
     // Criterio de Juan: la marea "está" baja (o alta) de 2 h antes a 2 h después de su punto
@@ -913,27 +1056,27 @@ async function llenarMarea(el, p, lng, lat, ideal = null, { sinVoz = false } = {
     let titulo, texto;
     if (surf) {
       // En surf, la caja dice si esa hora es buena para la ola, solo por la marea (Juan, 4-oct)
-      titulo = enAhora ? "Ahora mismo, para surfear" : "A esa hora, para surfear";
+      titulo = txt(enAhora ? "surfAhora" : "surfAEsaHora");
       const dentro = (w) => w.ini <= ms && ms < w.fin;
       const buena = surf.buenas.some(dentro), noTan = surf.noTan.some(dentro);
-      const gusta = `Esta ola trabaja mejor con marea ${etapasEnPalabras(ideal.surf)}.`;
-      texto = buena ? `Hora buena: marea ${etapaMarea(extremos, v, ms)}. ${gusta}`
-        : noTan ? `No tan buena: marea ${etapaMarea(extremos, v, ms)}. ${gusta}`
-        : "Es de noche.";
+      const gusta = txt("olaGusta", etapasEnPalabras(ideal.surf));
+      texto = buena ? `${txt("horaBuena", etapaMarea(extremos, v, ms))} ${gusta}`
+        : noTan ? `${txt("horaNoTan", etapaMarea(extremos, v, ms))} ${gusta}`
+        : txt("deNoche");
       const prox = !buena && surf.buenas.find(w => w.ini > ms);
       if (prox) {
         const mismoDia = Math.floor(prox.ini / DIA) === Math.floor(ms / DIA);
-        texto += ` La próxima hora buena empieza ${mismoDia ? "" : `el ${DIAS_ES[new Date(prox.ini).getUTCDay()].toLowerCase()} `}a las ${horaCR(prox.ini)}`; // "a.m." / "p.m." ya cierra con punto
+        texto += txt("proximaHoraBuena", mismoDia ? "" : txt("dias")[new Date(prox.ini).getUTCDay()], horaCR(prox.ini));
       }
     } else if (ventana && voz[ventana.tipo]) {
-      titulo = enAhora ? "Ahora mismo, según Guille" : "A esa hora, según Guille";
+      titulo = txt(enAhora ? "guilleAhora" : "guilleAEsaHora");
       texto = voz[ventana.tipo];
     } else if (voz[viene]) {
-      titulo = "Lo que viene, según Guille";
+      titulo = txt("guilleViene");
       texto = voz[viene];
     } else {
       const otra = viene === "alta" ? "baja" : "alta";
-      titulo = `Con marea ${otra}, según Guille`;
+      titulo = txt("guilleConMarea", otra);
       texto = voz[otra];
     }
     $(".marea-voz").hidden = !texto || sinVoz;
@@ -993,22 +1136,25 @@ function htmlComoLlegar(p, [lng, lat], { ver360 = false } = {}) {
   const destino = `${dLat},${dLng}`;
   return `
     <div class="como-llegar">
-      <span>Cómo llegar</span>
+      <span>${txt("comoLlegar")}</span>
       <a href="https://waze.com/ul?ll=${destino}&navigate=yes" target="_blank" rel="noopener">Waze</a>
       <a href="https://www.google.com/maps/dir/?api=1&destination=${destino}" target="_blank" rel="noopener">Google Maps</a>
     </div>
-    ${ver360 ? `<button type="button" class="ver-360">Ver foto 360°</button>` : ""}`;
+    ${ver360 ? `<button type="button" class="ver-360">${txt("ver360")}</button>` : ""}`;
 }
 
 // opciones.sobre360: la ficha se abre encima de la foto 360° a pantalla completa (ver
 // "Modo inmersivo"), así que no lleva portada; opciones.cat: la pestaña con que abre.
+// opciones.refrescar: la misma ficha se vuelve a pintar (al cambiar de idioma), sin mover el
+// mapa ni la hoja.
 function abrirPanel(feature, el, opciones = {}) {
-  const p = feature.properties;
+  const p = traducido(feature.properties);
   const [lng, lat] = feature.geometry.coordinates;
   const sobre360 = !!opciones.sobre360;
+  const refrescar = !!opciones.refrescar;
   panel.classList.toggle("sobre-360", sobre360);
 
-  marcarLugar(el);
+  if (!refrescar) marcarLugar(el);
 
   // Juan (3-oct): la ficha ya no lleva la fila de pestañas de texto. Abre en la sección del
   // ícono que la persona eligió en el mapa (cómo viene pensando); sin ícono, la vista general.
@@ -1018,10 +1164,10 @@ function abrirPanel(feature, el, opciones = {}) {
   const tours = toursDelLugar(p);
   const secciones = p.categorias.filter(c => CATEGORIAS[c]);
   const iconosSecciones = secciones.length > 1 ? `
-    <nav class="secciones-lugar" aria-label="Secciones de ${esc(p.nombre)}">
+    <nav class="secciones-lugar" aria-label="${esc(txt("seccionesDe", p.nombre))}">
       ${secciones.map(c => `
         <button type="button" data-cat="${c}" aria-pressed="false" style="--cat: ${CATEGORIAS[c].color}">
-          <img src="${esc(CATEGORIAS[c].icono)}" alt=""><span>${esc(CATEGORIAS[c].label)}</span>
+          <img src="${esc(CATEGORIAS[c].icono)}" alt=""><span>${esc(rotulo(CATEGORIAS[c]))}</span>
         </button>`).join("")}
     </nav>` : "";
 
@@ -1030,7 +1176,7 @@ function abrirPanel(feature, el, opciones = {}) {
   // (La foto 360° no va en la portada: se abre con su botón, junto a "Cómo llegar")
   const portada = p.foto || fotoSatelital(lng, lat);
   const con3d = !p.foto;
-  const credito = con3d ? `<span class="hero-credito">Vista 3D · Esri · AWS Terrain</span>` : "";
+  const credito = con3d ? `<span class="hero-credito">${txt("credito3d")}</span>` : "";
 
   // La vista del lugar anterior se va con el HTML viejo
   desmontarVista3D();
@@ -1066,10 +1212,12 @@ function abrirPanel(feature, el, opciones = {}) {
   const vistaEl = panelBody.querySelector(".vista");
   const meetALocal = tours.length ? `
     <div class="vista-meet">
-      <p class="vista-titulo"><img src="${esc(TAB_TOURS.icono)}" alt="">${esc(TAB_TOURS.label)}</p>
+      <p class="vista-titulo"><img src="${esc(TAB_TOURS.icono)}" alt="">${esc(rotulo(TAB_TOURS))}</p>
       ${tours.map(htmlTour).join("")}
     </div>` : "";
+  let vistaActual = null; // la sección que se está viendo (null = la vista general)
   const pintarVista = (cat) => {
+    vistaActual = cat;
     panelBody.querySelectorAll(".secciones-lugar button")
       .forEach(b => b.setAttribute("aria-pressed", String(b.dataset.cat === cat)));
     // El ícono de "Meet a local" sobre la foto 360° abre solo esa parte
@@ -1082,12 +1230,12 @@ function abrirPanel(feature, el, opciones = {}) {
     // 4-oct: en el agua no hay sombra). Fuera de surf, las "horasIdeales" del lugar; sin
     // "secciones", valen en todas sus secciones.
     const surf = cat === "surf" && p.surf?.mareasBuenas;
-    const ideal = surf ? { surf, paraEn: "surf" }
+    const ideal = surf ? { surf, para: "surfear", paraEn: "surf" }
       : p.horasIdeales && (!c || !p.horasIdeales.secciones || p.horasIdeales.secciones.includes(cat))
         ? p.horasIdeales : null;
     const conMarea = !!p.mareas || !!surf;
     vistaEl.innerHTML = `
-      ${c ? `<p class="vista-titulo"><img src="${esc(c.icono)}" alt="">${esc(c.label)} en ${esc(p.nombre)}</p>` : ""}
+      ${c ? `<p class="vista-titulo"><img src="${esc(c.icono)}" alt="">${esc(txt("tituloSeccion", c, p.nombre))}</p>` : ""}
       ${htmlSeccion(c ? textoDeCategoria(p, cat) : textoGeneral(p),
         (ideal ? `<div class="ideal-hoy" hidden></div>` : "") +
         (conMarea ? `<div class="marea" hidden></div>` : ""))}
@@ -1099,18 +1247,19 @@ function abrirPanel(feature, el, opciones = {}) {
   // venía filtrando el mapa
   const filtro = [...categoriasActivas][0];
   pintarVista(opciones.cat || (p.categorias.includes(filtro) ? filtro : null));
-  lugarAbierto = { categorias: p.categorias, pintarVista, el };
+  lugarAbierto = { categorias: p.categorias, pintarVista, el, feature, sobre360, vista: () => vistaActual };
   // Cambiar de sección en la ficha (o desde los íconos sobre la 360°) también cambia la
   // categoría del mapa: al salir, quedan a la vista los lugares de la sección que dejó
-  if (CATEGORIAS[opciones.cat]) ponerCategoria(opciones.cat);
+  if (CATEGORIAS[opciones.cat] && !refrescar) ponerCategoria(opciones.cat);
   panelBody.querySelectorAll(".secciones-lugar button").forEach(b => b.addEventListener("click", () => {
     ponerCategoria(b.dataset.cat);
     pintarVista(b.dataset.cat);
   }));
 
+  asaNombre.textContent = p.nombre;
+  if (refrescar) return; // la ficha ya estaba abierta: queda donde estaba
   panel.hidden = false;
   panel.scrollTop = 0;
-  asaNombre.textContent = p.nombre;
   // Al tocar una sección sobre la 360°, la ficha sube hasta arriba (pedido de Juan, 3-oct);
   // su ✕ devuelve a la foto. Mientras tanto la foto se queda quieta.
   if (sobre360) congelarFoto(true);
@@ -1234,26 +1383,26 @@ function abrirInmersivo(feature, el, opciones = {}) {
   const pista = variasPlayas && !pistaYaVista() ? `
     <div class="inm-pista" role="status">
       <span class="inm-pista-mano" aria-hidden="true">👆</span>
-      <p>${tactil ? "Deslizá a la izquierda o a la derecha para ir a otra playa"
-        : "Usá las flechas ← → del teclado para ir a otra playa"}</p>
+      <p>${txt(tactil ? "pistaTactil" : "pistaTeclado")}</p>
     </div>` : "";
+  const nombre = traducido(p).nombre;
   inmersivo.innerHTML = `
     <div class="inm-360${opciones.desde ? ` entra-${opciones.desde}` : ""}"></div>
     <div class="inm-arriba">
-      <h2>${esc(p.nombre)}</h2>
-      <button type="button" class="inm-cerrar" aria-label="Volver a la ficha">✕</button>
+      <h2>${esc(nombre)}</h2>
+      <button type="button" class="inm-cerrar" aria-label="${txt("volverFicha")}">✕</button>
     </div>
-    <span class="inm-credito">Foto 360° · tomada por un local</span>
+    <span class="inm-credito">${txt("credito360")}</span>
     ${pista}
     <div class="inm-abajo">
       ${variasPlayas ? `<div class="inm-puntos" aria-hidden="true">
         ${lista.map(m => `<span${m.feature === feature ? ' class="activo"' : ""}></span>`).join("")}
       </div>` : ""}
       <button type="button" class="inm-giro" aria-pressed="false" hidden></button>
-      <nav class="inm-secciones" aria-label="Secciones de ${esc(p.nombre)}">
-        ${secciones.map(([clave, { icono, label }]) => `
+      <nav class="inm-secciones" aria-label="${esc(txt("seccionesDe", nombre))}">
+        ${secciones.map(([clave, cat]) => `
           <button type="button" data-cat="${clave}">
-            <img src="${esc(icono)}" alt=""><span>${esc(label)}</span>
+            <img src="${esc(cat.icono)}" alt=""><span>${esc(rotulo(cat))}</span>
           </button>`).join("")}
       </nav>
     </div>`;
@@ -1341,7 +1490,7 @@ function prepararGiroscopio(v) {
   const sincronizar = () => {
     const activo = v.isOrientationActive();
     btn.setAttribute("aria-pressed", String(activo));
-    btn.textContent = activo ? "📱 Siguiendo tu teléfono · tocá para soltar" : "📱 Mirá alrededor moviendo el teléfono";
+    btn.textContent = txt(activo ? "giroActivo" : "giroInactivo");
   };
   const encender = () => {
     v.stopAutoRotate();
@@ -1430,7 +1579,7 @@ function ponerAltura(nombre) {
   if (nombre === "baja") panel.scrollTop = 0;
   // Sobre la 360°: con la ficha bajada la foto vuelve a moverse; al subirla, se queda quieta
   if (panel.classList.contains("sobre-360") && !panel.hidden) congelarFoto(nombre !== "baja");
-  panelAsa.setAttribute("aria-label", nombre === "baja" ? "Subir la ficha" : "Bajar la ficha para ver el mapa");
+  panelAsa.setAttribute("aria-label", txt(nombre === "baja" ? "subirFicha" : "bajarFicha"));
 }
 
 // En escritorio (o al cerrar) la ficha vuelve a medirse sola con el CSS
@@ -1605,42 +1754,10 @@ function aplicarPaleta(p) {
   }
 }
 
-// ---------- Menú de capas (celular) ----------
-// En el teléfono la barra de arriba muestra solo un botón; al tocarlo se abre el menú
-// con el estilo, el satélite, el 3D y las curvas. Se queda abierto mientras la persona
-// prende y apaga cosas, y se cierra al tocar afuera o con Escape. En compu no se usa.
-const accionesEl = document.getElementById("topbar-acciones");
-const btnCapas = document.getElementById("btn-capas");
-
-function abrirMenuCapas(abierto) {
-  accionesEl.classList.toggle("abierta", abierto);
-  btnCapas.setAttribute("aria-expanded", String(abierto));
-}
-btnCapas.addEventListener("click", () => abrirMenuCapas(!accionesEl.classList.contains("abierta")));
-document.addEventListener("click", (e) => { if (!accionesEl.contains(e.target)) abrirMenuCapas(false); });
-document.addEventListener("keydown", (e) => { if (e.key === "Escape") abrirMenuCapas(false); });
-
-// ---------- Selector de estilo ----------
-const selEstilo = document.getElementById("sel-estilo");
-let estiloActual = ESTILO_INICIAL;
-
-for (const [clave, e] of Object.entries(ESTILOS)) {
-  const op = document.createElement("option");
-  op.value = clave;
-  op.textContent = e.nombre;
-  op.selected = clave === ESTILO_INICIAL;
-  selEstilo.appendChild(op);
-}
-
-selEstilo.addEventListener("change", () => {
-  estiloActual = selEstilo.value;
-  // Frenamos animaciones y quitamos el terreno antes de cambiar: MapLibre no
-  // tolera renderizar terreno mientras el estilo nuevo todavía está cargando.
-  map.stop();
-  if (map.getTerrain()) map.setTerrain(null);
-  map.setStyle(ESTILOS[estiloActual].url, { diff: false });
-  // Al cambiar de estilo se pierden las capas agregadas: se reponen en "style.load"
-});
+// ---------- Estilo del mapa ----------
+// Juan (6-oct): de momento, siempre Noche (ver ESTILO arriba); la barra ya no tiene botón
+// para elegir. Lo de abajo sirve para cualquiera de los dos estilos.
+const estiloActual = ESTILO;
 
 // En Noche los nombres de lugares van en blanco pleno, con borde oscuro, para que
 // se lean bien presentes por encima del brillo de las curvas (pedido de Juan).
@@ -1654,42 +1771,13 @@ function nombresEnBlanco() {
   }
 }
 
-// Cada vez que carga un estilo (al inicio y al cambiar) aplicamos ajustes y reponemos capas
+// Cuando carga el estilo aplicamos los ajustes y agregamos las capas propias
 map.on("style.load", () => {
   const e = ESTILOS[estiloActual];
   if (e.paleta) aplicarPaleta(e.paleta);
   if (estiloActual === "noche") nombresEnBlanco();
-  if (sateliteActivo) agregarSatelite();
   if (terrenoActivo) agregarTerreno();
-  if (curvasActivas) agregarCurvas();
-});
-
-// ---------- Satélite ----------
-const btnSat = document.getElementById("btn-sat");
-let sateliteActivo = false;
-
-function agregarSatelite() {
-  if (!map.getSource("satelite")) {
-    map.addSource("satelite", {
-      type: "raster",
-      tiles: [TILES_SATELITE],
-      tileSize: 256,
-      attribution: "Imagen: Esri, Maxar, Earthstar Geographics",
-    });
-  }
-  // Debajo de las curvas y de las etiquetas, para que sigan visibles encima
-  if (!map.getLayer("satelite")) {
-    const antes = map.getLayer("curvas-brillo") ? "curvas-brillo" : primeraEtiqueta();
-    map.addLayer({ id: "satelite", type: "raster", source: "satelite" }, antes);
-  }
-}
-
-btnSat.addEventListener("click", () => {
-  sateliteActivo = !sateliteActivo;
-  btnSat.classList.toggle("activo", sateliteActivo);
-  if (sateliteActivo) agregarSatelite();
-  else if (map.getLayer("satelite")) map.removeLayer("satelite");
-  pintarCurvas();
+  agregarCurvas();
 });
 
 // ---------- Terreno 3D ----------
@@ -1704,7 +1792,7 @@ function agregarTerreno() {
       encoding: "terrarium",
       tileSize: 256,
       maxzoom: 15,
-      attribution: "Terreno: Mapzen / AWS Terrain Tiles",
+      attribution: "Mapzen / AWS Terrain Tiles",
     });
   }
   map.setTerrain({ source: "terreno", exaggeration: 1.4 });
@@ -1727,15 +1815,13 @@ btn3d.addEventListener("click", () => {
 // Se generan en el navegador a partir de las mismas alturas del modo 3D
 // (AWS Terrain Tiles), con el plugin libre maplibre-contour. Mientras más cerca,
 // más apretadas: cada zoom tiene su propia separación entre curvas.
-const btnCurvas = document.getElementById("btn-curvas");
-let curvasActivas = true;
+// Juan (6-oct): las curvas están siempre prendidas, así que ya no tienen botón.
 
 // Si el plugin no cargó (sin conexión al CDN), el mapa sigue funcionando sin curvas
 const demCurvas = window.mlcontour
   ? new mlcontour.DemSource({ url: TILES_TERRENO, encoding: "terrarium", maxzoom: 13, worker: true })
   : null;
 if (demCurvas) demCurvas.setupMaplibre(maplibregl);
-else btnCurvas.hidden = true;
 
 // Metros entre curvas según el zoom: [curva fina, curva maestra]
 const SEPARACION_CURVAS = {
@@ -1745,7 +1831,6 @@ const SEPARACION_CURVAS = {
   14: [10, 50],
   15: [5, 25],
 };
-const CAPAS_CURVAS = ["curvas-brillo", "curvas-linea", "curvas-ola", "curvas-etiquetas"];
 
 function agregarCurvas() {
   if (!demCurvas) return;
@@ -1759,11 +1844,11 @@ function agregarCurvas() {
         levelKey: "level",
       })],
       maxzoom: 15,
-      attribution: "Curvas: AWS Terrain Tiles",
+      attribution: "AWS Terrain Tiles",
       // Todas las curvas de una misma altura comparten id: así la ola de luz las enciende juntas
       promoteId: { curvas: "ele" },
     });
-    luzPintada.clear(); // fuente nueva (cambio de estilo): arranca toda apagada
+    luzPintada.clear(); // fuente nueva: arranca toda apagada
   }
   // Debajo de los nombres del mapa; sin batimetría (en el mar no hay curvas)
   const antes = primeraEtiqueta();
@@ -1798,15 +1883,11 @@ function agregarCurvas() {
   map.once("idle", () => olaCurvas());
 }
 
-function quitarCurvas() {
-  for (const id of CAPAS_CURVAS) if (map.getLayer(id)) map.removeLayer(id);
-}
-
-// Neón con brillo sobre fondos oscuros (Noche y Satélite); en los estilos claros,
-// turquesa sobrio sin brillo, porque sobre arena el resplandor se ve sucio.
+// Neón con brillo sobre el fondo oscuro de Noche; en Pura Vida, turquesa sobrio sin
+// brillo, porque sobre arena el resplandor se ve sucio.
 function pintarCurvas() {
   if (!map.getLayer("curvas-linea")) return;
-  const neon = estiloActual === "noche" || sateliteActivo;
+  const neon = estiloActual === "noche";
   const maestra = [">", ["get", "level"], 0];
   const porZoom = (...paradas) => ["interpolate", ["linear"], ["zoom"], ...paradas];
 
@@ -1864,7 +1945,7 @@ function pintarOla(frentes, intensidad = 1, ancho = OLA_ANCHO) {
 
 // Sin "desde", la ola sube del mar a la montaña; con "desde" (una altura), se abre desde ahí
 function olaCurvas(desde = null) {
-  if (!curvasActivas || !map.getLayer("curvas-ola")) return;
+  if (!map.getLayer("curvas-ola")) return;
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   cancelAnimationFrame(olaAnimacion);
   cancelAnimationFrame(dedo.anim);
@@ -1952,11 +2033,11 @@ function pintarOndas(ahora) {
   ondaCtx.clearRect(0, 0, ondaCanvas.width, ondaCanvas.height);
   if (!ondaLugar) { ondaAnimacion = null; return; }
   ondaAnimacion = requestAnimationFrame(pintarOndas);
-  if (!curvasActivas || !map.getLayer("curvas-linea") || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  if (!map.getLayer("curvas-linea") || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   ondaCurvas ??= leerCurvasAlrededor();
   const { centro, radio, finas, maestras } = ondaCurvas;
   if (radio < 8) return; // tan lejos que 1 km casi no se ve
-  const neon = estiloActual === "noche" || sateliteActivo;
+  const neon = estiloActual === "noche";
   const edad = ahora - ondaInicio;
   const ultima = Math.floor(edad / ONDA_CADA);
   // Las oleadas que están vivas ahora: cada una sale del lugar, se frena y se apaga en 1 km
@@ -2002,7 +2083,7 @@ function seguirDedo() {
 }
 
 map.on("move", (e) => {
-  if (!e.originalEvent || !curvasActivas) return;
+  if (!e.originalEvent) return;
   const c = map.getContainer();
   const ele = alturaEn({ x: c.clientWidth / 2, y: c.clientHeight / 2 }, 24);
   if (ele == null) return;
@@ -2017,15 +2098,13 @@ map.on("moveend", () => {
   seguirDedo();
 });
 
-btnCurvas.classList.toggle("activo", curvasActivas);
-btnCurvas.addEventListener("click", () => {
-  curvasActivas = !curvasActivas;
-  btnCurvas.classList.toggle("activo", curvasActivas);
-  if (curvasActivas) agregarCurvas();
-  else quitarCurvas();
-});
-
 // ---------- Ayudante de coordenadas (para agregar puntos nuevos) ----------
+// Juan (6-oct): el visitante no lo ve. Para cargar un lugar nuevo se abre la página con
+// ?coords al final de la dirección (ej. http://localhost:5173/?coords) y aparece abajo a la
+// izquierda, como antes.
+const conCoords = new URLSearchParams(location.search).has("coords");
+if (conCoords) document.getElementById("coords").hidden = false;
+else document.getElementById("coords").remove();
 const coordsText = document.getElementById("coords-text");
 const coordsCopy = document.getElementById("coords-copy");
 let ultimaCoord = null;
@@ -2033,20 +2112,59 @@ let ultimaCoord = null;
 map.on("click", (e) => {
   // Tocar el mapa (fuera de un lugar) quita la marca que dejó la foto 360°
   if (panel.hidden && inmersivo.hidden) marcarLugar(null);
+  if (!conCoords) return;
   const lng = +e.lngLat.lng.toFixed(5);
   const lat = +e.lngLat.lat.toFixed(5);
   ultimaCoord = `[${lng}, ${lat}]`;
   coordsText.innerHTML = `Lat <code>${lat}</code> · Lng <code>${lng}</code> · GeoJSON: <code>${ultimaCoord}</code>`;
   coordsCopy.hidden = false;
-  coordsCopy.textContent = "Copiar";
+  coordsCopy.textContent = txt("copiar");
 });
 
-coordsCopy.addEventListener("click", async () => {
+coordsCopy?.addEventListener("click", async () => {
   if (!ultimaCoord) return;
   try {
     await navigator.clipboard.writeText(ultimaCoord);
-    coordsCopy.textContent = "¡Copiado!";
+    coordsCopy.textContent = txt("copiado");
   } catch {
-    coordsCopy.textContent = "Seleccioná y copiá";
+    coordsCopy.textContent = txt("copiarAMano");
   }
 });
+
+// ---------- Cambiar de idioma (ver "Idioma" arriba) ----------
+// Pone en el idioma elegido todo lo que ya está en pantalla: los textos fijos de la página
+// (data-t en index.html), los nombres de las categorías y de los lugares, y
+// la ficha abierta, que se vuelve a pintar en la misma sección.
+const botonesIdioma = document.querySelectorAll("#idioma button");
+
+function aplicarIdioma() {
+  document.documentElement.lang = idioma;
+  document.title = txt("titulo");
+  document.querySelectorAll("[data-t]").forEach(n => { n.textContent = txt(n.dataset.t); });
+  document.querySelectorAll("[data-t-title]").forEach(n => { n.title = txt(n.dataset.tTitle); });
+  document.querySelectorAll("[data-t-aria]").forEach(n => n.setAttribute("aria-label", txt(n.dataset.tAria)));
+  botonesIdioma.forEach(b => b.setAttribute("aria-pressed", String(b.dataset.idioma === idioma)));
+
+  for (const b of listaCapasEl.querySelectorAll(".capa")) {
+    nombrarFilaCapa(b, b.dataset.cat === "todos" ? CAT_TODAS : CATEGORIAS[b.dataset.cat]);
+  }
+  marcadores.forEach(m => nombrarMarcador(m.el, m.feature));
+  sincronizarCapas(marcadores.filter(m => m.enMapa).length);
+  panelAsa.setAttribute("aria-label", txt(alturaActual === "baja" ? "subirFicha" : "bajarFicha"));
+  if (conCoords && !ultimaCoord) coordsText.textContent = txt("coordsAyuda");
+  if (conCoords) coordsCopy.textContent = txt("copiar");
+  sincronizarGiro?.();
+
+  if (lugarAbierto) {
+    const { feature, el, sobre360, vista } = lugarAbierto;
+    abrirPanel(feature, el, { cat: vista(), sobre360, refrescar: true });
+  }
+}
+
+botonesIdioma.forEach(b => b.addEventListener("click", () => {
+  if (b.dataset.idioma === idioma) return;
+  idioma = b.dataset.idioma;
+  try { localStorage.setItem("hey-idioma", idioma); } catch { /* sin almacenamiento: vale para esta visita */ }
+  aplicarIdioma();
+}));
+aplicarIdioma();

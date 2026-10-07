@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Hey You ST · Guía local de Santa Teresa</title>
-  <meta name="description" content="Hey You ST: el mapa de Santa Teresa y la Península de Nicoya hecho por locales. Spots de surf, playas, lugares para ir con niños, cascadas y atardeceres.">
+  <title>Hey You ST · Santa Teresa Local Guide</title>
+  <meta name="description" content="Hey You ST: the map of Santa Teresa and the Nicoya Peninsula, made by locals. Surf spots, beaches, places to go with kids, waterfalls and sunsets.">
   <link rel="icon" type="image/svg+xml" href="img/marca/hey-you-st.svg">
   <link rel="icon" type="image/png" sizes="512x512" href="img/marca/hey-you-st-512.png">
   <link rel="apple-touch-icon" href="img/marca/hey-you-st-180.png">
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css">
-  <link rel="stylesheet" href="css/style.css?v=muu8tvp3">
+  <link rel="stylesheet" href="css/style.css?v=muxlq3zn">
 </head>
 <body>
 
@@ -20,20 +20,19 @@
       <img class="logo" src="img/marca/hey-you-st.svg" alt="">
       <div>
         <h1>Hey You ST</h1>
-        <p>Península de Nicoya · Santa Teresa</p>
+        <p data-t="subtitulo">Nicoya Peninsula · Santa Teresa</p>
       </div>
     </div>
-    <!-- En compu los controles van en fila; en celular se juntan en un solo botón de capas
-         que abre un menú (css → "Barra superior", js/app.js → "Menú de capas") -->
+    <!-- Solo dos controles, siempre a la vista, también en el celular: el idioma y el 3D.
+         Juan (6-oct): el mapa va siempre en Noche, sin elegir estilo, así que ya no hace falta
+         el menú de capas. Los textos con data-t / data-t-title / data-t-aria los pone js/app.js
+         en el idioma elegido ("Idioma"); los de acá son los de inglés, con el que abre la página. -->
     <div class="topbar-acciones" id="topbar-acciones">
-      <button type="button" id="btn-capas" class="ctrl ctrl-capas" aria-expanded="false" aria-controls="menu-capas"
-              title="Estilo y capas del mapa" aria-label="Estilo y capas del mapa">🗺️</button>
-      <div class="menu-capas" id="menu-capas">
-        <select id="sel-estilo" class="ctrl" title="Estilo del mapa" aria-label="Estilo del mapa"></select>
-        <button id="btn-sat" class="ctrl" title="Ver imagen satelital">🛰<span class="ctrl-txt"> Satélite</span></button>
-        <button id="btn-3d" class="ctrl" title="Ver el terreno en 3D">⛰<span class="ctrl-txt"> 3D</span></button>
-        <button id="btn-curvas" class="ctrl" title="Mostrar u ocultar las curvas de nivel">〰<span class="ctrl-txt"> Curvas</span></button>
+      <div class="segmentado" id="idioma" role="group" aria-label="Language · Idioma">
+        <button type="button" data-idioma="en" lang="en" aria-label="English" aria-pressed="true">EN</button>
+        <button type="button" data-idioma="es" lang="es" aria-label="Español" aria-pressed="false">ES</button>
       </div>
+      <button id="btn-3d" class="ctrl" title="View the terrain in 3D" data-t-title="terrenoTitulo">⛰<span class="ctrl-txt"> 3D</span></button>
     </div>
   </header>
 
@@ -45,17 +44,18 @@
     <aside class="capas" id="capas">
       <div class="capas-cabecera">
         <div class="capas-titulos">
-          <span class="capas-titulo">Explorá el mapa</span>
+          <span class="capas-titulo" data-t="explorar">Explore the map</span>
           <span class="capas-conteo" id="capas-conteo"></span>
         </div>
-        <button class="capas-toggle" id="capas-toggle" aria-expanded="true" aria-controls="capas-lista" aria-label="Mostrar u ocultar las categorías">▾</button>
+        <button class="capas-toggle" id="capas-toggle" aria-expanded="true" aria-controls="capas-lista" aria-label="Show or hide the categories" data-t-aria="categoriasToggle">▾</button>
       </div>
       <div class="capas-lista" id="capas-lista"></div>
     </aside>
 
-    <div class="coords" id="coords">
-      <span id="coords-text">Hacé clic en el mapa para ver las coordenadas de un punto</span>
-      <button id="coords-copy" hidden>Copiar</button>
+    <!-- Ayudante de coordenadas para cargar lugares: solo con ?coords en la dirección -->
+    <div class="coords" id="coords" hidden>
+      <span id="coords-text">Click the map to see a point's coordinates</span>
+      <button id="coords-copy" hidden>Copy</button>
     </div>
 
     <!-- Modo inmersivo: la foto 360° de un lugar a pantalla completa, con los íconos de
@@ -65,11 +65,11 @@
     <aside class="panel" id="panel" hidden>
       <!-- Agarradera de la hoja en celular (js/app.js → "Hoja deslizable"): se arrastra
            para bajar o subir la ficha. Bajada, muestra el nombre del lugar. -->
-      <button type="button" class="panel-asa" id="panel-asa" aria-label="Bajar la ficha para ver el mapa">
+      <button type="button" class="panel-asa" id="panel-asa" aria-label="Lower the panel to see the map">
         <span class="panel-asa-barra"></span>
         <span class="panel-asa-mini"><span id="panel-asa-nombre"></span><span class="panel-asa-pista"></span></span>
       </button>
-      <button class="panel-close" id="panel-close" aria-label="Cerrar">✕</button>
+      <button class="panel-close" id="panel-close" aria-label="Close" data-t-aria="cerrar">✕</button>
       <div class="panel-body" id="panel-body"></div>
     </aside>
 
@@ -78,8 +78,8 @@
   <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
   <!-- Curvas de nivel generadas en el navegador a partir de los tiles de altura -->
   <script src="https://unpkg.com/maplibre-contour@0.1.1/dist/index.min.js"></script>
-  <script src="data/points.js?v=muu8tvp3"></script>
-  <script src="data/tours.js?v=muu8tvp3"></script>
-  <script src="js/app.js?v=muu8tvp3"></script>
+  <script src="data/points.js?v=muxlq3zn"></script>
+  <script src="data/tours.js?v=muxlq3zn"></script>
+  <script src="js/app.js?v=muxlq3zn"></script>
 </body>
 </html>

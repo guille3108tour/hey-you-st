@@ -167,6 +167,87 @@ const POINTS = {
             "¿Qué otro mirador o punto alto de la zona recomendarías?"
           ]
         },
+        "en": {
+          "entrada": "A wide, flat and calm beach just north of Santa Teresa, with plenty of room to spend the day as a family and conditions well suited to anyone starting to surf. Late in the afternoon, the wet sand can mirror the colors of the sky.",
+          "mareas": {
+            "alta": "Because the beach is so flat, the water rises quickly. You can still stay, but keep your belongings away from the shoreline or they will get wet.",
+            "baja": "A huge stretch of sand opens up, ideal for families. Because of the sun, the best hours to be here are 6 to 11 a.m. and 3 to 5 p.m., ideally with the tide low at those times (surfing is a different story). In the afternoon, as the tide goes out, the orange glow of the sunset reflected on the water left on the sand is a true spectacle."
+          },
+          "porCategoria": {
+            "surf": {
+              "texto": "If you are learning, this is your wave. Playa Hermosa is a forgiving beach break, with a sandy bottom and gentle waves that peel both left and right. And when Santa Teresa gets big and heavy, you can still have fun here.",
+              "bloques": [
+                {
+                  "titulo": "How the wave breaks",
+                  "texto": "It breaks on several peaks along the beach, so there is room for everyone to spread out. It usually runs between 1 and 4 feet with little power, the forgiving kind: ideal for standing up for the first time in the whitewater or for practicing turns without the ocean punishing you."
+                },
+                {
+                  "titulo": "When it gets good",
+                  "texto": "Our local notes say it works best on a low to mid tide with a southwest swell (it also picks up west swells). Get up early: mornings tend to bring an offshore wind from the east that leaves the water glassy and the waves clean."
+                },
+                {
+                  "titulo": "Keep in mind",
+                  "texto": "It is an open beach and it changes from day to day. Before paddling out, take five minutes to watch where it is breaking, how the water is moving and what the tide is doing. And if you leave things on the sand, remember that the water rises quickly at high tide."
+                }
+              ]
+            },
+            "playa": {
+              "texto": "Wide, flat and with light sand. It sits just north of Santa Teresa but moves at a different pace: very calm, with crystal-clear water and a sea that almost always reaches the shore gently.",
+              "bloques": [
+                {
+                  "titulo": "How the tide changes it",
+                  "texto": "At low tide the beach opens up dramatically, leaving plenty of sand to walk, run or settle in with a book. At high tide the water rises quickly because the beach is so flat; you can still stay, but keep your things away from the shoreline."
+                },
+                {
+                  "titulo": "Getting there",
+                  "texto": "The entrance works for any type of car; you do not need a 4x4. There is, however, a stretch with many potholes, so take care if you are driving a low car."
+                },
+                {
+                  "titulo": "Good to know",
+                  "texto": "There is parking with someone looking after the cars. In the afternoon the sun hits head-on and there is no shade on the sand. A few local food spots are starting to open nearby, but do not count on a restaurant on the beach: bring water and a snack."
+                }
+              ]
+            },
+            "familia": {
+              "texto": "A flat, safe beach with small waves that roll gently to the shore: the little ones play and the parents can relax. It is so flat that there is always plenty of space; just keep in mind that the afternoon sun hits head-on.",
+              "bloques": [
+                {
+                  "titulo": "Best time",
+                  "texto": "At low tide: because the beach is so flat, a huge area of sand opens up for playing."
+                },
+                {
+                  "titulo": "At high tide",
+                  "texto": "The water rises quickly because the beach is so flat. Keep bags, towels and toys away from the shoreline."
+                },
+                {
+                  "titulo": "Watch the afternoon sun",
+                  "texto": "In the afternoon the sun hits head-on and there is no shade on the sand. If you are with children, take extra care at those hours. A few local food spots are starting to open nearby: a good excuse to get out of the sun before staying for the sunset."
+                },
+                {
+                  "titulo": "Local insight",
+                  "texto": "Years ago, after Mass, Playa Hermosa was the town's meeting point: families arrived with a change of clothes and grills, and the children played safely by the shore."
+                }
+              ]
+            },
+            "atardecer": {
+              "texto": "Here you see the sunset twice: in the sky and on the sand. As the tide goes out, a thin film of water stays on the beach and reflects all the orange of the sky; walking on it feels like walking on a mirror.",
+              "bloques": [
+                {
+                  "titulo": "When to arrive",
+                  "texto": "In this area the sun sets between 5:15 p.m. (November) and 6:05 p.m. (July). Arrive 30 to 40 minutes early: the best colors often appear right after the sun goes down."
+                },
+                {
+                  "titulo": "The secret",
+                  "texto": "Check the tide chart: if sunset coincides with a falling tide, you get the full reflection on the sand."
+                },
+                {
+                  "titulo": "To end the day",
+                  "texto": "It is a wide beach for walking without hurry, sitting on the sand and slowing down. If you came here to disconnect, this can become your evening ritual."
+                }
+              ]
+            }
+          }
+        },
         "foto": "",
         "voces": [
           {
@@ -291,6 +372,63 @@ const POINTS = {
             ]
           }
         },
+        "en": {
+          "nombre": "Cabo Blanco Absolute Nature Reserve",
+          "entrada": "Forest, majestic trees and an untouched beach at the end of the trail. Cabo Blanco is a hike to enjoy at an unhurried pace: the route is not considered extreme, but it has quite a few climbs and descents.",
+          "porCategoria": {
+            "naturaleza": {
+              "texto": "Walking through Cabo Blanco is like visiting a piece of history: it is Costa Rica's first absolute nature reserve. Majestic trees, crystal-clear water to swim in along the way and, at the end, an untouched beach you earn on foot.",
+              "bloques": [
+                {
+                  "titulo": "What you will see",
+                  "texto": "It is not the place with the most wildlife in the area, but the trees are impressive and there are stretches of crystal-clear water along the way where you can swim. On the shorter routes you can look for deer and other animals."
+                },
+                {
+                  "titulo": "The trail",
+                  "texto": "It is not extreme hiking and everyone goes at their own pace, but there are quite a few climbs and descents and it will leave you out of breath: consider your fitness level. If you would rather not go all the way to the beach, there are shorter routes among the trees."
+                },
+                {
+                  "titulo": "For the way back",
+                  "texto": "At the end of the trail there is a drinking-water tap so you can rehydrate before heading back."
+                },
+                {
+                  "titulo": "Local insight",
+                  "texto": "The whole peninsula used to be cattle country. A group of foreigners began reforesting, and thanks to those initiatives the area's natural biological corridor began to take shape."
+                }
+              ]
+            },
+            "playa": {
+              "texto": "Cabo Blanco's beach is at the end of the trail. You reach it on foot after a good effort, which is why it feels untouched and idyllic.",
+              "bloques": [
+                {
+                  "titulo": "Getting there",
+                  "texto": "Along the reserve trail, with quite a few climbs and descents. It is not extreme, but you will arrive out of breath: go at your own pace."
+                },
+                {
+                  "titulo": "Good to know",
+                  "texto": "At the end there is a drinking-water tap to rehydrate. Remember that after the beach, the entire hike back is still ahead of you."
+                }
+              ]
+            },
+            "familia": {
+              "texto": "Active kids will love it, and calmer kids can enjoy it too if you choose the right route.",
+              "bloques": [
+                {
+                  "titulo": "Recommended ages",
+                  "texto": "To reach the beach, Guille recommends active children around 8 or 9 years and older, because of the trail's climbs and descents."
+                },
+                {
+                  "titulo": "For calmer kids",
+                  "texto": "There are short routes that do not reach the beach: they are great for seeing beautiful trees and playing at spotting animals such as deer."
+                },
+                {
+                  "titulo": "Good to know",
+                  "texto": "There is a drinking-water tap at the end of the trail. Keep in mind that the way back also has climbs."
+                }
+              ]
+            }
+          }
+        },
         "foto": "",
         "voces": [
           {
@@ -343,8 +481,8 @@ const POINTS = {
         },
         "descripcion": "Isla-cementerio a unos 100 metros de la costa de Cabuya, pueblo pesquero al sur de Montezuma — el único cementerio del pueblo y la única isla de Centroamérica usada con este fin. Los indígenas ya la usaban como lugar de entierro en época precolombina, y todavía se hacen funerales ahí hoy. En vez de lápidas de concreto con ángeles, las tumbas tienen partes de botes: solo se entierra ahí a quienes vivieron en Cabuya.",
         "mareas": {
-          "baja": "Único momento en que se puede cruzar caminando hasta la isla, sobre un arrecife plano con agua a la rodilla (unos 400 m / 10 minutos). Recomendado llegar dos horas antes de la marea más baja para tener unas 4 horas en la isla.",
-          "alta": "La isla queda separada de la costa; no se puede cruzar."
+          "baja": "Queda al descubierto el cordón de arrecife que une la isla con la costa: es el único momento en que se puede cruzar caminando. Hay que volver antes de que el agua lo tape otra vez.",
+          "alta": "El agua tapa el cordón de arrecife y la isla queda separada de la costa: no se puede cruzar."
         },
         "horasIdeales": {
           "marea": "baja"
@@ -359,12 +497,12 @@ const POINTS = {
                 "texto": "En vez de lápidas de concreto con ángeles, las tumbas tienen partes de botes: Cabuya es un pueblo pesquero, y ahí solo se entierra a quienes vivieron en el pueblo. Desde la isla, el verde de Cabuya se ve distinto, desde adentro del mar."
               },
               {
-                "titulo": "Cuándo cruzar",
-                "texto": "Solo con marea baja. Llegá unas dos horas antes de la marea más baja: así tenés unas cuatro horas en la isla antes de que el agua vuelva a subir. La franja dorada de la curva te marca esa ventana para hoy."
+                "titulo": "Con marea baja",
+                "texto": "Queda al descubierto el cordón de arrecife que une la isla con la costa, y es el único momento en que se puede cruzar caminando. Hay que volver antes de que el agua lo tape otra vez."
               },
               {
                 "titulo": "Con marea alta",
-                "texto": "La isla queda separada de la costa y no se puede cruzar."
+                "texto": "El agua tapa el cordón de arrecife: la isla queda separada de la costa y no se puede cruzar."
               }
             ]
           },
@@ -380,6 +518,46 @@ const POINTS = {
                 "texto": "A veces hay mercaditos de artesanos locales. Si te topás con uno, es una linda forma de apoyar lo que se hace en Cabuya."
               }
             ]
+          }
+        },
+        "en": {
+          "nombre": "Cabuya Cemetery Island",
+          "entrada": "Just off Cabuya lies an island that is also the town's cemetery. You can only walk there across the reef at low tide, so the crossing and the length of your visit depend on that day's tide.",
+          "mareas": {
+            "baja": "The reef ridge connecting the island to the shore is exposed: this is the only time you can cross on foot. Be sure to return before the water covers it again.",
+            "alta": "The water covers the reef ridge and the island is cut off from the shore: crossing is not possible."
+          },
+          "porCategoria": {
+            "naturaleza": {
+              "texto": "Just off Cabuya there is an island that serves as the town's cemetery. You can only reach it on foot when the tide goes out and the reef ridge connecting it to the shore appears.",
+              "bloques": [
+                {
+                  "titulo": "What you will see",
+                  "texto": "Instead of concrete headstones with angels, the graves are marked with parts of boats: Cabuya is a fishing village, and only people who lived in the town are buried here. From the island, Cabuya's greenery looks different, seen from out in the sea."
+                },
+                {
+                  "titulo": "At low tide",
+                  "texto": "The reef ridge connecting the island to the shore is exposed, and it is the only time you can cross on foot. Be sure to return before the water covers it again."
+                },
+                {
+                  "titulo": "At high tide",
+                  "texto": "The water covers the reef ridge: the island is cut off from the shore and crossing is not possible."
+                }
+              ]
+            },
+            "playa": {
+              "texto": "Cabuya does not have the most spectacular beaches in the area, but it is a very peaceful, lovely village to visit, and the crossing to the island is its highlight.",
+              "bloques": [
+                {
+                  "titulo": "With the tide",
+                  "texto": "Everything depends on the tide: at low tide the path to the island opens; at high tide, the island is cut off. Check the tide curve before you go."
+                },
+                {
+                  "titulo": "In town",
+                  "texto": "Local artisan markets are held from time to time. If you come across one, it is a lovely way to support what is made in Cabuya."
+                }
+              ]
+            }
           }
         },
         "foto": "",
@@ -482,6 +660,53 @@ const POINTS = {
                 "texto": "No hay restaurante en la playa: el más cercano queda a unos 10 minutos caminando o en carro, y el centro de Montezuma es el lugar para abastecerse."
               }
             ]
+          }
+        },
+        "en": {
+          "entrada": "Shell sand and water so clear that, according to locals, you can see your feet even when the water is up to your chest. There is shade in the afternoon; it is a calm beach for swimming, with one important caution: the currents can change.",
+          "porCategoria": {
+            "playa": {
+              "texto": "Shell sand and water so crystal-clear that, with the sea up to your chest, you can still see your feet. It is one of Guille's favorite beaches in the area.",
+              "bloques": [
+                {
+                  "titulo": "What it is like",
+                  "texto": "The water is very clear and calm for swimming, thanks to a current typical of this area. Here, on the Montezuma side, the day is more about sunrise than sunset, which is why there is shade in the afternoon."
+                },
+                {
+                  "titulo": "Best time",
+                  "texto": "In the afternoon, after 1 or 2 p.m., with the tide rising from low. There is also shade at that time."
+                },
+                {
+                  "titulo": "Good to know",
+                  "texto": "There is no restaurant on the beach: the closest one is about 10 minutes away on foot or by car. For supplies, head to downtown Montezuma."
+                },
+                {
+                  "titulo": "Keep in mind",
+                  "texto": "The currents can change and become dangerous. If you start to feel them, stay where you are fully in control in the water."
+                }
+              ]
+            },
+            "familia": {
+              "texto": "Crystal-clear, calm water with afternoon shade: a great plan with kids, always with an adult close by.",
+              "bloques": [
+                {
+                  "titulo": "Best time",
+                  "texto": "In the afternoon, after 1 or 2 p.m., with the tide rising from low. There is also shade at that time."
+                },
+                {
+                  "titulo": "The water",
+                  "texto": "So clear you can see your feet with the water up to your chest. Little ones can swim, always under adult supervision."
+                },
+                {
+                  "titulo": "Keep in mind",
+                  "texto": "The currents. If they feel strong, stay where you are fully in control in the water."
+                },
+                {
+                  "titulo": "Good to know",
+                  "texto": "There is no restaurant on the beach: the closest one is about 10 minutes away on foot or by car, and downtown Montezuma is the place to stock up."
+                }
+              ]
+            }
           }
         },
         "foto": "",
@@ -620,6 +845,83 @@ const POINTS = {
             ]
           }
         },
+        "en": {
+          "entrada": "A river with crystal-clear water in the dry season, natural pools and a small waterfall, about a 20-minute walk from Montezuma. The path crosses stretches of rock and beach; to reach the small waterfall, locals recommend heading upstream along the right side of the river.",
+          "porCategoria": {
+            "naturaleza": {
+              "texto": "A river with crystal-clear water, natural pools and a small waterfall hidden upstream, about a 20-minute walk from Montezuma.",
+              "bloques": [
+                {
+                  "titulo": "The trail",
+                  "texto": "About 20 minutes along rock and beach paths: an accessible walk for almost everyone, although not for wheelchair users. If you want more, head upstream along the right side of the river to the small waterfall."
+                },
+                {
+                  "titulo": "What you will see",
+                  "texto": "At the far end of the trail there is a rock that looks like a bread oven, and it is common to find stones stacked in balance. We do not yet know whether this is an Indigenous tradition or something more recent."
+                },
+                {
+                  "titulo": "What changes it",
+                  "texto": "In the dry season, the river runs crystal-clear."
+                },
+                {
+                  "titulo": "Respect the place",
+                  "texto": "Please take all your trash back with you."
+                }
+              ]
+            },
+            "cascada": {
+              "texto": "The Piedra Colorada waterfall is small, peaceful and very beautiful. You reach it by walking up the river.",
+              "bloques": [
+                {
+                  "titulo": "Getting there",
+                  "texto": "From Montezuma it is about a 20-minute walk over rock and beach to the river. From there, head upstream along the right side of the river."
+                },
+                {
+                  "titulo": "What you will find",
+                  "texto": "Natural pools in the river to cool off and, further up, the small waterfall. In the dry season the water runs crystal-clear."
+                },
+                {
+                  "titulo": "Respect the place",
+                  "texto": "Please take all your trash back with you."
+                }
+              ]
+            },
+            "familia": {
+              "texto": "As a child, Guille came here every Sunday with Mom: the river is wonderful and its natural pools are perfect for little ones.",
+              "bloques": [
+                {
+                  "titulo": "The water",
+                  "texto": "Natural pools in the river, with crystal-clear water in the dry season."
+                },
+                {
+                  "titulo": "The walk",
+                  "texto": "About 20 minutes from Montezuma along rock and beach paths. It is quite accessible, although not for wheelchairs."
+                },
+                {
+                  "titulo": "Local insight",
+                  "texto": "There is a clay rock (it used to be twice as big), and the lifelong tradition is to cover your face and body in mud, exfoliate and rinse off in the river."
+                }
+              ]
+            },
+            "bienestar": {
+              "texto": "Mud, river and calm: Piedra Colorada has its own ritual, and there is a strong Indigenous energy in the area.",
+              "bloques": [
+                {
+                  "titulo": "The mud ritual",
+                  "texto": "Beside the river there is a clay rock. The tradition is to cover your face and body in mud, exfoliate and rinse off in the water. The rock used to be twice as big."
+                },
+                {
+                  "titulo": "Who it is for",
+                  "texto": "Ideal for couples, and also for going with children."
+                },
+                {
+                  "titulo": "Respect the place",
+                  "texto": "Please take all your trash back with you."
+                }
+              ]
+            }
+          }
+        },
         "foto": "",
         "voces": [
           {
@@ -752,7 +1054,7 @@ const POINTS = {
               },
               {
                 "titulo": "Cuándo funciona",
-                "texto": "Con marea media a alta y swell del sur. Calza con lo que dicen los locales: llegar cuando la marea empieza a bajar después de la alta."
+                "texto": "Con marea media a alta y swell del sur."
               },
               {
                 "titulo": "Ojo con",
@@ -765,7 +1067,7 @@ const POINTS = {
             "bloques": [
               {
                 "titulo": "La mejor hora",
-                "texto": "Cuando la marea empieza a bajar. La franja dorada de la curva te marca la de hoy."
+                "texto": "Cuando la marea empieza a bajar, porque así no los agarra el agua subiendo: acá sube muy rápido y muy alto."
               },
               {
                 "titulo": "Con marea alta",
@@ -776,6 +1078,90 @@ const POINTS = {
                 "texto": "Se pasa por Piedra Colorada y son unos 25 minutos más por roca, con subida y bajada. Piénsenlo según qué tanto les gusta caminar a los niños."
               }
             ]
+          }
+        },
+        "en": {
+          "entrada": "A very long beach beyond Piedra Colorada. Getting there is part of the adventure: after Piedra Colorada, the walk continues for about 25 minutes over rock, with one climb, one descent and ocean views.",
+          "mareas": {
+            "alta": "It rises very fast and very high, just like at Playa Hermosa. Be careful with anything you leave near the shoreline."
+          },
+          "porCategoria": {
+            "naturaleza": {
+              "texto": "A very long beach you earn on foot: you pass Piedra Colorada and continue along the rocks, with the ocean below.",
+              "bloques": [
+                {
+                  "titulo": "The trail",
+                  "texto": "After Piedra Colorada it is about 25 more minutes over rock: first a climb, then the descent. It is best to go with friends: it makes for a great adventure."
+                },
+                {
+                  "titulo": "What you will see",
+                  "texto": "Spectacular ocean views from above and, once you arrive, a very long and completely flat beach."
+                },
+                {
+                  "titulo": "What changes it",
+                  "texto": "The tide. The best time to arrive is when it is starting to go out; when it comes in, it does so very fast and very high."
+                },
+                {
+                  "titulo": "Nearby",
+                  "texto": "The Romelia Wildlife Refuge is close by."
+                }
+              ]
+            },
+            "playa": {
+              "texto": "Long and completely flat, like Playa Hermosa, but hidden at the end of a hike.",
+              "bloques": [
+                {
+                  "titulo": "With the tide",
+                  "texto": "Because it is so flat, the tide rises very fast and very high: keep your things away from the shoreline. The best moment is when it starts to go out."
+                },
+                {
+                  "titulo": "Getting there",
+                  "texto": "On foot: you pass Piedra Colorada and from there it is about 25 more minutes over rock, with one climb and one descent."
+                },
+                {
+                  "titulo": "Keep in mind",
+                  "texto": "It is a long walk, on the way back too: it is best not to go alone."
+                }
+              ]
+            },
+            "surf": {
+              "texto": "Lucas, who is from here, recommends it for surfing. It is a long, flat beach that you reach on foot.",
+              "bloques": [
+                {
+                  "titulo": "How the wave breaks",
+                  "texto": "Surf websites covering the area describe it as a very consistent wave."
+                },
+                {
+                  "titulo": "Skill level",
+                  "texto": "According to those websites, it is good for beginners."
+                },
+                {
+                  "titulo": "When it works",
+                  "texto": "On a mid to high tide with a south swell."
+                },
+                {
+                  "titulo": "Keep in mind",
+                  "texto": "The tide rises very fast and very high: keep your things away from the shoreline."
+                }
+              ]
+            },
+            "familia": {
+              "texto": "Flat like Playa Hermosa, so it also works for kids, as long as they can handle the walk.",
+              "bloques": [
+                {
+                  "titulo": "Best time",
+                  "texto": "When the tide starts to go out, so the rising water does not catch you off guard: here it comes in very fast and very high."
+                },
+                {
+                  "titulo": "At high tide",
+                  "texto": "It rises very fast and very high: keep this in mind with children and leave your things away from the shoreline."
+                },
+                {
+                  "titulo": "The walk",
+                  "texto": "You pass Piedra Colorada and then it is about 25 more minutes over rock, with a climb and a descent. Consider how much your kids enjoy walking."
+                }
+              ]
+            }
           }
         },
         "foto": "",
@@ -847,7 +1233,7 @@ const POINTS = {
             "bloques": [
               {
                 "titulo": "Con la marea",
-                "texto": "Con marea baja se puede caminar o correr hasta el final del peñón; con marea alta, no. La franja dorada de la curva te marca la ventana de hoy."
+                "texto": "Con marea baja se puede caminar o correr hasta el final del peñón. Con marea alta no, porque el agua no deja pasar."
               },
               {
                 "titulo": "Ojo con",
@@ -867,6 +1253,54 @@ const POINTS = {
                 "texto": "Con marea alta, a esa hora se arma una playa de arena perfecta para quedarse a verlo."
               }
             ]
+          }
+        },
+        "en": {
+          "entrada": "A shaded corner to sit and slow down, ideal for couples, digital nomads and anyone out for a walk or a run. The sunset here is a true spectacle.",
+          "mareas": {
+            "alta": "At sunset, a stretch of sand forms that is perfect for staying to watch the show. Watch out for the currents.",
+            "baja": "Runners can continue to the end of the peñón (the rocky point), but only at low tide."
+          },
+          "porCategoria": {
+            "bienestar": {
+              "texto": "There is a secluded patch of shade where you can sit and meditate: your mind slows down and everything starts to fall into place.",
+              "bloques": [
+                {
+                  "titulo": "Who it is for",
+                  "texto": "For couples, digital nomads and anyone who needs a moment of calm. If you are going through a healing process, Guille recommends walking here at sunset."
+                },
+                {
+                  "titulo": "Sun and shade",
+                  "texto": "It has secluded, shaded areas, although it does get some sun at certain times of the day."
+                }
+              ]
+            },
+            "playa": {
+              "texto": "A beach for walking and lingering, more than for swimming.",
+              "bloques": [
+                {
+                  "titulo": "With the tide",
+                  "texto": "At low tide you can walk or run to the end of the peñón (the rocky point). At high tide you cannot, because the water blocks the way."
+                },
+                {
+                  "titulo": "Keep in mind",
+                  "texto": "There are dangerous currents: only experienced ocean swimmers should go in."
+                }
+              ]
+            },
+            "atardecer": {
+              "texto": "Walking to Villa Flor at sunset and sitting down to watch the show is one of the rituals Guille recommends most.",
+              "bloques": [
+                {
+                  "titulo": "When to arrive",
+                  "texto": "Today's sunset time appears on the tide curve, next to the 🌅. Arrive early enough to walk without rushing."
+                },
+                {
+                  "titulo": "With the tide",
+                  "texto": "At high tide, a stretch of sand forms at that hour that is perfect for staying to watch it."
+                }
+              ]
+            }
           }
         },
         "foto": "",
@@ -923,7 +1357,7 @@ const POINTS = {
           "swell": "S / SW"
         },
         "mareas": {
-          "baja": "Es la mejor hora: de 2 horas antes a 2 horas después de la marea más baja. Los niños pueden jugar en la orilla, y si la marea baja cae en la tarde, mejor todavía. Igual hay que tener cuidado: la playa no es completamente plana y hay huecos donde uno se puede hundir de repente."
+          "baja": "Es el mejor momento: los niños pueden jugar en la orilla, y si la marea baja cae en la tarde, mejor todavía. Igual hay que tener cuidado: la playa no es completamente plana y hay huecos donde uno se puede hundir de repente."
         },
         "horasIdeales": {
           "marea": "baja",
@@ -944,7 +1378,7 @@ const POINTS = {
               },
               {
                 "titulo": "Con la marea",
-                "texto": "Lo mejor es de 2 horas antes a 2 horas después de la marea más baja; si esa marea baja cae en la tarde, mejor todavía. La franja dorada de la curva te marca la de hoy."
+                "texto": "Con marea baja es cuando más se disfruta: los niños pueden jugar en la orilla. Si esa marea baja cae en la tarde, mejor todavía."
               },
               {
                 "titulo": "Cómo llegar",
@@ -986,7 +1420,7 @@ const POINTS = {
             "bloques": [
               {
                 "titulo": "La mejor hora",
-                "texto": "Con la marea bien baja: de 2 horas antes a 2 horas después de la más baja."
+                "texto": "Con la marea bien baja, porque es cuando los niños pueden jugar en la orilla."
               },
               {
                 "titulo": "Sol y sombra",
@@ -1018,6 +1452,98 @@ const POINTS = {
                 "texto": "Cerca hay casetillas locales que venden cervezas, cocos y piñas coladas."
               }
             ]
+          }
+        },
+        "en": {
+          "entrada": "A very long beach with almost no rocks, where people from town gather to watch the sunset. Almond and coconut trees provide shade, and it is at its best at low tide.",
+          "mareas": {
+            "baja": "This is the best time: children can play by the shore, and if low tide falls in the afternoon, even better. Still, be careful: the beach is not completely flat and there are holes where you can suddenly sink."
+          },
+          "porCategoria": {
+            "playa": {
+              "texto": "Very long and almost free of rocks: wherever you go, you will find your own space without it feeling crowded. It is where locals gather at sunset.",
+              "bloques": [
+                {
+                  "titulo": "What it is like",
+                  "texto": "It is so spacious that you can set up wherever you like. It has almost no rocks, which makes it calmer. Unlike Playa Hermosa, there are almond and coconut trees here for shade."
+                },
+                {
+                  "titulo": "With the tide",
+                  "texto": "It is most enjoyable at low tide: children can play by the shore. If that low tide falls in the afternoon, even better."
+                },
+                {
+                  "titulo": "Getting there",
+                  "texto": "Cars cannot drive down to the beach: leave yours up on the main road or nearby, wherever there is room. You can get there by motorbike, but walking in is the best option."
+                },
+                {
+                  "titulo": "Good to know",
+                  "texto": "Nearby there are small local stands selling beer, coconuts and piña coladas. There are lifeguard stations in the area."
+                },
+                {
+                  "titulo": "Keep in mind",
+                  "texto": "It is not completely flat: there are holes where you can suddenly sink. Pay attention to the tide, and to the sun even when there is shade."
+                }
+              ]
+            },
+            "surf": {
+              "texto": "A special beach for surfing, but with a crowded lineup and many local surfers in the water.",
+              "bloques": [
+                {
+                  "titulo": "How the wave breaks",
+                  "texto": "A beach break with a sandy bottom and peaks that open both left and right. It has steeper faces and more powerful sections than other waves in the area, and when the sandbar, the swell and the wind line up, it can even barrel."
+                },
+                {
+                  "titulo": "Skill level",
+                  "texto": "Intermediate, or beginners who already have some experience: with so many people in the water, you need to be able to control your wave. Surf websites recommend it for intermediate and advanced surfers."
+                },
+                {
+                  "titulo": "When it works",
+                  "texto": "On a low to mid tide with a south or southwest swell. The curve below shows today's good and not-so-good hours."
+                },
+                {
+                  "titulo": "Keep in mind",
+                  "texto": "The main peaks get crowded. When the swell picks up, the currents get stronger and the wipeouts heavier. There are holes in the sand where you can suddenly sink, and there are lifeguard stations in the area."
+                }
+              ]
+            },
+            "familia": {
+              "texto": "At low tide, children can play by the shore, and there are lifeguard stations in the area.",
+              "bloques": [
+                {
+                  "titulo": "Best time",
+                  "texto": "When the tide is well out, because that is when children can play by the shore."
+                },
+                {
+                  "titulo": "Sun and shade",
+                  "texto": "There are almond and coconut trees for shade, but still be very careful with the sun."
+                },
+                {
+                  "titulo": "Keep in mind",
+                  "texto": "It is not completely flat: there are holes where you can suddenly sink. Keep an eye on the tide."
+                },
+                {
+                  "titulo": "Good to know",
+                  "texto": "Leave the car up on the main road and walk in. Nearby there are small local stands with coconuts and drinks."
+                }
+              ]
+            },
+            "atardecer": {
+              "texto": "This is where all the locals gather to watch the sunset, and seeing it here is magical.",
+              "bloques": [
+                {
+                  "titulo": "When to arrive",
+                  "texto": "Today's sunset time appears on the tide curve, next to the 🌅. If low tide falls in the afternoon, everything comes together."
+                },
+                {
+                  "titulo": "Who it is for",
+                  "texto": "Ideal for a walk as a couple or on your own, and for staying to watch the sun go down."
+                },
+                {
+                  "titulo": "Before or after",
+                  "texto": "Nearby there are small local stands selling beer, coconuts and piña coladas."
+                }
+              ]
+            }
           }
         },
         "foto": "",
@@ -1094,7 +1620,8 @@ const POINTS = {
           "servicios": "Camino de acceso de piedra — se necesita carro alto o 4x4, no apto para carro bajo."
         },
         "mareas": {
-          "baja": "La piscina natural se forma entre 2 horas antes y 2 horas después de la marea más baja — es el único momento recomendado para meterse; con marea alta no hay piscina protegida."
+          "baja": "El peñón arma una piscina natural de agua cristalina y casi sin oleaje: es el único momento recomendado para meterse.",
+          "alta": "No se forma la piscina protegida y la magia del lugar se pierde: no es momento para meterse."
         },
         "horasIdeales": {
           "marea": "baja"
@@ -1106,7 +1633,7 @@ const POINTS = {
             "bloques": [
               {
                 "titulo": "Con la marea",
-                "texto": "La piscina se forma de 2 horas antes a 2 horas después de la marea más baja. Es el único momento recomendado para meterse: con marea alta no hay piscina protegida."
+                "texto": "Con marea baja, el peñón arma la piscina natural: es el único momento recomendado para meterse. Con marea alta no hay piscina protegida y la magia del lugar se pierde."
               },
               {
                 "titulo": "Cómo llegar",
@@ -1119,7 +1646,7 @@ const POINTS = {
             "bloques": [
               {
                 "titulo": "La mejor hora",
-                "texto": "De 2 horas antes a 2 horas después de la marea más baja, cuando se forma la piscina. La franja dorada de la curva te marca la de hoy."
+                "texto": "Con marea baja, porque es cuando se forma la piscina natural: agua tranquila y cristalina para meterse en familia."
               },
               {
                 "titulo": "Cómo es el agua",
@@ -1140,7 +1667,7 @@ const POINTS = {
               },
               {
                 "titulo": "Qué lo cambia",
-                "texto": "La marea. La piscina solo existe de 2 horas antes a 2 horas después de la más baja."
+                "texto": "La marea. La piscina solo existe con marea baja; con la alta desaparece."
               },
               {
                 "titulo": "Cómo llegar",
@@ -1160,6 +1687,75 @@ const POINTS = {
                 "texto": "En 4x4: el camino es de piedra de principio a fin."
               }
             ]
+          }
+        },
+        "en": {
+          "entrada": "At low tide, the peñón (a rocky point) forms a natural pool of calm, crystal-clear water, with a view toward Cabo Blanco. Your visit depends heavily on the tide, and the rocky access road requires a high-clearance car or a 4x4.",
+          "mareas": {
+            "baja": "The peñón forms a natural pool of crystal-clear water with almost no waves: this is the only recommended time to go in.",
+            "alta": "The sheltered pool does not form and the place loses its magic: this is not the time to go in."
+          },
+          "porCategoria": {
+            "playa": {
+              "texto": "At low tide, the peñón forms a natural pool of crystal-clear water, with almost no waves and the Cabo Blanco Reserve as a backdrop. Outside that window, the magic is gone.",
+              "bloques": [
+                {
+                  "titulo": "With the tide",
+                  "texto": "At low tide, the peñón forms the natural pool: it is the only recommended time to go in. At high tide there is no sheltered pool and the place loses its magic."
+                },
+                {
+                  "titulo": "Getting there",
+                  "texto": "By 4x4: the road is rocky from start to finish and very rough for a low car."
+                }
+              ]
+            },
+            "familia": {
+              "texto": "A natural pool surrounded by nature, calm and crystal-clear: with the right tide, it is an incredible place for the family.",
+              "bloques": [
+                {
+                  "titulo": "Best time",
+                  "texto": "At low tide, because that is when the natural pool forms: calm, crystal-clear water to enjoy as a family."
+                },
+                {
+                  "titulo": "The water",
+                  "texto": "Crystal-clear, with few waves while the pool lasts. At high tide there is no sheltered pool and going in is not recommended."
+                },
+                {
+                  "titulo": "Good to know",
+                  "texto": "Access is by 4x4: the road is rocky the whole way."
+                }
+              ]
+            },
+            "naturaleza": {
+              "texto": "A natural pool, the peñón and the Cabo Blanco Reserve right across: Playa Suecos feels magical when the tide goes out.",
+              "bloques": [
+                {
+                  "titulo": "What you will see",
+                  "texto": "A natural pool surrounded by nature, with incredible views of the Cabo Blanco Reserve."
+                },
+                {
+                  "titulo": "What changes it",
+                  "texto": "The tide. The pool only exists at low tide; at high tide it disappears."
+                },
+                {
+                  "titulo": "Getting there",
+                  "texto": "By 4x4: the road is rocky from start to finish."
+                }
+              ]
+            },
+            "atardecer": {
+              "texto": "If low tide coincides with sunset, do not miss it: the sun touches the water in the pool and adds an extra touch of magic.",
+              "bloques": [
+                {
+                  "titulo": "When to arrive",
+                  "texto": "Check the tide curve: if the golden band reaches the 🌅, the pool and the sunset come together that day."
+                },
+                {
+                  "titulo": "Getting there",
+                  "texto": "By 4x4: the road is rocky from start to finish."
+                }
+              ]
+            }
           }
         },
         "foto": "",
@@ -1277,6 +1873,71 @@ const POINTS = {
             ]
           }
         },
+        "en": {
+          "nombre": "Montezuma Waterfall",
+          "entrada": "The waterfall has three levels, and locals recommend visiting the first level first. You reach it on a hike of about 25 minutes along the river, with sections where you hold on to ropes. The route requires some strength.",
+          "porCategoria": {
+            "cascada": {
+              "texto": "One of the most striking places on the peninsula: a three-tiered waterfall formed by a fault in the rock. Start with the first level.",
+              "bloques": [
+                {
+                  "titulo": "Getting there",
+                  "texto": "About 25 minutes walking along the river to the first level, edging along the hillside with the help of ropes. You need to hold on tight and have some strength, but the destination is beautiful."
+                },
+                {
+                  "titulo": "What you will find",
+                  "texto": "At the first level you can stand right under the waterfall. The water is cold, and if you feel something nibbling at you, do not worry: it is just small fish and shrimp."
+                },
+                {
+                  "titulo": "Who it is for",
+                  "texto": "For people with some strength. With children, from age 7 or 8. Older adults should take great care: access is difficult."
+                },
+                {
+                  "titulo": "Good to know",
+                  "texto": "It is free; there is no entrance fee. Ideally, use paid parking; otherwise, you can leave your car on the main road."
+                }
+              ]
+            },
+            "naturaleza": {
+              "texto": "A hike along the river, with ropes and rock, that ends at one of the most beautiful waterfalls on the peninsula.",
+              "bloques": [
+                {
+                  "titulo": "The trail",
+                  "texto": "About 25 minutes along the river to the first level, with sections where you need to hold on tight to the ropes. Some strength is required."
+                },
+                {
+                  "titulo": "What you will see",
+                  "texto": "Three levels of waterfall; the first is the one recommended to visit first. In the water you will find small local fish and shrimp."
+                },
+                {
+                  "titulo": "Precautions",
+                  "texto": "Older adults should take great care: access is difficult."
+                }
+              ]
+            },
+            "familia": {
+              "texto": "Suitable for families with children aged 7 or 8 and up: access is a bit tricky, but the reward is standing under the waterfall.",
+              "bloques": [
+                {
+                  "titulo": "Recommended ages",
+                  "texto": "From age 7 or 8. If a parent is strong enough to help them through the rope sections, they can go."
+                },
+                {
+                  "titulo": "The walk",
+                  "texto": "About 25 minutes along the river to the first level, with sections where you hold on to ropes."
+                },
+                {
+                  "titulo": "The water",
+                  "texto": "Cold. At the first level you can stand under the waterfall. If something nibbles at their feet, it is just small fish and shrimp."
+                },
+                {
+                  "titulo": "Good to know",
+                  "texto": "It is free. Ideally, use paid parking; otherwise, you can leave your car on the main road."
+                }
+              ]
+            }
+          }
+        },
         "foto": "",
         "voces": [
           {
@@ -1324,7 +1985,7 @@ const POINTS = {
         },
         "descripcion": "Catarata de unos 8 metros que cae directo al mar en marea alta — una de las pocas del mundo con esa particularidad —, en la zona de Tango Mar. Se llega en carro hasta Tango Mar (unos 30 minutos desde Cóbano, camino de tierra plano, no hace falta 4x4) o caminando por la playa desde Montezuma. Fuente: twoweeksincostarica.com y costarica.com, revisado 2026-09-25.",
         "mareas": {
-          "baja": "Es la ventana para ir caminando — conviene salir unas 2 horas antes de la marea más baja, para tener unas 4 horas de margen ida y vuelta por la playa.",
+          "baja": "Es el momento para ir caminando: con la marea baja se pasan todos los tramos de playa, y da tiempo de ir y volver a tu ritmo antes de que el agua los tape.",
           "alta": "El agua de la catarata llega hasta el mar y tapa tramos del camino por la playa — no es el momento para caminar hasta ahí."
         },
         "horasIdeales": {
@@ -1343,7 +2004,7 @@ const POINTS = {
               },
               {
                 "titulo": "Qué la cambia",
-                "texto": "La marea, solo si vas caminando. Salí unas 2 horas antes de la marea más baja para tener unas 4 horas de ida y vuelta a tu ritmo. Si te agarra la marea subiendo, hay tramos que se tapan y te toca apurarte."
+                "texto": "La marea, solo si vas caminando: con marea baja se pasan todos los tramos de playa y da tiempo de ir y volver a tu ritmo. Si te agarra la marea subiendo, hay tramos que se tapan y te toca apurarte."
               },
               {
                 "titulo": "Qué vas a encontrar",
@@ -1360,7 +2021,7 @@ const POINTS = {
               },
               {
                 "titulo": "Qué lo cambia",
-                "texto": "La marea. Salí unas 2 horas antes de la más baja para tener unas 4 horas de margen. La franja dorada de la curva te marca la ventana de hoy."
+                "texto": "La marea. Con la baja, la playa queda abierta para ir y volver a tu ritmo; con la alta, el agua de la catarata llega al mar y tapa tramos del camino."
               },
               {
                 "titulo": "Ojo con",
@@ -1371,6 +2032,54 @@ const POINTS = {
                 "texto": "En carro se llega hasta Tango Mar, una media hora desde Cóbano, sin pasar por la playa."
               }
             ]
+          }
+        },
+        "en": {
+          "nombre": "El Chorro Waterfall (Tango Mar)",
+          "entrada": "In the Tango Mar area, a waterfall pours straight into the ocean at high tide. The beach walk from Montezuma is only recommended within a low-tide window, as some stretches are covered when the water rises.",
+          "mareas": {
+            "baja": "This is the time to walk there: at low tide you can pass every stretch of beach, with enough time to go and come back at your own pace before the water covers them.",
+            "alta": "The waterfall's water reaches the ocean and covers stretches of the beach path. This is not the time to walk there."
+          },
+          "porCategoria": {
+            "cascada": {
+              "texto": "A truly magical spot: the waterfall's water flows all the way into the ocean. You can get there by car, or on a beach walk that depends on the tide.",
+              "bloques": [
+                {
+                  "titulo": "Getting there",
+                  "texto": "By car to Tango Mar: about half an hour from Cóbano, without crossing the beach, so the tide does not affect access. It is a long way from Santa Teresa or Montezuma. On foot, it is an hour and a half each way along the beach."
+                },
+                {
+                  "titulo": "What changes it",
+                  "texto": "The tide, but only if you walk: at low tide you can pass every stretch of beach and have time to go and come back at your own pace. If the rising tide catches you, some stretches get covered and you will have to hurry."
+                },
+                {
+                  "titulo": "What you will find",
+                  "texto": "At high tide, the waterfall's water reaches the sea: a beautiful sight."
+                }
+              ]
+            },
+            "naturaleza": {
+              "texto": "The walk to El Chorro is one of the most magical in the area: untouched beach, sheltered spots and a waterfall that ends in the sea.",
+              "bloques": [
+                {
+                  "titulo": "The trail",
+                  "texto": "An hour and a half each way along the beach, passing untouched stretches of sand and sheltered spots."
+                },
+                {
+                  "titulo": "What changes it",
+                  "texto": "The tide. At low tide, the beach is open for you to go and come back at your own pace; at high tide, the waterfall's water reaches the sea and covers stretches of the path."
+                },
+                {
+                  "titulo": "Keep in mind",
+                  "texto": "If you set out late and the tide starts to rise, some stretches get covered and you will need to head back quickly."
+                },
+                {
+                  "titulo": "If you prefer not to walk",
+                  "texto": "You can drive to Tango Mar, about half an hour from Cóbano, without crossing the beach."
+                }
+              ]
+            }
           }
         },
         "foto": "",

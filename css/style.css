@@ -82,9 +82,33 @@ html, body {
   align-items: center;
   gap: 6px;
 }
-/* En compu el menú no existe como caja: sus controles quedan en la misma fila */
-.menu-capas { display: contents; }
-.ctrl-capas { display: none; }
+/* Pastilla de dos opciones (Juan, 6-oct): el idioma, EN / ES, de vidrio como los otros
+   botones; la opción elegida va en blanco */
+.segmentado {
+  display: flex;
+  padding: 3px;
+  gap: 2px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.segmentado button {
+  border: 0;
+  border-radius: 999px;
+  padding: 4px 9px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: #fff;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.segmentado button:hover { background: rgba(255, 255, 255, 0.22); }
+.segmentado button[aria-pressed="true"] { background: #fff; color: var(--azul); }
 
 /* ---------- Mapa ---------- */
 main {
@@ -114,15 +138,6 @@ main {
   border-color: #fff;
 }
 
-select.ctrl {
-  appearance: none;
-  -webkit-appearance: none;
-  padding-right: 28px;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%23ffffff'/></svg>");
-  background-repeat: no-repeat;
-  background-position: right 11px center;
-}
-select.ctrl option { color: var(--texto); }
 
 /* Ayuda de coordenadas (para agregar puntos nuevos) */
 .coords {
@@ -141,6 +156,8 @@ select.ctrl option { color: var(--texto); }
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   max-width: calc(100% - 24px);
 }
+/* Escondido para el visitante; se muestra con ?coords en la dirección (js/app.js) */
+.coords[hidden] { display: none; }
 .coords code { color: var(--texto); font-size: 12px; }
 .coords button {
   border: 1px solid var(--borde);
@@ -1379,46 +1396,15 @@ select.ctrl option { color: var(--texto); }
      no tape la ✕; al cerrar o bajar la ficha, vuelve */
   .topbar { transition: opacity 0.25s; }
   body:has(.panel.completa:not([hidden])) .topbar { opacity: 0; pointer-events: none; }
-  /* Sus botones también: si no, el de capas, invisible, se quedaba con el toque de la ✕ */
+  /* Sus botones también: si no, uno invisible se quedaba con el toque de la ✕ */
   body:has(.panel.completa:not([hidden])) .topbar > * { pointer-events: none; }
 
-  /* Barra de arriba en celular: logo, nombre y un solo botón de capas. El estilo, el
-     satélite, el 3D y las curvas se abren en un menú de vidrio debajo (pedido de Juan,
-     29-sep: que en el teléfono se vea el mapa y nada más). */
-  .ctrl-capas {
-    display: grid;
-    place-items: center;
-    width: 40px;
-    height: 40px;
-    padding: 0;
-    font-size: 18px;
-  }
-  .topbar-acciones.abierta .ctrl-capas { background: #fff; border-color: #fff; }
-  .menu-capas {
-    display: none;
-    position: absolute;
-    top: calc(100% - 4px);
-    right: 12px;
-    width: 190px;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 6px;
-    padding: 10px;
-    border-radius: 18px;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    background: rgba(14, 32, 45, 0.86);
-    backdrop-filter: blur(16px) saturate(140%);
-    -webkit-backdrop-filter: blur(16px) saturate(140%);
-    box-shadow: 0 10px 34px rgba(2, 20, 40, 0.35);
-    animation: abrir-menu-capas 0.2s ease-out;
-  }
-  .topbar-acciones.abierta .menu-capas { display: flex; }
-  .menu-capas .ctrl { width: 100%; padding: 9px 14px; text-align: left; font-size: 14px; }
-  .menu-capas select.ctrl { background-color: rgba(255, 255, 255, 0.16); }
-  @keyframes abrir-menu-capas {
-    from { opacity: 0; transform: translateY(-6px); }
-    to   { opacity: 1; transform: none; }
-  }
+  /* Barra de arriba en celular: logo, nombre, EN / ES y el 3D, todo a la vista (Juan,
+     6-oct: el mapa va siempre en Noche, así que ya no hace falta el menú de capas). EN / ES
+     y el 3D a 40 px de alto, fáciles de tocar con el dedo. */
+  #idioma { height: 40px; align-items: stretch; }
+  #idioma button { padding: 0 10px; font-size: 13px; }
+  #btn-3d { height: 40px; padding: 0 14px; }
   .brand p { display: none; }
   /* Con los botones al lado, el nombre no se tiene que partir en dos líneas */
   .brand h1 { font-size: 16px; white-space: nowrap; }
