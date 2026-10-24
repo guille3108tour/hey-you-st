@@ -119,7 +119,8 @@ const TEXTOS = {
   giroInactivo:     ["📱 Mirá alrededor moviendo el teléfono", "📱 Move your phone to look around"],
 
   // Propuesta gratis
-  propuestaBoton:   ["✨ Propuesta gratis", "✨ Free trip plan"],
+  // Juan (24-oct): el botón se llama "Itinerary laboratory"
+  propuestaBoton:   ["🧪 Laboratorio de itinerarios", "🧪 Itinerary laboratory"],
   pgTitulo:         ["✨ Tu propuesta gratis", "✨ Your free trip plan"],
   pgIntro:          ["Contanos cuántos son, cuánto quieren gastar y cuántos días están. Un local les arma una propuesta con opciones para elegir y se la manda por WhatsApp.",
                      "Tell us how many you are, your budget and how many days you're here. A local puts together a plan with options to choose from and sends it to you on WhatsApp."],
