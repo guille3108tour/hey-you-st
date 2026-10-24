@@ -109,6 +109,8 @@ a { color: var(--acento); }
 .precio-por { font-size: 18px; font-weight: 600; color: var(--suave); }
 .resumen { margin: 0; font-size: 15px; color: var(--suave); }
 .explica { margin: 14px 0 0; font-size: 16px; line-height: 1.5; }
+/* Cuánto sale cada actividad: con más actividades, más barata (Juan, 24-oct) */
+.por-actividad { margin: 8px 0 0; font-size: 14.5px; line-height: 1.45; color: #8ffff6; }
 
 .tarjeta {
   padding: 16px;

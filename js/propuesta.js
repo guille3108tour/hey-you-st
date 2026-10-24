@@ -38,6 +38,10 @@ const TEXTOS = {
   desde:        [f => `desde el ${f}`, f => `from ${f}`],
   porPersona:   ["por persona", "per person"],
   todoIncluido: [iva => `todo incluido${iva ? ", con impuestos" : ""}`, iva => `all included${iva ? ", taxes included" : ""}`],
+  // Juan (24-oct): "mientras más tours, más barato la opción; quiero que notemos eso". Es el promedio del
+  // paquete, no el precio de cada actividad.
+  porActividad: [(k, p) => `${k} actividades: cada una te sale a ${p} por persona. Entre más actividades, más barata sale cada una.`,
+                 (k, p) => `${k} activities: each one comes to ${p} per person. The more activities, the less each one costs.`],
   explica:      ["Elegí lo que más te guste de cada día. Cualquier combinación sale al mismo precio.",
                  "Pick what you like best each day. Every combination is the same price."],
   dia:          [n => `Día ${n}`, n => `Day ${n}`],
@@ -160,6 +164,7 @@ function pintar() {
     return;
   }
   const dias = P.d.length, primera = P.d.find(d => validISO(d.f));
+  const actividades = eleccion.length;
   let num = 0;
   raiz.innerHTML = `
     ${P.ej ? `<p class="aviso" role="note">${esc(txt("ejemplo"))}</p>` : ""}
@@ -167,6 +172,7 @@ function pintar() {
       <span class="kicker">${esc(txt("kicker"))}</span>
       <h1><span class="precio">${esc(usd(P.pp))}</span> <span class="precio-por">${esc(txt("porPersona"))}</span></h1>
       <p class="resumen">${esc(txt("resumen", P.n, dias))}${primera ? " · " + esc(txt("desde", fechaLarga(primera.f))) : ""} · ${esc(txt("todoIncluido", P.iva))}</p>
+      ${actividades > 1 ? `<p class="por-actividad">${esc(txt("porActividad", actividades, usd(P.pp / actividades)))}</p>` : ""}
       <p class="explica">${esc(txt("explica"))}</p>
     </section>
     ${P.d.map((d, i) => `
