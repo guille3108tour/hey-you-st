@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Your trip plan · Hey You ST</title>
+  <meta name="description" content="Your trip plan from Hey You ST: pick what you like each day, every combination is the same price.">
+  <!-- La propuesta viaja en el link (#p=...), no en un servidor: que no la indexen -->
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/svg+xml" href="img/marca/hey-you-st.svg">
+  <link rel="icon" type="image/png" sizes="512x512" href="img/marca/hey-you-st-512.png">
+  <link rel="apple-touch-icon" href="img/marca/hey-you-st-180.png">
+  <link rel="stylesheet" href="css/propuesta.css?v=mvmjgoul">
+</head>
+<body>
+  <!-- Propuesta para que el cliente elija (Juan, 24-oct): cada día trae opciones y cualquier
+       combinación sale al mismo precio por persona. La arma Juan en el sistema de reservas y la
+       manda por WhatsApp; los datos vienen en el link y nada se guarda en esta página. Los
+       textos los pone js/propuesta.js en el idioma elegido. -->
+  <header class="barra">
+    <a class="marca" href="./">
+      <img src="img/marca/hey-you-st.svg" alt="">
+      <span>Hey You ST</span>
+    </a>
+    <div class="segmentado" id="idioma" role="group" aria-label="Language · Idioma">
+      <button type="button" data-idioma="en" lang="en" aria-label="English" aria-pressed="true">EN</button>
+      <button type="button" data-idioma="es" lang="es" aria-label="Español" aria-pressed="false">ES</button>
+    </div>
+  </header>
+
+  <main class="hoja" id="propuesta"></main>
+
+  <script src="js/contacto.js?v=mvmjgoul"></script>
+  <script src="js/propuesta.js?v=mvmjgoul"></script>
+</body>
+</html>

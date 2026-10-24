@@ -117,6 +117,28 @@ const TEXTOS = {
   credito360:       ["Foto 360° · tomada por un local", "360° photo · taken by a local"],
   giroActivo:       ["📱 Siguiendo tu teléfono · tocá para soltar", "📱 Following your phone · tap to release"],
   giroInactivo:     ["📱 Mirá alrededor moviendo el teléfono", "📱 Move your phone to look around"],
+
+  // Propuesta gratis
+  propuestaBoton:   ["✨ Propuesta gratis", "✨ Free trip plan"],
+  pgTitulo:         ["✨ Tu propuesta gratis", "✨ Your free trip plan"],
+  pgIntro:          ["Contanos cuántos son, cuánto quieren gastar y cuántos días están. Un local les arma una propuesta con opciones para elegir y se la manda por WhatsApp.",
+                     "Tell us how many you are, your budget and how many days you're here. A local puts together a plan with options to choose from and sends it to you on WhatsApp."],
+  pgPersonas:       ["¿Cuántos son?", "How many of you?"],
+  pgPresupuesto:    ["Presupuesto por persona (USD)", "Budget per person (USD)"],
+  pgDias:           ["¿Cuántos días?", "How many days?"],
+  pgDesde:          ["Desde (opcional)", "Starting (optional)"],
+  pgGustos:         ["¿Qué les gusta?", "What do you like?"],
+  pgNota:           ["¿Algo más? (opcional)", "Anything else? (optional)"],
+  pgNotaPista:      ["Edades de los niños, si alguien no nada…", "Kids' ages, if someone can't swim…"],
+  pgMenos:          [q => `Uno menos: ${q}`, q => `One less: ${q}`],
+  pgMas:            [q => `Uno más: ${q}`, q => `One more: ${q}`],
+  pgEnviar:         ["Pedirla por WhatsApp", "Ask for it on WhatsApp"],
+  pgLetraChica:     ["Sin costo ni compromiso. Esta página no guarda tus datos: todo va por WhatsApp.",
+                     "Free, no strings attached. This page doesn't store your details: everything goes through WhatsApp."],
+  pgMensaje:        [({ n, pp, d, desde, gustos, nota }) => `Hola Juan 👋 Vi en Hey You ST lo de la propuesta gratis. Somos ${n}${pp ? `, tenemos unos $${pp} por persona` : ""} y estamos ${d} ${d === 1 ? "día" : "días"}${desde ? ` desde el ${desde}` : ""}.` +
+                       (gustos.length ? `\nNos gusta: ${gustos.join(", ")}.` : "") + (nota ? `\n${nota}` : "") + "\n¿Nos armás una propuesta?",
+                     ({ n, pp, d, desde, gustos, nota }) => `Hi Juan 👋 I saw the free trip plan on Hey You ST. We are ${n}${pp ? `, we have about $${pp} per person` : ""} and we're here for ${d} ${d === 1 ? "day" : "days"}${desde ? ` from ${desde}` : ""}.` +
+                       (gustos.length ? `\nWe like: ${gustos.join(", ")}.` : "") + (nota ? `\n${nota}` : "") + "\nCould you put together a plan for us?"],
 };
 
 function txt(clave, ...datos) {
@@ -175,8 +197,7 @@ const LUGARES = POINTS.features
 
 // Los tours se coordinan directamente con Juan, no con quien da el tour: el panel
 // no muestra teléfonos, correos ni webs de proveedores y ofrece escribirle a él.
-// Número de WhatsApp con código de país, sin + ni espacios (ej: "50688887777").
-const CONTACTO_JUAN = { whatsapp: "50689889988" };
+// Su número (CONTACTO_JUAN) vive en js/contacto.js, que comparte con la página de propuestas.
 
 // La fila "Todas" del panel no es una categoría, pero usa el mismo set de íconos.
 const CAT_TODAS = { label: "Todas", en: "All", icono: "img/iconos/todas.png", emoji: "🗺️", color: "#0ea5e9" };
@@ -669,6 +690,94 @@ function htmlTour(tourOriginal) {
         txt("botonTour", local || "Juan"), local ? tour.whatsapp : CONTACTO_JUAN.whatsapp)}
     </article>`;
 }
+
+// ---------- Propuesta gratis (Juan, 24-oct) ----------
+// "Ahora tenemos la posibilidad de ofrecer propuestas gratis": el visitante cuenta cuántos son,
+// su presupuesto, sus días y qué le gusta, y eso le llega a Juan por WhatsApp. Juan le arma en
+// el sistema de reservas una propuesta con opciones por día al mismo precio (propuesta.html).
+// La página no guarda nada: todo viaja en el mensaje.
+const dialogoPropuesta = document.getElementById("dialogo-propuesta");
+const pg = { personas: 2, presupuesto: "", dias: 3, desde: "", gustos: new Set(), nota: "" };
+const PG_LIMITES = { personas: [1, 30], dias: [1, 14] };
+
+function fechaPropuesta(iso) {
+  const [a, m, d] = iso.split("-").map(Number);
+  return new Date(a, m - 1, d).toLocaleDateString(enIngles() ? "en-US" : "es-CR", { weekday: "long", month: "long", day: "numeric" });
+}
+
+function mensajePropuestaGratis() {
+  const pp = Math.round(Number(String(pg.presupuesto).replace(",", ".")) || 0);
+  return txt("pgMensaje", {
+    n: pg.personas, pp, d: pg.dias, desde: pg.desde ? fechaPropuesta(pg.desde) : "", nota: pg.nota.trim(),
+    gustos: [...pg.gustos].filter(k => CATEGORIAS[k]).map(k => rotulo(CATEGORIAS[k]).toLowerCase()),
+  });
+}
+const urlPropuestaGratis = () => `https://wa.me/${CONTACTO_JUAN.whatsapp}?text=${encodeURIComponent(mensajePropuestaGratis())}`;
+
+function pasoPropuesta(clave, etiqueta) {
+  return `
+    <div class="pg-campo">
+      <span class="pg-etiqueta" id="pg-${clave}-l">${esc(etiqueta)}</span>
+      <div class="pg-paso" role="group" aria-labelledby="pg-${clave}-l">
+        <button type="button" data-paso="${clave}" data-d="-1" aria-label="${esc(txt("pgMenos", etiqueta))}">−</button>
+        <output id="pg-${clave}" aria-live="polite">${pg[clave]}</output>
+        <button type="button" data-paso="${clave}" data-d="1" aria-label="${esc(txt("pgMas", etiqueta))}">+</button>
+      </div>
+    </div>`;
+}
+
+function pintarPropuestaGratis() {
+  const hoy = new Date();
+  const minimo = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}-${String(hoy.getDate()).padStart(2, "0")}`;
+  dialogoPropuesta.innerHTML = `
+    <form method="dialog" class="pg">
+      <button type="submit" class="pg-cerrar" aria-label="${esc(txt("cerrar"))}">✕</button>
+      <h2 id="pg-titulo">${esc(txt("pgTitulo"))}</h2>
+      <p class="pg-intro">${esc(txt("pgIntro"))}</p>
+      <div class="pg-fila">
+        ${pasoPropuesta("personas", txt("pgPersonas"))}
+        ${pasoPropuesta("dias", txt("pgDias"))}
+      </div>
+      <div class="pg-fila">
+        <label class="pg-campo"><span class="pg-etiqueta">${esc(txt("pgPresupuesto"))}</span>
+          <input id="pg-presupuesto" type="number" min="0" step="10" inputmode="numeric" placeholder="150" value="${esc(pg.presupuesto)}"></label>
+        <label class="pg-campo"><span class="pg-etiqueta">${esc(txt("pgDesde"))}</span>
+          <input id="pg-desde" type="date" min="${minimo}" value="${esc(pg.desde)}"></label>
+      </div>
+      <fieldset class="pg-gustos">
+        <legend class="pg-etiqueta">${esc(txt("pgGustos"))}</legend>
+        ${Object.entries(CATEGORIAS).map(([k, cat]) => `
+          <label class="pg-chip"><input type="checkbox" value="${esc(k)}" ${pg.gustos.has(k) ? "checked" : ""}><span>${esc(cat.emoji)} ${esc(rotulo(cat))}</span></label>`).join("")}
+      </fieldset>
+      <label class="pg-campo"><span class="pg-etiqueta">${esc(txt("pgNota"))}</span>
+        <textarea id="pg-nota" rows="2" placeholder="${esc(txt("pgNotaPista"))}">${esc(pg.nota)}</textarea></label>
+      <a class="reservar" id="pg-enviar" href="${esc(urlPropuestaGratis())}" target="_blank" rel="noopener">${esc(txt("pgEnviar"))}</a>
+      <p class="pg-letra">${esc(txt("pgLetraChica"))}</p>
+    </form>`;
+}
+
+const actualizarEnvioPropuesta = () => { dialogoPropuesta.querySelector("#pg-enviar").href = urlPropuestaGratis(); };
+dialogoPropuesta.addEventListener("click", (e) => {
+  if (e.target === dialogoPropuesta) { dialogoPropuesta.close(); return; } // tocar afuera la cierra
+  const b = e.target.closest("[data-paso]");
+  if (!b) return;
+  const clave = b.dataset.paso, [min, max] = PG_LIMITES[clave];
+  pg[clave] = Math.min(max, Math.max(min, pg[clave] + Number(b.dataset.d)));
+  dialogoPropuesta.querySelector(`#pg-${clave}`).textContent = pg[clave];
+  actualizarEnvioPropuesta();
+});
+dialogoPropuesta.addEventListener("input", (e) => {
+  const t = e.target;
+  if (t.id === "pg-presupuesto") pg.presupuesto = t.value;
+  else if (t.id === "pg-desde") pg.desde = t.value;
+  else if (t.id === "pg-nota") pg.nota = t.value;
+  else if (t.type === "checkbox") { if (t.checked) pg.gustos.add(t.value); else pg.gustos.delete(t.value); }
+  actualizarEnvioPropuesta();
+});
+document.getElementById("btn-propuesta").addEventListener("click", () => {
+  pintarPropuestaGratis();
+  dialogoPropuesta.showModal();
+});
 
 // ---------- Ideal para ir hoy ----------
 // Pedido de Juan (3-oct): cruzar las horas buenas de cada lugar ("horasIdeales", lo que cuenta
@@ -2154,6 +2263,7 @@ function aplicarIdioma() {
   if (conCoords && !ultimaCoord) coordsText.textContent = txt("coordsAyuda");
   if (conCoords) coordsCopy.textContent = txt("copiar");
   sincronizarGiro?.();
+  if (dialogoPropuesta.open) pintarPropuestaGratis();
 
   if (lugarAbierto) {
     const { feature, el, sobre360, vista } = lugarAbierto;

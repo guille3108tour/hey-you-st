@@ -1409,3 +1409,116 @@ main {
   /* Con los botones al lado, el nombre no se tiene que partir en dos líneas */
   .brand h1 { font-size: 16px; white-space: nowrap; }
 }
+
+/* ---------- Propuesta gratis (Juan, 24-oct) ---------- */
+/* El botón se distingue de los otros con el turquesa de "Me interesa" (.reservar) */
+.ctrl-propuesta {
+  background: rgba(14, 165, 233, 0.34);
+  border-color: rgba(34, 230, 223, 0.7);
+  box-shadow: 0 0 12px rgba(34, 230, 223, 0.3);
+  white-space: nowrap;
+}
+.ctrl-propuesta:hover { background: rgba(14, 165, 233, 0.5); }
+
+/* El formulario: vidrio oscuro como la ficha */
+.dialogo {
+  width: min(440px, calc(100% - 32px));
+  max-height: calc(100% - 32px);
+  padding: 0;
+  overflow-y: auto;
+  color: #fff;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(14, 32, 45, 0.96);
+  box-shadow: 0 10px 34px rgba(2, 20, 40, 0.45);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+.dialogo::backdrop { background: rgba(2, 20, 40, 0.55); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); }
+.pg { position: relative; display: flex; flex-direction: column; gap: 14px; padding: 20px 18px 18px; }
+.pg h2 { margin: 0; padding-right: 36px; font-size: 19px; }
+.pg-intro { margin: 0; font-size: 14px; line-height: 1.5; color: rgba(255, 255, 255, 0.82); }
+.pg-cerrar {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+}
+.pg-fila { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.pg-campo { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.pg-etiqueta { font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.8); }
+.pg input[type="number"], .pg input[type="date"], .pg textarea {
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 11px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+  color-scheme: dark;
+}
+.pg textarea { resize: vertical; }
+.pg input:focus-visible, .pg textarea:focus-visible, .pg button:focus-visible, .pg-chip:has(input:focus-visible) {
+  outline: 2px solid #22e6df;
+  outline-offset: 2px;
+}
+.pg-paso {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 42px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.07);
+}
+.pg-paso button {
+  width: 42px;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+}
+.pg-paso output { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.pg-gustos { margin: 0; padding: 0; border: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.pg-gustos legend { padding: 0 0 8px; }
+.pg-chip { position: relative; cursor: pointer; }
+.pg-chip input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.pg-chip span {
+  display: inline-block;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.05);
+  transition: background 0.15s, border-color 0.15s;
+}
+.pg-chip input:checked + span { background: rgba(14, 165, 233, 0.34); border-color: rgba(34, 230, 223, 0.75); }
+.pg .reservar { margin: 2px 0 0; }
+.pg-letra { margin: 0; font-size: 12.5px; line-height: 1.45; color: rgba(255, 255, 255, 0.65); text-align: center; }
+
+@media (max-width: 640px) {
+  /* En el celular no entra en la barra: baja a una pastilla justo debajo, a la izquierda
+     (a la derecha están los controles del mapa). La barra tiene backdrop-filter, así que es
+     la que la contiene. */
+  .ctrl-propuesta {
+    position: absolute;
+    top: calc(100% - 4px);
+    left: 14px;
+    height: 38px;
+    padding: 0 14px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pg-chip span { transition: none; }
+}
