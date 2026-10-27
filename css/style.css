@@ -1505,6 +1505,10 @@ main {
 }
 .pg-chip input:checked + span { background: rgba(14, 165, 233, 0.34); border-color: rgba(34, 230, 223, 0.75); }
 .pg .reservar { margin: 2px 0 0; }
+.pg-armar { width: 100%; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+.pg-secundario { display: block; text-align: center; font-size: 14px; color: #8ffff6; }
+.pg-aviso { margin: 0; padding: 10px 12px; border-radius: 10px; font-size: 14px; line-height: 1.45; color: #fde68a; background: rgba(245, 158, 11, 0.14); border: 1px solid rgba(245, 158, 11, 0.45); }
+.pg-demo { margin: -6px 0 0; font-size: 13px; font-weight: 600; color: #fde68a; }
 .pg-letra { margin: 0; font-size: 12.5px; line-height: 1.45; color: rgba(255, 255, 255, 0.65); text-align: center; }
 
 @media (max-width: 640px) {
@@ -1522,3 +1526,111 @@ main {
 @media (prefers-reduced-motion: reduce) {
   .pg-chip span { transition: none; }
 }
+
+/* ---------- Lo arma el cliente (laboratorio, Juan 24-oct) ---------- */
+.dialogo.ancho { width: min(640px, calc(100% - 32px)); }
+.pg-armar-yo { display: block; padding: 11px 12px; border-radius: 12px; color: #fff; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.28); }
+.pg-armar-yo:hover { background: rgba(255, 255, 255, 0.12); }
+.pg-armar:disabled { opacity: 0.5; cursor: default; }
+.ab-cuenta { display: flex; flex-direction: column; gap: 6px; }
+.ab-precio { font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.ab-suave { font-size: 13.5px; line-height: 1.45; color: rgba(255, 255, 255, 0.72); }
+.ab-acento { font-size: 14px; line-height: 1.45; color: #8ffff6; }
+.ab-alerta { font-size: 14px; line-height: 1.45; color: #fca5a5; }
+.ab-barra { height: 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.14); overflow: hidden; }
+.ab-barra span { display: block; height: 100%; border-radius: 999px; background: #22e6df; transition: width 0.2s; }
+.ab-barra span.pasado { background: #f87171; }
+.ab-dia { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.14); background: rgba(255, 255, 255, 0.04); }
+.ab-dia.sel { border-color: rgba(34, 230, 223, 0.75); }
+.ab-dia-top { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+.ab-act, .ab-op { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.16); }
+.ab-act { border-color: rgba(34, 230, 223, 0.6); background: rgba(14, 165, 233, 0.12); }
+.ab-op.no { opacity: 0.55; }
+.ab-act-txt { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; font-size: 14px; }
+.ab-extras { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.ab-h { margin: 4px 0 0; font-size: 15px; }
+.ab-lista { display: flex; flex-direction: column; gap: 8px; }
+.ab-mas, .ab-extra, .ab-agregar, .ab-quitar, .ab-volver {
+  font: inherit; font-size: 13px; color: #fff; cursor: pointer;
+  background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.28); border-radius: 999px; padding: 5px 11px;
+}
+.ab-agregar { flex: none; font-weight: 700; background: rgba(14, 165, 233, 0.34); border-color: rgba(34, 230, 223, 0.7); }
+.ab-extra[aria-pressed="true"] { background: rgba(14, 165, 233, 0.34); border-color: rgba(34, 230, 223, 0.8); }
+.ab-quitar { flex: none; width: 32px; height: 32px; padding: 0; border-radius: 50%; }
+.ab-volver { align-self: center; background: none; border: 0; color: #8ffff6; text-decoration: underline; }
+.ab-mas:focus-visible, .ab-extra:focus-visible, .ab-agregar:focus-visible, .ab-quitar:focus-visible, .ab-volver:focus-visible, .pg-armar-yo:focus-visible { outline: 2px solid #22e6df; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .ab-barra span { transition: none; } }
+/* Día libre de playa recomendado en un día sin actividad */
+.ab-playa { font-size: 14px; color: #fde68a; }
+/* Transporte en el laboratorio */
+.pg select {
+  width: 100%; min-height: 42px; padding: 9px 11px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.07); color: #fff; font: inherit; font-size: 15px; color-scheme: dark;
+}
+.pg select:focus-visible { outline: 2px solid #22e6df; outline-offset: 2px; }
+.pg-check { display: flex; gap: 8px; align-items: center; align-self: end; min-height: 42px; font-size: 14px; color: rgba(255, 255, 255, 0.85); }
+/* El plan de cada día (Juan, 24-oct) */
+.pg-planes { margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 8px; }
+.pg-planes legend { padding: 0 0 8px; }
+.pg-plan { display: grid; grid-template-columns: minmax(96px, 0.8fr) minmax(0, 1.6fr); gap: 10px; align-items: center; font-size: 14px; color: rgba(255, 255, 255, 0.85); }
+.ab-plan { font-size: 12.5px; font-weight: 600; padding: 3px 9px; border-radius: 999px; color: #06303a; background: #8ffff6; }
+/* Probá el precio de un tour: cómo baja el precio por persona según el grupo */
+.pp-tabla { display: flex; flex-direction: column; gap: 4px; }
+.pp-fila { display: grid; grid-template-columns: 1fr auto 72px; gap: 10px; align-items: center; padding: 6px 10px; border-radius: 10px; font-size: 14px; }
+.pp-fila b { font-variant-numeric: tabular-nums; }
+.pp-fila.actual { background: rgba(14, 165, 233, 0.2); border: 1px solid rgba(34, 230, 223, 0.6); }
+/* Más budget, más actividades: la barra del budget y desde cuánto entra cada actividad (Juan, 24-oct) */
+.bb-barra { display: flex; flex-direction: column; gap: 6px; }
+.bb-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.bb-rango { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; margin: 0; background: transparent; cursor: pointer; }
+.bb-rango::-webkit-slider-runnable-track {
+  height: 8px; border-radius: 999px;
+  background: linear-gradient(to right, #22e6df var(--lleno, 0%), rgba(255, 255, 255, 0.16) var(--lleno, 0%));
+}
+.bb-rango::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; width: 24px; height: 24px; margin-top: -8px; border-radius: 50%;
+  background: #fff; border: 3px solid #22e6df; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+}
+.bb-rango::-moz-range-track { height: 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.16); }
+.bb-rango::-moz-range-progress { height: 8px; border-radius: 999px; background: #22e6df; }
+.bb-rango::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 3px solid #22e6df; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45); }
+.bb-rango:focus-visible { outline: 2px solid #22e6df; outline-offset: 4px; border-radius: 999px; }
+.bb-marcas { position: relative; height: 42px; }
+.bb-marca {
+  position: absolute; top: 0; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 2px 4px; font: inherit; font-size: 11.5px; line-height: 1.2; font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.55); background: none; border: 0; border-radius: 8px; cursor: pointer;
+}
+.bb-marca b { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; font-size: 12px; border: 1px solid rgba(255, 255, 255, 0.35); }
+.bb-marca.ok { color: #8ffff6; }
+.bb-marca.ok b { color: #06303a; background: #8ffff6; border-color: #8ffff6; }
+.bb-resumen {
+  display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border-radius: 14px; font-size: 14px; line-height: 1.45;
+  background: rgba(14, 165, 233, 0.14); border: 1px solid rgba(34, 230, 223, 0.45);
+}
+.bb-cuantas { font-size: 17px; }
+.bb-cuantas b { font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.bb-puntos { display: flex; gap: 6px; margin: 2px 0 4px; }
+.bb-puntos i { width: 12px; height: 12px; border-radius: 50%; border: 2px solid rgba(34, 230, 223, 0.55); }
+.bb-puntos i.si { background: #22e6df; border-color: #22e6df; }
+.bb-dias { display: flex; flex-direction: column; gap: 10px; }
+.bb-act { display: flex; flex-direction: column; gap: 6px; }
+.bb-elegi { font-size: 12.5px; font-weight: 600; color: rgba(255, 255, 255, 0.72); }
+.bb-op {
+  display: flex; gap: 10px; align-items: flex-start; width: 100%; padding: 10px 12px; border-radius: 12px; text-align: left;
+  font: inherit; color: #fff; cursor: pointer; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.16);
+}
+.bb-op:hover { background: rgba(255, 255, 255, 0.08); }
+.bb-op[aria-pressed="true"] { background: rgba(14, 165, 233, 0.2); border-color: rgba(34, 230, 223, 0.8); }
+.bb-letra { flex: none; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; font-size: 12.5px; font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.35); }
+.bb-op[aria-pressed="true"] .bb-letra { color: #06303a; background: #8ffff6; border-color: #8ffff6; }
+.bb-marca:focus-visible, .bb-op:focus-visible { outline: 2px solid #22e6df; outline-offset: 2px; }
+/* "Las que entren" o "Solo 1", y el precio por persona de cada actividad en "Solo 1" */
+.bb-modo { display: flex; flex-wrap: wrap; gap: 6px; }
+.bb-modo button {
+  font: inherit; font-size: 14px; color: #fff; cursor: pointer; padding: 8px 14px; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.22);
+}
+.bb-modo button[aria-pressed="true"] { font-weight: 700; background: rgba(14, 165, 233, 0.34); border-color: rgba(34, 230, 223, 0.75); }
+.bb-pp { flex: none; display: flex; flex-direction: column; align-items: flex-end; text-align: right; font-variant-numeric: tabular-nums; }
+.bb-pp b { font-size: 16px; }

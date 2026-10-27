@@ -20,6 +20,7 @@ const POINTS = {
           "familia",
           "atardecer"
         ],
+        "gratis": true,
         "descripcion": "Playa amplia, plana y muy tranquila al norte de Santa Teresa: agua cristalina, oleaje muy bajo, ideal para niños y para quien se anima a surfear por primera vez. También es una de las mejores zonas para ver el atardecer. Entra todo tipo de carro, pero hay un tramo con muchos huecos: cuidado con los carros bajos.",
         "surf": {
           "nivel": "Principiante / Intermedio",
@@ -464,6 +465,7 @@ const POINTS = {
           "naturaleza",
           "playa"
         ],
+        "gratis": true,
         "entrada": "Frente a Cabuya hay una isla que también es el cementerio del pueblo. Se llega caminando por el arrecife únicamente cuando la marea está baja; el cruce y el tiempo de visita dependen de la marea del día.",
         "preguntas": {
           "naturaleza": [
@@ -595,6 +597,7 @@ const POINTS = {
           "playa",
           "familia"
         ],
+        "gratis": true,
         "entrada": "Arena de concha y agua tan transparente que, según la voz local, se pueden ver los pies incluso con el agua al pecho. Por la tarde hay sombra; es una playa tranquila para bañarse, con una precaución importante: las corrientes pueden cambiar.",
         "preguntas": {
           "familia": [
@@ -747,6 +750,7 @@ const POINTS = {
           "familia",
           "bienestar"
         ],
+        "gratis": true,
         "entrada": "Un río de agua cristalina en verano, pozas y una catarata pequeña a unos 20 minutos caminando desde Montezuma. En el camino hay tramos de roca y playa; para llegar a la catarata pequeña, la voz local recomienda subir por la derecha del río.",
         "preguntas": {
           "naturaleza": [
@@ -959,6 +963,7 @@ const POINTS = {
           "surf",
           "familia"
         ],
+        "gratis": true,
         "entrada": "Una playa muy extensa más allá de Piedra Colorada. Llegar es parte de la aventura: después de pasar por Piedra Colorada, la caminata sigue unos 25 minutos por roca, con una subida y una bajada, y vistas al mar.",
         "preguntas": {
           "naturaleza": [
@@ -1200,6 +1205,7 @@ const POINTS = {
           "playa",
           "atardecer"
         ],
+        "gratis": true,
         "descripcion": "Rincón con una zona de sombra privada, ideal para sentarse a meditar y bajar revoluciones. Atrás hay terrenos planos donde las familias arman playa, pero ojo: hay corrientes peligrosas, así que los que entran al agua deben tener experiencia.",
         "familia": {
           "sombra": "Sí, zona privada (aunque parte del día agarra algo de sol)"
@@ -1346,6 +1352,7 @@ const POINTS = {
           "familia",
           "atardecer"
         ],
+        "gratis": true,
         "surf": {
           "nivel": "Intermedio / Avanzado",
           "marea": "Baja a media",
@@ -1594,6 +1601,7 @@ const POINTS = {
           "naturaleza",
           "atardecer"
         ],
+        "gratis": true,
         "entrada": "Con marea baja, el peñón forma una piscina natural de agua cristalina y tranquila, con vista hacia Cabo Blanco. La visita depende mucho de la marea y el acceso por camino de piedra requiere un carro alto o 4x4.",
         "preguntas": {
           "naturaleza": [
@@ -1787,6 +1795,7 @@ const POINTS = {
           "naturaleza",
           "familia"
         ],
+        "gratis": true,
         "entrada": "La catarata tiene tres niveles; la recomendación local es conocer primero el nivel uno. Se llega con una caminata de unos 25 minutos siguiendo el río, con tramos donde hay que sujetarse de cuerdas. El recorrido requiere algo de fuerza.",
         "preguntas": {
           "cascada": [
@@ -1967,6 +1976,7 @@ const POINTS = {
           "cascada",
           "naturaleza"
         ],
+        "gratis": true,
         "entrada": "En la zona de Tango Mar, una catarata cae directamente al mar durante la marea alta. La caminata por la playa desde Montezuma solo se recomienda dentro de una ventana de marea baja: algunos tramos quedan cubiertos cuando el agua sube.",
         "preguntas": {
           "cascada": [

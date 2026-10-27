@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Your itinerary · Hey You ST</title>
+  <meta name="description" content="Your Hey You ST itinerary, day by day: times, meeting points and free beach days.">
+  <!-- El itinerario viaja en el link (#p=...), no en un servidor: que no lo indexen -->
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/svg+xml" href="img/marca/hey-you-st.svg">
+  <link rel="icon" type="image/png" sizes="512x512" href="img/marca/hey-you-st-512.png">
+  <link rel="apple-touch-icon" href="img/marca/hey-you-st-180.png">
+  <link rel="stylesheet" href="css/propuesta.css?v=mvqz5qdr">
+</head>
+<body>
+  <!-- El itinerario confirmado (Juan, 24-oct: "quiero que el cliente pueda recibir un itinerario con
+       actividades"). Lo manda Juan desde el sistema de reservas después de reservar: cada tour con su
+       fecha, hora, punto de salida y qué incluye, y los días sin tour como días libres de playa con lo que
+       cuenta un local (data/points.js). Los textos los pone js/itinerario.js. -->
+  <header class="barra">
+    <a class="marca" href="./">
+      <img src="img/marca/hey-you-st.svg" alt="">
+      <span>Hey You ST</span>
+    </a>
+    <div class="segmentado" id="idioma" role="group" aria-label="Language · Idioma">
+      <button type="button" data-idioma="en" lang="en" aria-label="English" aria-pressed="true">EN</button>
+      <button type="button" data-idioma="es" lang="es" aria-label="Español" aria-pressed="false">ES</button>
+    </div>
+  </header>
+
+  <main class="hoja" id="itinerario"></main>
+
+  <script src="data/points.js?v=mvqz5qdr"></script>
+  <script src="data/rutas.js?v=mvqz5qdr"></script>
+  <script src="js/contacto.js?v=mvqz5qdr"></script>
+  <script src="js/itinerario.js?v=mvqz5qdr"></script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+// Catálogo del Itinerary laboratory: solo empresas locales con precio cerrado, sin nombres ni contactos.
+// Lo genera scripts/exportar-laboratorio.js desde el sistema de reservas (2026-10-24); no editar a mano.
+// pp[n - 1][k - 1] = lo que paga cada persona, todo incluido, en un grupo de n con k tours en el paquete.
+const LABORATORIO = {"generado":"2026-10-24","tours":[{"t":"ta0ij47","es":"Clase de surf en Playa Hermosa","en":"Surf lessons at Playa Hermosa","du":"2 horas","sa":"Playa Hermosa","inc":"Tabla e instructor local · principiante e intermedio","dc":0,"g":["surf","playa"],"pp":[[100,98,96,94],[75,73,71,69],[75,73,71,69],[75,73,71,69],[75,73,71,69],[75,73,71,69],[75,73,71,69],[75,73,71,69],[75,73,71,69],[75,73,71,69],[75,73,71,69],[75,73,71,69],[75,73,71,69],[75,73,71,69],[75,73,71,69],[75,73,71,69],[75,73,71,69],[75,73,71,69],[75,73,71,69],[75,73,71,69]],"lib":{"2026-10-28":0}}],"transporte":[]};
