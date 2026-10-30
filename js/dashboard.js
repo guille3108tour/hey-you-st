@@ -56,8 +56,9 @@ const LS_PROP = "hey-dash-propuesta";
 function leerLS(clave) { try { return JSON.parse(localStorage.getItem(clave) || "null"); } catch { return null; } }
 function guardarLS(clave, v) { try { localStorage.setItem(clave, JSON.stringify(v)); } catch { /* modo privado */ } }
 
-// Etiquetas de ejemplo para sembrar los tours del mapa; el agente las ajusta a gusto
+// Etiquetas y proveedores de ejemplo para sembrar los tours del mapa; el agente los ajusta a gusto
 const TAGS_SEMILLA = { "surf-hermosa": ["surf"], "isla-tortuga": ["tours", "food", "relax"], "pesca-cabuya": ["tours", "food"] };
+const PROV_SEMILLA = { "surf-hermosa": "Nato (Playa Hermosa)", "isla-tortuga": "Zuma Tours (Montezuma)", "pesca-cabuya": "Big Tuna (Cabuya)" };
 function sembrarCatalogo() {
   if (typeof TOURS === "undefined") return [];
   return TOURS.map(t => ({
@@ -68,6 +69,7 @@ function sembrarCatalogo() {
     inc: Array.isArray(t.incluye) ? t.incluye.join(" · ") : "",
     ince: t.en && Array.isArray(t.en.incluye) ? t.en.incluye.join(" · ") : "",
     tags: TAGS_SEMILLA[t.id] ? [...TAGS_SEMILLA[t.id]] : [],
+    prov: t.local || PROV_SEMILLA[t.id] || "",
     neto: null, cliente: null,
   }));
 }
@@ -79,6 +81,7 @@ let prop = leerLS(LS_PROP) || {
   dias: [nuevoDia(), nuevoDia(), nuevoDia()],
 };
 if (!Array.isArray(prop.intereses)) prop.intereses = [];
+if (!prop.transporte) prop.transporte = { on: false, kind: "carro", cantidad: 1, dias: 0, idaVuelta: true, nota: "" };
 function nuevoCodigo() { const d = new Date(); const r = Math.random().toString(36).slice(2, 6); return `${dosDig(d.getMonth() + 1)}${dosDig(d.getDate())}-${r}`; }
 if (!prop.cod) prop.cod = nuevoCodigo();
 const guardarCat = () => guardarLS(LS_CAT, catalogo);
@@ -86,6 +89,18 @@ const guardarProp = () => guardarLS(LS_PROP, prop);
 const tourPorId = (id) => catalogo.find(t => t.id === id);
 // Tours cuyas caracteristicas coinciden con lo que le gusta al turista
 const calza = (t) => prop.intereses.length && (t.tags || []).some(x => prop.intereses.includes(x));
+
+// Cotización rápida: su propio estado
+const LS_COT = "hey-dash-cotizar";
+let cot = leerLS(LS_COT) || { modo: "proveedor", prov: "", interes: "", n: 2, tel: "", sel: [] };
+if (!Array.isArray(cot.sel)) cot.sel = [];
+const guardarCot = () => guardarLS(LS_COT, cot);
+const proveedores = () => [...new Set(catalogo.map(t => t.prov).filter(Boolean))];
+function filtradosCot() {
+  if (cot.modo === "proveedor") return cot.prov ? catalogo.filter(t => (t.prov || "") === cot.prov) : [];
+  return cot.interes ? catalogo.filter(t => (t.tags || []).includes(cot.interes)) : [];
+}
+const resetSelCot = () => { cot.sel = filtradosCot().map(t => t.id); };
 
 /* =========================================================
    PESTAÑAS
@@ -95,7 +110,9 @@ $$("#tabs button").forEach(b => b.addEventListener("click", () => {
   $$("#tabs button").forEach(x => { const on = x === b; x.classList.toggle("activo", on); x.setAttribute("aria-selected", String(on)); });
   $("#tab-propuesta").hidden = t !== "propuesta";
   $("#tab-catalogo").hidden = t !== "catalogo";
+  $("#tab-cotizar").hidden = t !== "cotizar";
   if (t === "catalogo") pintarCatalogo();
+  if (t === "cotizar") pintarCotizar();
 }));
 
 /* =========================================================
@@ -134,7 +151,7 @@ function pintarCatalogo() {
         const m = hay ? t.cliente - t.neto : null;
         const pct = hay && t.cliente ? Math.round((m / t.cliente) * 100) : null;
         return `<tr>
-          <td><b>${esc(t.es || t.en || "(sin nombre)")}</b>${t.sa ? `<br><span class="margen-no">${esc(t.sa)}</span>` : ""}</td>
+          <td><b>${esc(t.es || t.en || "(sin nombre)")}</b>${(t.prov || t.sa) ? `<br><span class="margen-no">${esc([t.prov, t.sa].filter(Boolean).join(" · "))}</span>` : ""}</td>
           <td>${(t.tags || []).length ? (t.tags || []).map(k => `<span class="tag-mini">${esc(etiquetaInteres(k))}</span>`).join(" ") : "<span class='margen-no'>—</span>"}</td>
           <td class="num">${t.neto != null ? usd(t.neto) : "—"}</td>
           <td class="num">${t.cliente != null ? usd(t.cliente) : "—"}</td>
@@ -155,7 +172,7 @@ function cargarEnFormulario(id) {
   if (!t) return;
   editandoId = id;
   $("#c-es").value = t.es || ""; $("#c-en").value = t.en || "";
-  $("#c-du").value = t.du || ""; $("#c-sa").value = t.sa || "";
+  $("#c-du").value = t.du || ""; $("#c-sa").value = t.sa || ""; $("#c-prov").value = t.prov || "";
   $("#c-inc").value = t.inc || ""; $("#c-ince").value = t.ince || "";
   $("#c-neto").value = t.neto ?? ""; $("#c-cliente").value = t.cliente ?? "";
   formTags = [...(t.tags || [])]; pintarFormTags();
@@ -167,7 +184,7 @@ function cargarEnFormulario(id) {
 
 function limpiarFormulario() {
   editandoId = null;
-  ["c-es", "c-en", "c-du", "c-sa", "c-inc", "c-ince", "c-neto", "c-cliente"].forEach(id => { $("#" + id).value = ""; });
+  ["c-es", "c-en", "c-du", "c-sa", "c-prov", "c-inc", "c-ince", "c-neto", "c-cliente"].forEach(id => { $("#" + id).value = ""; });
   formTags = []; pintarFormTags();
   $("#cat-titulo").textContent = "Agregar tour";
   $("#cat-cancelar").hidden = true;
@@ -180,6 +197,7 @@ $("#cat-guardar").addEventListener("click", () => {
     es, en,
     du: $("#c-du").value.trim(), due: "",
     sa: $("#c-sa").value.trim(),
+    prov: $("#c-prov").value.trim(),
     inc: $("#c-inc").value.trim(), ince: $("#c-ince").value.trim(),
     tags: [...formTags],
     neto: numero($("#c-neto").value), cliente: numero($("#c-cliente").value),
@@ -353,6 +371,54 @@ function pintarDias() {
 }
 
 /* =========================================================
+   TRANSPORTE (opcional): carro/cuadra por días o traslado
+   ========================================================= */
+const TR_KINDS = [
+  { k: "carro", t: "Carro (por días)", es: "Carro", en: "Car", renta: true },
+  { k: "cuatri", t: "Cuatriciclo (por días)", es: "Cuatriciclo", en: "ATV", renta: true },
+  { k: "traslado", t: "Traslado / buseta", es: "Traslado", en: "Transfer", renta: false },
+];
+const trKind = (k) => TR_KINDS.find(x => x.k === k) || TR_KINDS[0];
+
+function pintarTransporte() {
+  const T = prop.transporte;
+  $("#p-tr").checked = !!T.on;
+  const cont = $("#tr-campos");
+  cont.hidden = !T.on;
+  if (!T.on) return;
+  const esRenta = trKind(T.kind).renta;
+  const diasDef = (validISO(prop.inicio) && validISO(prop.salida)) ? diffDias(prop.inicio, prop.salida) + 1 : 1;
+  cont.innerHTML = `
+    <div class="campos" style="margin-top:.7rem">
+      <label class="campo"><span>Tipo</span><select id="tr-kind">${TR_KINDS.map(x => `<option value="${x.k}" ${T.kind === x.k ? "selected" : ""}>${x.t}</option>`).join("")}</select></label>
+      <label class="campo"><span>Cantidad</span><input type="number" id="tr-cant" min="1" step="1" value="${T.cantidad || 1}" inputmode="numeric"></label>
+      ${esRenta
+        ? `<label class="campo"><span>Días</span><input type="number" id="tr-dias" min="1" step="1" value="${T.dias || diasDef}" inputmode="numeric"></label>`
+        : `<label class="campo"><span>Viaje</span><label class="check" style="padding:.5rem 0"><input type="checkbox" id="tr-iv" ${T.idaVuelta ? "checked" : ""}> Ida y vuelta</label></label>`}
+      <label class="campo campo-ancho"><span>Nota (opcional)</span><input type="text" id="tr-nota" value="${esc(T.nota || "")}" placeholder="Buseta aeropuerto → Santa Teresa"></label>
+    </div>`;
+  $("#tr-kind").addEventListener("change", () => { T.kind = $("#tr-kind").value; guardarProp(); pintarTransporte(); pintarPreview(); });
+  $("#tr-cant").addEventListener("input", () => { T.cantidad = numero($("#tr-cant").value) || 1; guardarProp(); pintarPreview(); });
+  if ($("#tr-dias")) $("#tr-dias").addEventListener("input", () => { T.dias = numero($("#tr-dias").value) || 1; guardarProp(); pintarPreview(); });
+  if ($("#tr-iv")) $("#tr-iv").addEventListener("change", () => { T.idaVuelta = $("#tr-iv").checked; guardarProp(); pintarPreview(); });
+  $("#tr-nota").addEventListener("input", () => { T.nota = $("#tr-nota").value; guardarProp(); });
+}
+$("#p-tr").addEventListener("change", () => { prop.transporte.on = $("#p-tr").checked; guardarProp(); pintarTransporte(); pintarPreview(); });
+
+function trDeProp() {
+  const T = prop.transporte; if (!T || !T.on) return null;
+  const k = trKind(T.kind);
+  if (!k.renta) return { tipo: "traslado", es: k.es, en: k.en, v: T.cantidad || 1, d: T.idaVuelta ? 2 : 1, sa: T.nota || "" };
+  const dias = T.dias || ((validISO(prop.inicio) && validISO(prop.salida)) ? diffDias(prop.inicio, prop.salida) + 1 : 1);
+  return { tipo: "renta", es: k.es, en: k.en, v: T.cantidad || 1, d: dias, sa: T.nota || "" };
+}
+function textoTrCorto() {
+  const tr = trDeProp(); if (!tr) return "";
+  const cola = tr.tipo === "traslado" ? (tr.d >= 2 ? "ida y vuelta" : "solo ida") : `${tr.d} ${tr.d === 1 ? "día" : "días"}`;
+  return `🚙 ${tr.v > 1 ? tr.v + "× " : ""}${tr.es} · ${cola}`;
+}
+
+/* =========================================================
    VISTA PREVIA: calendario ordenado + margen
    ========================================================= */
 const nombreTour = (t) => (prop.i === "en" && t.en) || t.es || t.en || "(sin nombre)";
@@ -398,6 +464,7 @@ function pintarPreview() {
       <div class="linea"><span>Costo por persona (peor caso)</span><b>${faltaPrecio ? "falta neto" : usd(costo)}</b></div>
       <div class="linea fuerte ${malo ? "margen-bad" : ""}"><span>Tu margen por persona</span><b>${faltaPrecio ? "—" : usd(margenPP)}</b></div>
       <div class="linea"><span>Tu margen total (${n})</span><b>${faltaPrecio ? "—" : usd(margenPP * n)}</b></div>
+      ${prop.transporte.on && textoTrCorto() ? `<div class="linea"><span>Transporte</span><b>${esc(textoTrCorto())}</b></div>` : ""}
       ${(!faltaCliente && hayTour) ? `<div class="linea"><span>Valor por separado</span><b>${usd(costoCli)}</b></div>${costoCli - pp > 0 ? `<div class="linea"><span>El turista ahorra</span><b>${usd(costoCli - pp)}</b></div>` : ""}` : ""}
     </div>
     ${faltaPrecio ? `<p class="nota-precio">Poné el neto de cada tour en "Tours y precios" para ver tu ganancia.</p>`
@@ -436,6 +503,8 @@ function armarPropuesta() {
     v: 1, c: "HYP-" + prop.cod, n: prop.n || 1, pp: prop.pp || 0, b: prop.pp || 0,
     i: prop.i || "en", iva: prop.iva ? 1 : 0, d,
   };
+  const tr = trDeProp();
+  if (tr) P.tr = tr;
   if (prop.ej) P.ej = 1;
   return { P };
 }
@@ -456,7 +525,9 @@ function armarItinerario() {
     if (t.ince) it.ince = t.ince;
     a.push(it);
   }
-  if (!a.length) return { error: "No hay ningún día con tour para el itinerario (marcá al menos uno)." };
+  const tr = trDeProp();
+  if (tr) a.push({ f: inicio, es: tr.es, en: tr.en, tr: { v: tr.v, es: tr.es, en: tr.en, tipo: tr.tipo, d: tr.d }, sa: tr.sa || "", ok: 1, cod: "HY-" + prop.cod });
+  if (!a.length) return { error: "No hay ningún día con tour ni transporte para el itinerario." };
   const P = { v: 1, c: "HYC-" + prop.cod, n: prop.n || 1, i: prop.i || "en", a };
   if (prop.ej) P.ej = 1;
   return { P };
@@ -502,10 +573,93 @@ $$("[data-gen]").forEach(b => b.addEventListener("click", () => {
 }));
 
 /* =========================================================
+   COTIZAR: precio rápido por proveedor o por actividad
+   ========================================================= */
+function cargarCot() {
+  $("#cot-n").value = cot.n ?? "";
+  $("#cot-tel").value = cot.tel || "";
+  $("#cot-n").addEventListener("input", () => { cot.n = numero($("#cot-n").value) || 1; guardarCot(); pintarCotizar(); });
+  $("#cot-tel").addEventListener("input", () => { cot.tel = $("#cot-tel").value; guardarCot(); pintarAccCot(filtradosCot().filter(t => cot.sel.includes(t.id))); });
+}
+
+function pintarCotizar() {
+  const modo = $("#cot-modo");
+  modo.innerHTML = [["proveedor", "Proveedor"], ["interes", "Actividad de interés"]].map(([k, t]) =>
+    `<button type="button" class="op-chip ${cot.modo === k ? "sel" : ""}" data-modo="${k}">${t}</button>`).join("");
+  $$("[data-modo]", modo).forEach(b => b.addEventListener("click", () => { cot.modo = b.dataset.modo; resetSelCot(); guardarCot(); pintarCotizar(); }));
+
+  $("#cot-selector-lbl").textContent = cot.modo === "proveedor" ? "Proveedor" : "Actividad de interés";
+  const selc = $("#cot-selector");
+  if (cot.modo === "proveedor") {
+    const provs = proveedores();
+    selc.innerHTML = provs.length
+      ? provs.map(p => `<button type="button" class="op-chip ${cot.prov === p ? "sel" : ""}" data-prov="${esc(p)}">${esc(p)}</button>`).join("")
+      : `<span class="margen-no">Ningún tour tiene proveedor todavía. Ponéselo en "Tours y precios".</span>`;
+    $$("[data-prov]", selc).forEach(b => b.addEventListener("click", () => { cot.prov = b.dataset.prov; resetSelCot(); guardarCot(); pintarCotizar(); }));
+  } else {
+    selc.innerHTML = INTERESES.map(i => `<button type="button" class="op-chip ${cot.interes === i.k ? "sel" : ""}" data-int="${i.k}">${esc(i.t)}</button>`).join("");
+    $$("[data-int]", selc).forEach(b => b.addEventListener("click", () => { cot.interes = b.dataset.int; resetSelCot(); guardarCot(); pintarCotizar(); }));
+  }
+
+  const fil = filtradosCot();
+  const lista = $("#cot-lista");
+  if (!fil.length) {
+    lista.innerHTML = `<p class="margen-no">${cot.modo === "proveedor" ? "Elegí un proveedor arriba." : "Elegí un tipo de actividad arriba."}</p>`;
+    $("#cot-total").innerHTML = ""; $("#cot-acc").innerHTML = ""; return;
+  }
+  lista.innerHTML = fil.map(t => `
+    <label class="cot-row">
+      <input type="checkbox" data-cot="${esc(t.id)}" ${cot.sel.includes(t.id) ? "checked" : ""}>
+      <span class="cot-info"><b>${esc(t.es || t.en)}</b><span>${esc([t.du, t.sa].filter(Boolean).join(" · ") || "—")}</span></span>
+      <span class="cot-precio"><b>${t.cliente != null ? usd(t.cliente) : "—"}</b>${(t.neto != null && t.cliente != null) ? `<small>margen ${usd(t.cliente - t.neto)}</small>` : ""}</span>
+    </label>`).join("");
+  $$("#cot-lista [data-cot]").forEach(c => c.addEventListener("change", () => {
+    if (c.checked) { if (!cot.sel.includes(c.value)) cot.sel.push(c.value); }
+    else cot.sel = cot.sel.filter(x => x !== c.value);
+    guardarCot(); pintarCotizar();
+  }));
+
+  const sel = fil.filter(t => cot.sel.includes(t.id));
+  const n = cot.n || 1;
+  let cli = 0, net = 0, faltaCli = false;
+  sel.forEach(t => { if (t.cliente == null) faltaCli = true; cli += t.cliente || 0; net += t.neto || 0; });
+  $("#cot-total").innerHTML = `
+    <div class="cot-total">
+      <div class="linea"><span>Actividades</span><b>${sel.length}</b></div>
+      <div class="linea"><span>Por persona</span><b>${faltaCli ? "falta precio" : usd(cli)}</b></div>
+      <div class="linea fuerte"><span>Total (${n} ${n === 1 ? "persona" : "personas"})</span><b>${faltaCli ? "—" : usd(cli * n)}</b></div>
+      <div class="linea"><span>Tu margen (${n})</span><b>${faltaCli ? "—" : usd((cli - net) * n)}</b></div>
+    </div>`;
+  pintarAccCot(sel);
+}
+
+function pintarAccCot(sel) {
+  const acc = $("#cot-acc");
+  if (!sel || !sel.length) { acc.innerHTML = ""; return; }
+  const n = cot.n || 1;
+  let cli = 0, faltaCli = false;
+  sel.forEach(t => { if (t.cliente == null) faltaCli = true; cli += t.cliente || 0; });
+  const lineas = sel.map(t => `• ${t.es || t.en}${t.cliente != null ? ` — ${usd(t.cliente)} por persona` : ""}`).join("\n");
+  const msg = `Cotización Hey You ST\n${lineas}` + (faltaCli ? "" : `\nTotal por persona: ${usd(cli)}${n > 1 ? `\nPara ${n} personas: ${usd(cli * n)}` : ""}`);
+  const wa = cot.tel ? `https://wa.me/${cot.tel.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(msg)}` : "";
+  acc.innerHTML = `
+    <button type="button" class="btn" id="cot-copiar">Copiar cotización</button>
+    ${wa ? `<a class="btn-sec" href="${esc(wa)}" target="_blank" rel="noopener">WhatsApp al turista</a>` : ""}
+    <span class="ok" id="cot-ok" hidden>¡Copiado!</span>`;
+  $("#cot-copiar").addEventListener("click", () => {
+    const avisar = () => { const o = $("#cot-ok"); if (o) { o.hidden = false; setTimeout(() => { o.hidden = true; }, 1600); } };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(msg).then(avisar).catch(avisar);
+    else avisar();
+  });
+}
+
+/* =========================================================
    ARRANQUE
    ========================================================= */
 cargarCampos();
+cargarCot();
 pintarPerfil();
+pintarTransporte();
 pintarFormTags();
 pintarDias();
 pintarPreview();

@@ -28,6 +28,7 @@
     <nav class="tabs" id="tabs" role="tablist">
       <button type="button" role="tab" data-tab="propuesta" class="activo" aria-selected="true">Armar propuesta</button>
       <button type="button" role="tab" data-tab="catalogo" aria-selected="false">Tours y precios</button>
+      <button type="button" role="tab" data-tab="cotizar" aria-selected="false">Cotizar</button>
     </nav>
   </header>
 
@@ -72,6 +73,10 @@
           <div class="checks">
             <label class="check"><input type="checkbox" id="p-iva" checked> Precios con impuestos incluidos</label>
             <label class="check"><input type="checkbox" id="p-ejemplo"> Es solo un ejemplo (marca "estos tours no son reales")</label>
+          </div>
+          <div class="transporte-bloque" style="margin-top:.9rem">
+            <label class="check"><input type="checkbox" id="p-tr"> ¿Necesita transporte?</label>
+            <div id="tr-campos" hidden></div>
           </div>
         </div>
 
@@ -126,6 +131,7 @@
           <label class="campo"><span>Nombre (inglés)</span><input type="text" id="c-en"></label>
           <label class="campo"><span>Duración</span><input type="text" id="c-du" placeholder="2 horas"></label>
           <label class="campo"><span>Punto de salida</span><input type="text" id="c-sa" placeholder="Playa Hermosa"></label>
+          <label class="campo"><span>Proveedor</span><input type="text" id="c-prov" placeholder="Nato · Playa Hermosa"></label>
           <label class="campo campo-ancho"><span>Incluye (español)</span><input type="text" id="c-inc" placeholder="Tabla · instructor local"></label>
           <label class="campo campo-ancho"><span>Incluye (inglés)</span><input type="text" id="c-ince" placeholder="Board · local instructor"></label>
           <div class="campo campo-ancho"><span>Características</span><div class="chips" id="cat-tags"></div></div>
@@ -141,6 +147,32 @@
       <div class="tarjeta">
         <h2>Mis tours</h2>
         <div class="tabla-env"><table class="tabla" id="cat-tabla"></table></div>
+      </div>
+    </section>
+
+    <!-- ============ COTIZAR (precio rápido, sin armar todo el viaje) ============ -->
+    <section id="tab-cotizar" class="tab" role="tabpanel" hidden>
+      <div class="tarjeta">
+        <h2>Cotización rápida</h2>
+        <p class="ayuda">Para dar un precio sin armar todo el viaje: elegí un proveedor o un tipo de actividad.</p>
+        <div class="perfil-bloque">
+          <span class="perfil-lbl">Cotizar por</span>
+          <div class="chips" id="cot-modo"></div>
+        </div>
+        <div class="perfil-bloque">
+          <span class="perfil-lbl" id="cot-selector-lbl">Proveedor</span>
+          <div class="chips" id="cot-selector"></div>
+        </div>
+        <div class="campos">
+          <label class="campo"><span>Personas</span><input type="number" id="cot-n" min="1" step="1" value="2" inputmode="numeric"></label>
+          <label class="campo"><span>WhatsApp del turista (opcional)</span><input type="text" id="cot-tel" placeholder="50688887777" inputmode="numeric"></label>
+        </div>
+      </div>
+      <div class="tarjeta">
+        <h2>Actividades</h2>
+        <div id="cot-lista"></div>
+        <div id="cot-total"></div>
+        <div id="cot-acc" class="gen-botones" style="margin-top:.8rem"></div>
       </div>
     </section>
 

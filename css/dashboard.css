@@ -185,3 +185,15 @@ button.op-chip{font-family:inherit;font-size:.84rem;color:var(--fg)}
 .perfil-lbl{font-size:.78rem;color:var(--muted);font-weight:600;display:block;margin-bottom:.4rem}
 .tag-mini{display:inline-block;font-size:.72rem;color:var(--muted);background:var(--surface-2);
   border:1px solid var(--line);border-radius:999px;padding:.05rem .45rem;white-space:nowrap}
+
+/* --- cotización rápida --- */
+.cot-row{display:flex;align-items:center;gap:.7rem;padding:.6rem 0;border-top:1px solid var(--line);cursor:pointer}
+.cot-row:first-child{border-top:0}
+.cot-row input{width:auto;margin:0;flex:0 0 auto}
+.cot-info{min-width:0;flex:1}
+.cot-info b{font-weight:600}
+.cot-info span{display:block;font-size:.78rem;color:var(--muted)}
+.cot-precio{text-align:right;font-variant-numeric:tabular-nums;flex:0 0 auto}
+.cot-precio b{display:block}
+.cot-precio small{color:var(--muted);font-size:.72rem}
+.cot-total{margin-top:.8rem;padding-top:.8rem;border-top:2px solid var(--line);display:grid;gap:.4rem}
