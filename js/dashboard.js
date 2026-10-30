@@ -360,15 +360,19 @@ const nombreTour = (t) => (prop.i === "en" && t.en) || t.es || t.en || "(sin nom
 function pintarPreview() {
   const inicio = validISO(prop.inicio) ? prop.inicio : hoyISO();
   const n = prop.n || 0, pp = prop.pp || 0;
-  let costo = 0, faltaPrecio = false;
+  let costo = 0, costoCli = 0, faltaPrecio = false, faltaCliente = false, hayTour = false;
   const cal = prop.dias.map((d, i) => {
     const fecha = sumarDias(inicio, i);
     if (d.libre) return { fecha, libre: true, txt: d.libreNombre || "Día libre" };
     const ts = d.tours.map(tourPorId).filter(Boolean);
     if (ts.length) {
+      hayTour = true;
       const netos = ts.map(t => t.neto);
       if (netos.some(x => x == null)) faltaPrecio = true;
       costo += Math.max(0, ...netos.map(x => x || 0));
+      const clis = ts.map(t => t.cliente);
+      if (clis.some(x => x == null)) faltaCliente = true;
+      costoCli += Math.max(0, ...clis.map(x => x || 0));
     }
     return { fecha, libre: false, txt: ts.length ? ts.map(nombreTour).join("  /  ") : "—", vacio: !ts.length };
   });
@@ -390,10 +394,11 @@ function pintarPreview() {
       </div>`).join("")}
     <div class="resumen">
       <div class="linea"><span>Personas</span><b>${n}</b></div>
-      <div class="linea"><span>Precio por persona</span><b>${usd(pp)}</b></div>
+      <div class="linea"><span>Presupuesto por persona</span><b>${usd(pp)}</b></div>
       <div class="linea"><span>Costo por persona (peor caso)</span><b>${faltaPrecio ? "falta neto" : usd(costo)}</b></div>
       <div class="linea fuerte ${malo ? "margen-bad" : ""}"><span>Tu margen por persona</span><b>${faltaPrecio ? "—" : usd(margenPP)}</b></div>
       <div class="linea"><span>Tu margen total (${n})</span><b>${faltaPrecio ? "—" : usd(margenPP * n)}</b></div>
+      ${(!faltaCliente && hayTour) ? `<div class="linea"><span>Valor por separado</span><b>${usd(costoCli)}</b></div>${costoCli - pp > 0 ? `<div class="linea"><span>El turista ahorra</span><b>${usd(costoCli - pp)}</b></div>` : ""}` : ""}
     </div>
     ${faltaPrecio ? `<p class="nota-precio">Poné el neto de cada tour en "Tours y precios" para ver tu ganancia.</p>`
       : malo ? `<p class="nota-precio">El precio por persona no cubre el costo del día más caro: subí el precio o cambiá los tours.</p>`
