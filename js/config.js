@@ -125,4 +125,4 @@ export const ESTILOS = {
   puravida: { url: OFM + "bright", paleta: PALETA_PURAVIDA },
   noche:    { url: OFM + "dark" },
 };
-export const ESTILO = "noche";
+export const ESTILO = "puravida";
