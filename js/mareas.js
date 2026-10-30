@@ -3,7 +3,7 @@
    La matemática de la marea (Open-Meteo) y su dibujo: las horas buenas de hoy,
    los tramos para surfear y la curva del día. La usan el panel y el laboratorio.
    ========================================================= */
-import { txt, enIngles, traducido, ETAPAS_EN } from "./i18n.js";
+import { txt, enIngles, ETAPAS_EN } from "./i18n.js";
 import { esc } from "./util.js";
 
 // ---------- Ideal para ir hoy ----------
