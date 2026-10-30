@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Panel · Hey You ST</title>
+  <meta name="description" content="Panel del agente de Hey You ST: tus tours y precios, y la propuesta lista para mandarle al turista por WhatsApp.">
+  <!-- Herramienta interna de Juan: no es para el turista, que no la indexen -->
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/svg+xml" href="img/marca/hey-you-st.svg">
+  <link rel="apple-touch-icon" href="img/marca/hey-you-st-180.png">
+  <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+
+  <!-- El panel es de Juan (el agente), no del turista: va en español y no se enlaza desde el mapa.
+       Todo vive en el navegador (localStorage); nada se guarda en un servidor. Arma la propuesta y
+       el itinerario con el MISMO formato de link que leen propuesta.html e itinerario.html
+       (js/propuesta.js, js/itinerario.js): un JSON en base64url en #p=. -->
+  <header class="barra">
+    <div class="marca">
+      <img src="img/marca/hey-you-st.svg" alt="">
+      <div class="marca-txt">
+        <strong>Hey You ST</strong>
+        <span>Panel del agente</span>
+      </div>
+    </div>
+    <nav class="tabs" id="tabs" role="tablist">
+      <button type="button" role="tab" data-tab="propuesta" class="activo" aria-selected="true">Armar propuesta</button>
+      <button type="button" role="tab" data-tab="catalogo" aria-selected="false">Tours y precios</button>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- ============ ARMAR PROPUESTA ============ -->
+    <section id="tab-propuesta" class="tab" role="tabpanel">
+      <div class="col-editor">
+
+        <div class="tarjeta">
+          <h2>El viaje</h2>
+          <div class="campos">
+            <label class="campo">
+              <span>Personas</span>
+              <input type="number" id="p-personas" min="1" step="1" value="2" inputmode="numeric">
+            </label>
+            <label class="campo">
+              <span>Precio por persona (USD)</span>
+              <input type="number" id="p-pp" min="0" step="1" value="150" inputmode="numeric">
+            </label>
+            <label class="campo">
+              <span>Fecha de inicio</span>
+              <input type="date" id="p-inicio">
+            </label>
+            <label class="campo">
+              <span>Idioma del turista</span>
+              <select id="p-idioma">
+                <option value="en">Inglés</option>
+                <option value="es">Español</option>
+              </select>
+            </label>
+            <label class="campo">
+              <span>WhatsApp del turista (opcional)</span>
+              <input type="text" id="p-tel" placeholder="50688887777" inputmode="numeric">
+            </label>
+          </div>
+          <div class="checks">
+            <label class="check"><input type="checkbox" id="p-iva" checked> Precios con impuestos incluidos</label>
+            <label class="check"><input type="checkbox" id="p-ejemplo"> Es solo un ejemplo (marca "estos tours no son reales")</label>
+          </div>
+        </div>
+
+        <div class="tarjeta">
+          <div class="tarjeta-cab">
+            <h2>Los días</h2>
+            <button type="button" class="btn btn-sec" id="add-dia">+ Agregar día</button>
+          </div>
+          <p class="ayuda">Para cada día, elegí uno o varios tours (el turista escoge entre ellos y cualquier combinación sale al mismo precio), o marcalo como día libre.</p>
+          <div id="dias"></div>
+        </div>
+
+      </div>
+
+      <!-- Lo que ve/hace el agente: vista previa + generar links -->
+      <aside class="col-preview">
+        <div class="tarjeta preview" id="preview"></div>
+
+        <div class="tarjeta generar">
+          <h2>Mandarle al turista</h2>
+          <div class="gen-botones">
+            <button type="button" class="btn" data-gen="propuesta">Generar propuesta</button>
+            <button type="button" class="btn btn-sec" data-gen="itinerario">Generar itinerario</button>
+          </div>
+          <div id="salida" class="salida" hidden></div>
+        </div>
+      </aside>
+    </section>
+
+    <!-- ============ TOURS Y PRECIOS ============ -->
+    <section id="tab-catalogo" class="tab" role="tabpanel" hidden>
+      <div class="tarjeta">
+        <div class="tarjeta-cab">
+          <h2 id="cat-titulo">Agregar tour</h2>
+          <button type="button" class="btn-link" id="cat-reseed" title="Volver a cargar los tours de data/tours.js">Recargar desde el mapa</button>
+        </div>
+        <div class="campos">
+          <label class="campo"><span>Nombre (español)</span><input type="text" id="c-es"></label>
+          <label class="campo"><span>Nombre (inglés)</span><input type="text" id="c-en"></label>
+          <label class="campo"><span>Duración</span><input type="text" id="c-du" placeholder="2 horas"></label>
+          <label class="campo"><span>Punto de salida</span><input type="text" id="c-sa" placeholder="Playa Hermosa"></label>
+          <label class="campo campo-ancho"><span>Incluye (español)</span><input type="text" id="c-inc" placeholder="Tabla · instructor local"></label>
+          <label class="campo campo-ancho"><span>Incluye (inglés)</span><input type="text" id="c-ince" placeholder="Board · local instructor"></label>
+          <label class="campo"><span>Neto del proveedor (USD)</span><input type="number" id="c-neto" min="0" step="1" inputmode="numeric"></label>
+          <label class="campo"><span>Precio al cliente (USD)</span><input type="number" id="c-cliente" min="0" step="1" inputmode="numeric"></label>
+        </div>
+        <div class="gen-botones">
+          <button type="button" class="btn" id="cat-guardar">Guardar tour</button>
+          <button type="button" class="btn-link" id="cat-cancelar" hidden>Cancelar edición</button>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Mis tours</h2>
+        <div class="tabla-env"><table class="tabla" id="cat-tabla"></table></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Los tours reales del mapa, para sembrar el catálogo la primera vez -->
+  <script src="data/tours.js"></script>
+  <!-- El WhatsApp de Juan -->
+  <script src="js/contacto.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>
