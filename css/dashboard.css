@@ -176,3 +176,12 @@ input:focus,select:focus{outline:2px solid var(--sea);outline-offset:1px;border-
 /* aviso general */
 .aviso-dash{background:color-mix(in srgb, var(--bad) 12%, var(--surface));border:1px solid var(--bad);
   color:var(--fg);border-radius:9px;padding:.6rem .8rem;font-size:.85rem}
+
+/* --- perfil del turista y características (chips) --- */
+.chips{display:flex;flex-wrap:wrap;gap:.4rem}
+button.op-chip{font-family:inherit;font-size:.84rem;color:var(--fg)}
+.op-chip.match:not(.sel){border-color:var(--sea);color:var(--sea)}
+.perfil-bloque{margin-bottom:.9rem}
+.perfil-lbl{font-size:.78rem;color:var(--muted);font-weight:600;display:block;margin-bottom:.4rem}
+.tag-mini{display:inline-block;font-size:.72rem;color:var(--muted);background:var(--surface-2);
+  border:1px solid var(--line);border-radius:999px;padding:.05rem .45rem;white-space:nowrap}

@@ -49,8 +49,12 @@
               <input type="number" id="p-pp" min="0" step="1" value="150" inputmode="numeric">
             </label>
             <label class="campo">
-              <span>Fecha de inicio</span>
+              <span>Llegada</span>
               <input type="date" id="p-inicio">
+            </label>
+            <label class="campo">
+              <span>Salida</span>
+              <input type="date" id="p-salida">
             </label>
             <label class="campo">
               <span>Idioma del turista</span>
@@ -64,10 +68,24 @@
               <input type="text" id="p-tel" placeholder="50688887777" inputmode="numeric">
             </label>
           </div>
+          <p class="ayuda" id="estadia-info" style="margin:.9rem 0 0"></p>
           <div class="checks">
             <label class="check"><input type="checkbox" id="p-iva" checked> Precios con impuestos incluidos</label>
             <label class="check"><input type="checkbox" id="p-ejemplo"> Es solo un ejemplo (marca "estos tours no son reales")</label>
           </div>
+        </div>
+
+        <div class="tarjeta">
+          <h2>El turista</h2>
+          <div class="perfil-bloque">
+            <span class="perfil-lbl">Viaja con</span>
+            <div class="chips" id="perfil-segmento"></div>
+          </div>
+          <div class="perfil-bloque">
+            <span class="perfil-lbl">Qué le gusta</span>
+            <div class="chips" id="perfil-intereses"></div>
+          </div>
+          <p class="ayuda" id="perfil-sugerencias" style="margin:.4rem 0 0"></p>
         </div>
 
         <div class="tarjeta">
@@ -110,6 +128,7 @@
           <label class="campo"><span>Punto de salida</span><input type="text" id="c-sa" placeholder="Playa Hermosa"></label>
           <label class="campo campo-ancho"><span>Incluye (español)</span><input type="text" id="c-inc" placeholder="Tabla · instructor local"></label>
           <label class="campo campo-ancho"><span>Incluye (inglés)</span><input type="text" id="c-ince" placeholder="Board · local instructor"></label>
+          <div class="campo campo-ancho"><span>Características</span><div class="chips" id="cat-tags"></div></div>
           <label class="campo"><span>Neto del proveedor (USD)</span><input type="number" id="c-neto" min="0" step="1" inputmode="numeric"></label>
           <label class="campo"><span>Precio al cliente (USD)</span><input type="number" id="c-cliente" min="0" step="1" inputmode="numeric"></label>
         </div>

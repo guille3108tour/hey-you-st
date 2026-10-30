@@ -2,11 +2,14 @@
    Hey You ST · Panel del agente
    =========================================================
    Herramienta de Juan, en el navegador, sin servidor. Hace tres cosas:
-     1. Guarda tus tours y sus precios (neto del proveedor y precio al cliente) → tu margen.
-     2. Arma la propuesta día por día y te muestra el calendario ordenado y la ganancia.
-     3. Genera el link de la propuesta y del itinerario, con el MISMO formato que leen
-        propuesta.html e itinerario.html (un JSON en base64url en #p=), listo para WhatsApp.
-   Todo se guarda en localStorage de ESTE navegador. Nada viaja a un servidor. */
+     1. Guarda tus tours con precios (neto del proveedor y precio al cliente) y sus
+        caracteristicas (surf, food, sunset...). Muestra el margen por tour.
+     2. Toma el perfil del turista -estadia, con quien viaja, cuantos, que le gusta- y
+        arma la propuesta dia por dia, con el calendario ordenado y el margen del paquete.
+        Segun los intereses, marca que tours le calzan.
+     3. Genera el link de propuesta e itinerario, con el MISMO formato base64url que leen
+        propuesta.html e itinerario.html, listo para WhatsApp.
+   Todo se guarda en localStorage de ese navegador. Nada viaja a un servidor. */
 
 "use strict";
 
@@ -22,64 +25,67 @@ const isoDe = (d) => `${d.getFullYear()}-${dosDig(d.getMonth() + 1)}-${dosDig(d.
 const hoyISO = () => isoDe(new Date());
 const parseISO = (s) => { const p = String(s).split("-").map(Number); return new Date(p[0], (p[1] || 1) - 1, p[2] || 1); };
 const sumarDias = (iso, n) => { const d = parseISO(iso); d.setDate(d.getDate() + n); return isoDe(d); };
+const diffDias = (a, z) => Math.round((parseISO(z) - parseISO(a)) / 86400000);
 const validISO = (s) => /^\d{4}-\d{2}-\d{2}$/.test(s || "");
 const DIAS = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
 const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
-function fechaCorta(iso) {
-  if (!validISO(iso)) return "";
-  const d = parseISO(iso);
-  return `${DIAS[d.getDay()]} ${d.getDate()} ${MESES[d.getMonth()]}`;
-}
+function fechaCorta(iso) { if (!validISO(iso)) return ""; const d = parseISO(iso); return `${DIAS[d.getDay()]} ${d.getDate()} ${MESES[d.getMonth()]}`; }
 
-// --- base64url: mismo ida y vuelta que js/propuesta.js (UTF-8 → base64 → url-safe, sin padding) ---
+// --- perfil: con quien viaja y que le gusta (sirven para elegir tours; no viajan en el link) ---
+const SEGMENTOS = [
+  { k: "solo", t: "Solo" }, { k: "pareja", t: "Pareja" }, { k: "familia", t: "Familia" }, { k: "amigos", t: "Amigos" },
+];
+const INTERESES = [
+  { k: "relax", t: "Relajación" }, { k: "tours", t: "Tours" }, { k: "extremo", t: "Extremo" }, { k: "surf", t: "Surf" },
+  { k: "caminata", t: "Caminatas chill" }, { k: "sunset", t: "Sunset" }, { k: "food", t: "Food" },
+];
+const etiquetaInteres = (k) => (INTERESES.find(i => i.k === k) || {}).t || k;
+
+// --- base64url: mismo ida y vuelta que js/propuesta.js ---
 function b64url(obj) {
   const bytes = new TextEncoder().encode(JSON.stringify(obj));
   let bin = "";
   bytes.forEach(b => { bin += String.fromCharCode(b); });
   return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
-// La URL completa de otra página del sitio (para copiar y mandar)
 const urlDe = (pagina, hash) => new URL(pagina, location.href).href + "#p=" + hash;
 
 // --- almacenamiento ---
 const LS_CAT = "hey-dash-catalogo";
 const LS_PROP = "hey-dash-propuesta";
 function leerLS(clave) { try { return JSON.parse(localStorage.getItem(clave) || "null"); } catch { return null; } }
-function guardarLS(clave, v) { try { localStorage.setItem(clave, JSON.stringify(v)); } catch { /* modo privado: vale para esta visita */ } }
+function guardarLS(clave, v) { try { localStorage.setItem(clave, JSON.stringify(v)); } catch { /* modo privado */ } }
 
-// Siembra el catálogo desde los tours reales del mapa (data/tours.js) la primera vez
+// Etiquetas de ejemplo para sembrar los tours del mapa; el agente las ajusta a gusto
+const TAGS_SEMILLA = { "surf-hermosa": ["surf"], "isla-tortuga": ["tours", "food", "relax"], "pesca-cabuya": ["tours", "food"] };
 function sembrarCatalogo() {
   if (typeof TOURS === "undefined") return [];
   return TOURS.map(t => ({
     id: t.id,
-    es: t.titulo || "",
-    en: (t.en && t.en.titulo) || "",
-    du: t.duracion || "",
-    due: (t.en && t.en.duracion) || "",
+    es: t.titulo || "", en: (t.en && t.en.titulo) || "",
+    du: t.duracion || "", due: (t.en && t.en.duracion) || "",
     sa: t.salida || "",
     inc: Array.isArray(t.incluye) ? t.incluye.join(" · ") : "",
     ince: t.en && Array.isArray(t.en.incluye) ? t.en.incluye.join(" · ") : "",
-    neto: null,
-    cliente: null,
+    tags: TAGS_SEMILLA[t.id] ? [...TAGS_SEMILLA[t.id]] : [],
+    neto: null, cliente: null,
   }));
 }
 
 let catalogo = leerLS(LS_CAT) || sembrarCatalogo();
 const nuevoDia = () => ({ libre: false, hora: "", ok: false, tours: [], libreNombre: "", libreTip: "" });
 let prop = leerLS(LS_PROP) || {
-  n: 2, pp: 150, inicio: hoyISO(), i: "en", iva: true, ej: false, tel: "",
+  n: 2, pp: 150, inicio: hoyISO(), salida: "", segmento: "", intereses: [], i: "en", iva: true, ej: false, tel: "",
   dias: [nuevoDia(), nuevoDia(), nuevoDia()],
 };
-// Un código estable por propuesta, para que el agente lo reconozca en los dos links
+if (!Array.isArray(prop.intereses)) prop.intereses = [];
+function nuevoCodigo() { const d = new Date(); const r = Math.random().toString(36).slice(2, 6); return `${dosDig(d.getMonth() + 1)}${dosDig(d.getDate())}-${r}`; }
 if (!prop.cod) prop.cod = nuevoCodigo();
-function nuevoCodigo() {
-  const d = new Date();
-  const r = Math.random().toString(36).slice(2, 6);
-  return `${dosDig(d.getMonth() + 1)}${dosDig(d.getDate())}-${r}`;
-}
 const guardarCat = () => guardarLS(LS_CAT, catalogo);
 const guardarProp = () => guardarLS(LS_PROP, prop);
 const tourPorId = (id) => catalogo.find(t => t.id === id);
+// Tours cuyas caracteristicas coinciden con lo que le gusta al turista
+const calza = (t) => prop.intereses.length && (t.tags || []).some(x => prop.intereses.includes(x));
 
 /* =========================================================
    PESTAÑAS
@@ -93,9 +99,24 @@ $$("#tabs button").forEach(b => b.addEventListener("click", () => {
 }));
 
 /* =========================================================
-   CATÁLOGO: tus tours y precios
+   CATÁLOGO: tus tours, precios y características
    ========================================================= */
 let editandoId = null;
+let formTags = [];   // las características que se están marcando en el formulario
+
+function chipsTags(sel, marcadas, onToggle) {
+  const cont = $(sel);
+  cont.innerHTML = INTERESES.map(i => `
+    <button type="button" class="op-chip ${marcadas.includes(i.k) ? "sel" : ""}" data-tag="${i.k}">${esc(i.t)}</button>`).join("");
+  $$("[data-tag]", cont).forEach(b => b.addEventListener("click", () => onToggle(b.dataset.tag)));
+}
+
+function pintarFormTags() {
+  chipsTags("#cat-tags", formTags, (k) => {
+    formTags = formTags.includes(k) ? formTags.filter(x => x !== k) : [...formTags, k];
+    pintarFormTags();
+  });
+}
 
 function pintarCatalogo() {
   const tabla = $("#cat-tabla");
@@ -105,7 +126,7 @@ function pintarCatalogo() {
   }
   tabla.innerHTML = `
     <thead><tr>
-      <th>Tour</th><th>Duración</th><th class="num">Neto</th><th class="num">Cliente</th><th class="num">Margen</th><th></th>
+      <th>Tour</th><th>Características</th><th class="num">Neto</th><th class="num">Cliente</th><th class="num">Margen</th><th></th>
     </tr></thead>
     <tbody>
       ${catalogo.map(t => {
@@ -114,7 +135,7 @@ function pintarCatalogo() {
         const pct = hay && t.cliente ? Math.round((m / t.cliente) * 100) : null;
         return `<tr>
           <td><b>${esc(t.es || t.en || "(sin nombre)")}</b>${t.sa ? `<br><span class="margen-no">${esc(t.sa)}</span>` : ""}</td>
-          <td>${esc(t.du || "—")}</td>
+          <td>${(t.tags || []).length ? (t.tags || []).map(k => `<span class="tag-mini">${esc(etiquetaInteres(k))}</span>`).join(" ") : "<span class='margen-no'>—</span>"}</td>
           <td class="num">${t.neto != null ? usd(t.neto) : "—"}</td>
           <td class="num">${t.cliente != null ? usd(t.cliente) : "—"}</td>
           <td class="num ${hay ? "margen-ok" : "margen-no"}">${hay ? `${usd(m)}${pct != null ? ` · ${pct}%` : ""}` : "—"}</td>
@@ -137,6 +158,7 @@ function cargarEnFormulario(id) {
   $("#c-du").value = t.du || ""; $("#c-sa").value = t.sa || "";
   $("#c-inc").value = t.inc || ""; $("#c-ince").value = t.ince || "";
   $("#c-neto").value = t.neto ?? ""; $("#c-cliente").value = t.cliente ?? "";
+  formTags = [...(t.tags || [])]; pintarFormTags();
   $("#cat-titulo").textContent = "Editar tour";
   $("#cat-cancelar").hidden = false;
   $("#c-es").focus();
@@ -146,6 +168,7 @@ function cargarEnFormulario(id) {
 function limpiarFormulario() {
   editandoId = null;
   ["c-es", "c-en", "c-du", "c-sa", "c-inc", "c-ince", "c-neto", "c-cliente"].forEach(id => { $("#" + id).value = ""; });
+  formTags = []; pintarFormTags();
   $("#cat-titulo").textContent = "Agregar tour";
   $("#cat-cancelar").hidden = true;
 }
@@ -158,11 +181,11 @@ $("#cat-guardar").addEventListener("click", () => {
     du: $("#c-du").value.trim(), due: "",
     sa: $("#c-sa").value.trim(),
     inc: $("#c-inc").value.trim(), ince: $("#c-ince").value.trim(),
+    tags: [...formTags],
     neto: numero($("#c-neto").value), cliente: numero($("#c-cliente").value),
   };
   if (editandoId) {
-    const t = tourPorId(editandoId);
-    Object.assign(t, datos);
+    Object.assign(tourPorId(editandoId), datos);
   } else {
     const base = (es || en).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 24) || "tour";
     let id = base, k = 2;
@@ -172,14 +195,14 @@ $("#cat-guardar").addEventListener("click", () => {
   guardarCat();
   limpiarFormulario();
   pintarCatalogo();
-  pintarDias();      // los chips de los días se refrescan con el catálogo nuevo
+  pintarDias();
   pintarPreview();
 });
 
 $("#cat-cancelar").addEventListener("click", limpiarFormulario);
 
 $("#cat-reseed").addEventListener("click", () => {
-  if (!confirm("Esto reemplaza tu catálogo con los tours de data/tours.js (perdés los precios que hayas puesto). ¿Seguir?")) return;
+  if (!confirm("Esto reemplaza tu catálogo con los tours de data/tours.js (perdés precios y características que hayas puesto). ¿Seguir?")) return;
   catalogo = sembrarCatalogo();
   guardarCat();
   limpiarFormulario();
@@ -199,6 +222,30 @@ function borrarTour(id) {
 }
 
 /* =========================================================
+   PERFIL DEL TURISTA: con quién viaja y qué le gusta
+   ========================================================= */
+function pintarPerfil() {
+  const seg = $("#perfil-segmento");
+  seg.innerHTML = SEGMENTOS.map(s => `<button type="button" class="op-chip ${prop.segmento === s.k ? "sel" : ""}" data-seg="${s.k}">${esc(s.t)}</button>`).join("");
+  $$("[data-seg]", seg).forEach(b => b.addEventListener("click", () => {
+    prop.segmento = prop.segmento === b.dataset.seg ? "" : b.dataset.seg;
+    guardarProp(); pintarPerfil();
+  }));
+
+  chipsTags("#perfil-intereses", prop.intereses, (k) => {
+    prop.intereses = prop.intereses.includes(k) ? prop.intereses.filter(x => x !== k) : [...prop.intereses, k];
+    guardarProp(); pintarPerfil(); pintarDias();   // los días resaltan los que calzan
+  });
+
+  const sug = catalogo.filter(calza);
+  $("#perfil-sugerencias").innerHTML = prop.intereses.length
+    ? (sug.length
+        ? `Le calzan: ${sug.map(t => `<b>${esc(t.es || t.en)}</b>`).join(" · ")}`
+        : "Ningún tour del catálogo calza con esos intereses todavía — etiquetalos en \"Tours y precios\".")
+    : "Marcá los intereses y te digo qué tours le calzan.";
+}
+
+/* =========================================================
    PROPUESTA: datos del viaje
    ========================================================= */
 function bindCampo(sel, clave, tipo) {
@@ -207,7 +254,7 @@ function bindCampo(sel, clave, tipo) {
     if (tipo === "num") prop[clave] = numero(el.value);
     else if (tipo === "bool") prop[clave] = el.checked;
     else prop[clave] = el.value;
-    if (clave === "inicio") pintarDias();   // recalcula las fechas de cada día
+    if (clave === "inicio" || clave === "salida") { ajustarDiasAEstadia(); pintarDias(); }
     guardarProp(); pintarPreview();
   };
   el.addEventListener("input", asignar);
@@ -217,6 +264,7 @@ function cargarCampos() {
   $("#p-personas").value = prop.n ?? "";
   $("#p-pp").value = prop.pp ?? "";
   $("#p-inicio").value = validISO(prop.inicio) ? prop.inicio : hoyISO();
+  $("#p-salida").value = validISO(prop.salida) ? prop.salida : "";
   $("#p-idioma").value = prop.i || "en";
   $("#p-tel").value = prop.tel || "";
   $("#p-iva").checked = !!prop.iva;
@@ -225,6 +273,7 @@ function cargarCampos() {
 bindCampo("#p-personas", "n", "num");
 bindCampo("#p-pp", "pp", "num");
 bindCampo("#p-inicio", "inicio", "txt");
+bindCampo("#p-salida", "salida", "txt");
 bindCampo("#p-idioma", "i", "txt");
 bindCampo("#p-tel", "tel", "txt");
 bindCampo("#p-iva", "iva", "bool");
@@ -232,17 +281,36 @@ bindCampo("#p-ejemplo", "ej", "bool");
 
 $("#add-dia").addEventListener("click", () => { prop.dias.push(nuevoDia()); guardarProp(); pintarDias(); pintarPreview(); });
 
+// La estadía (llegada → salida) define cuántos días tiene el viaje; preserva lo ya armado
+function ajustarDiasAEstadia() {
+  if (!validISO(prop.inicio) || !validISO(prop.salida)) return;
+  let dur = diffDias(prop.inicio, prop.salida) + 1;
+  if (dur < 1) return;               // la salida es antes de la llegada: se avisa aparte
+  dur = Math.min(dur, 30);
+  while (prop.dias.length < dur) prop.dias.push(nuevoDia());
+  if (prop.dias.length > dur) prop.dias.length = dur;
+}
+function textoEstadia() {
+  if (!validISO(prop.inicio)) return "";
+  if (!validISO(prop.salida)) return `Llegada: ${fechaCorta(prop.inicio)}. Agregá la salida para armar los días solos.`;
+  const dur = diffDias(prop.inicio, prop.salida) + 1;
+  if (dur < 1) return "⚠️ La salida es antes de la llegada.";
+  return `Estadía: ${dur} ${dur === 1 ? "día" : "días"} · ${fechaCorta(prop.inicio)} → ${fechaCorta(prop.salida)}`;
+}
+
 // --- días: tarjeta por día, con chips de tours o campos de día libre ---
 function pintarDias() {
+  const info = $("#estadia-info");
+  if (info) info.textContent = textoEstadia();
   const cont = $("#dias");
   const inicio = validISO(prop.inicio) ? prop.inicio : hoyISO();
   cont.innerHTML = prop.dias.map((d, i) => {
     const fecha = sumarDias(inicio, i);
     const chips = catalogo.length
       ? catalogo.map(t => `
-          <label class="op-chip ${d.tours.includes(t.id) ? "sel" : ""}">
+          <label class="op-chip ${d.tours.includes(t.id) ? "sel" : ""} ${calza(t) ? "match" : ""}">
             <input type="checkbox" data-dia="${i}" value="${esc(t.id)}" ${d.tours.includes(t.id) ? "checked" : ""} ${d.libre ? "disabled" : ""}>
-            ${esc(t.es || t.en)}
+            ${calza(t) ? "★ " : ""}${esc(t.es || t.en)}
           </label>`).join("")
       : `<span class="margen-no">No hay tours en el catálogo. Agregalos en "Tours y precios".</span>`;
     return `
@@ -292,7 +360,6 @@ const nombreTour = (t) => (prop.i === "en" && t.en) || t.es || t.en || "(sin nom
 function pintarPreview() {
   const inicio = validISO(prop.inicio) ? prop.inicio : hoyISO();
   const n = prop.n || 0, pp = prop.pp || 0;
-  // Costo "peor caso": el turista elige la opción más cara de cada día
   let costo = 0, faltaPrecio = false;
   const cal = prop.dias.map((d, i) => {
     const fecha = sumarDias(inicio, i);
@@ -308,8 +375,11 @@ function pintarPreview() {
 
   const margenPP = pp - costo;
   const malo = margenPP < 0;
+  const seg = (SEGMENTOS.find(s => s.k === prop.segmento) || {}).t;
+  const ctx = [seg, prop.intereses.map(etiquetaInteres).join(", ")].filter(Boolean).join(" · ");
   $("#preview").innerHTML = `
     <h2>Calendario · ${esc(prop.cod)}</h2>
+    ${ctx ? `<p class="nota-precio" style="margin:-.3rem 0 .6rem">${esc(ctx)}</p>` : ""}
     ${cal.map((c, i) => `
       <div class="cal-dia ${c.libre ? "cal-libre" : ""}">
         <span class="cal-n">${c.libre ? "🏖️" : i + 1}</span>
@@ -370,7 +440,7 @@ function armarItinerario() {
   const a = [];
   for (let i = 0; i < prop.dias.length; i++) {
     const dia = prop.dias[i];
-    if (dia.libre) continue;                 // los días libres los rellena solo itinerario.html
+    if (dia.libre) continue;
     const t = dia.tours.map(tourPorId).filter(Boolean)[0];
     if (!t) continue;
     const it = { f: sumarDias(inicio, i), es: t.es || t.en, en: t.en || t.es, cod: "HY-" + prop.cod, ok: dia.ok ? 1 : 0 };
@@ -406,17 +476,15 @@ function pintarSalida(tipo, pagina, res) {
       ${wa ? `<a class="btn-sec" href="${esc(wa)}" target="_blank" rel="noopener">WhatsApp al turista</a>` : ""}
     </div>
     <span class="ok" id="salida-ok" hidden>¡Copiado!</span>`;
+  const avisar = () => { const o = $("#salida-ok"); if (o) { o.hidden = false; setTimeout(() => { o.hidden = true; }, 1600); } };
   const copiar = (texto) => {
-    const avisar = () => { const o = $("#salida-ok"); if (o) { o.hidden = false; setTimeout(() => { o.hidden = true; }, 1600); } };
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(texto).then(avisar).catch(() => seleccionar(texto, avisar));
-    } else seleccionar(texto, avisar);
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(texto).then(avisar).catch(() => seleccionar(avisar));
+    else seleccionar(avisar);
   };
   $("#copiar-link").addEventListener("click", () => copiar(link));
   $("#copiar-msg").addEventListener("click", () => copiar(msg));
 }
-// Respaldo de copiado donde el portapapeles está bloqueado: selecciona el texto del link
-function seleccionar(texto, cb) {
+function seleccionar(cb) {
   const el = $("#salida-link");
   if (el) { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
   try { document.execCommand("copy"); } catch { /* el agente copia a mano */ }
@@ -432,5 +500,7 @@ $$("[data-gen]").forEach(b => b.addEventListener("click", () => {
    ARRANQUE
    ========================================================= */
 cargarCampos();
+pintarPerfil();
+pintarFormTags();
 pintarDias();
 pintarPreview();
