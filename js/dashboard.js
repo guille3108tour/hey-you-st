@@ -68,11 +68,18 @@ function sembrarCatalogo() {
     sa: t.salida || "",
     inc: Array.isArray(t.incluye) ? t.incluye.join(" · ") : "",
     ince: t.en && Array.isArray(t.en.incluye) ? t.en.incluye.join(" · ") : "",
+    desc: t.texto || "", dese: (t.en && t.en.texto) || "",
     tags: TAGS_SEMILLA[t.id] ? [...TAGS_SEMILLA[t.id]] : [],
     prov: t.local || PROV_SEMILLA[t.id] || "",
-    neto: null, cliente: null,
+    neto: null, cliente: null,       // precio por persona cuando va solo (1)
+    netoG: null, clienteG: null,     // precio por persona en grupo (2+), opcional
   }));
 }
+// A partir de cuántas personas se usa el precio de grupo
+const UMBRAL_GRUPO = 2;
+const porTamano = (ind, grupo, n) => (n >= UMBRAL_GRUPO && grupo != null) ? grupo : ind;
+const netoDe = (t, n) => porTamano(t.neto, t.netoG, n);
+const clienteDe = (t, n) => porTamano(t.cliente, t.clienteG, n);
 
 let catalogo = leerLS(LS_CAT) || sembrarCatalogo();
 const nuevoDia = () => ({ libre: false, hora: "", ok: false, tours: [], libreNombre: "", libreTip: "" });
@@ -153,8 +160,8 @@ function pintarCatalogo() {
         return `<tr>
           <td><b>${esc(t.es || t.en || "(sin nombre)")}</b>${(t.prov || t.sa) ? `<br><span class="margen-no">${esc([t.prov, t.sa].filter(Boolean).join(" · "))}</span>` : ""}</td>
           <td>${(t.tags || []).length ? (t.tags || []).map(k => `<span class="tag-mini">${esc(etiquetaInteres(k))}</span>`).join(" ") : "<span class='margen-no'>—</span>"}</td>
-          <td class="num">${t.neto != null ? usd(t.neto) : "—"}</td>
-          <td class="num">${t.cliente != null ? usd(t.cliente) : "—"}</td>
+          <td class="num">${t.neto != null ? usd(t.neto) : "—"}${t.netoG != null ? `<br><small class="margen-no">grupo ${usd(t.netoG)}</small>` : ""}</td>
+          <td class="num">${t.cliente != null ? usd(t.cliente) : "—"}${t.clienteG != null ? `<br><small class="margen-no">grupo ${usd(t.clienteG)}</small>` : ""}</td>
           <td class="num ${hay ? "margen-ok" : "margen-no"}">${hay ? `${usd(m)}${pct != null ? ` · ${pct}%` : ""}` : "—"}</td>
           <td class="acc-td">
             <button type="button" class="mini editar" data-ed="${esc(t.id)}">Editar</button>
@@ -174,7 +181,9 @@ function cargarEnFormulario(id) {
   $("#c-es").value = t.es || ""; $("#c-en").value = t.en || "";
   $("#c-du").value = t.du || ""; $("#c-sa").value = t.sa || ""; $("#c-prov").value = t.prov || "";
   $("#c-inc").value = t.inc || ""; $("#c-ince").value = t.ince || "";
+  $("#c-desc").value = t.desc || "";
   $("#c-neto").value = t.neto ?? ""; $("#c-cliente").value = t.cliente ?? "";
+  $("#c-netog").value = t.netoG ?? ""; $("#c-clienteg").value = t.clienteG ?? "";
   formTags = [...(t.tags || [])]; pintarFormTags();
   $("#cat-titulo").textContent = "Editar tour";
   $("#cat-cancelar").hidden = false;
@@ -184,7 +193,7 @@ function cargarEnFormulario(id) {
 
 function limpiarFormulario() {
   editandoId = null;
-  ["c-es", "c-en", "c-du", "c-sa", "c-prov", "c-inc", "c-ince", "c-neto", "c-cliente"].forEach(id => { $("#" + id).value = ""; });
+  ["c-es", "c-en", "c-du", "c-sa", "c-prov", "c-inc", "c-ince", "c-desc", "c-neto", "c-cliente", "c-netog", "c-clienteg"].forEach(id => { $("#" + id).value = ""; });
   formTags = []; pintarFormTags();
   $("#cat-titulo").textContent = "Agregar tour";
   $("#cat-cancelar").hidden = true;
@@ -199,8 +208,10 @@ $("#cat-guardar").addEventListener("click", () => {
     sa: $("#c-sa").value.trim(),
     prov: $("#c-prov").value.trim(),
     inc: $("#c-inc").value.trim(), ince: $("#c-ince").value.trim(),
+    desc: $("#c-desc").value.trim(),
     tags: [...formTags],
     neto: numero($("#c-neto").value), cliente: numero($("#c-cliente").value),
+    netoG: numero($("#c-netog").value), clienteG: numero($("#c-clienteg").value),
   };
   if (editandoId) {
     Object.assign(tourPorId(editandoId), datos);
@@ -433,10 +444,10 @@ function pintarPreview() {
     const ts = d.tours.map(tourPorId).filter(Boolean);
     if (ts.length) {
       hayTour = true;
-      const netos = ts.map(t => t.neto);
+      const netos = ts.map(t => netoDe(t, prop.n || 1));
       if (netos.some(x => x == null)) faltaPrecio = true;
       costo += Math.max(0, ...netos.map(x => x || 0));
-      const clis = ts.map(t => t.cliente);
+      const clis = ts.map(t => clienteDe(t, prop.n || 1));
       if (clis.some(x => x == null)) faltaCliente = true;
       costoCli += Math.max(0, ...clis.map(x => x || 0));
     }
@@ -607,12 +618,25 @@ function pintarCotizar() {
     lista.innerHTML = `<p class="margen-no">${cot.modo === "proveedor" ? "Elegí un proveedor arriba." : "Elegí un tipo de actividad arriba."}</p>`;
     $("#cot-total").innerHTML = ""; $("#cot-acc").innerHTML = ""; return;
   }
-  lista.innerHTML = fil.map(t => `
-    <label class="cot-row">
+  const n = cot.n || 1;
+  lista.innerHTML = fil.map(t => {
+    const cli = clienteDe(t, n), net = netoDe(t, n);
+    const grupo = n >= UMBRAL_GRUPO && t.clienteG != null;
+    return `<label class="cot-row">
       <input type="checkbox" data-cot="${esc(t.id)}" ${cot.sel.includes(t.id) ? "checked" : ""}>
-      <span class="cot-info"><b>${esc(t.es || t.en)}</b><span>${esc([t.du, t.sa].filter(Boolean).join(" · ") || "—")}</span></span>
-      <span class="cot-precio"><b>${t.cliente != null ? usd(t.cliente) : "—"}</b>${(t.neto != null && t.cliente != null) ? `<small>margen ${usd(t.cliente - t.neto)}</small>` : ""}</span>
-    </label>`).join("");
+      <span class="cot-info">
+        <b>${esc(t.es || t.en)}</b>
+        <span>${esc([t.du, t.sa].filter(Boolean).join(" · ") || "—")}</span>
+        ${t.desc ? `<span class="cot-desc">${esc(t.desc)}</span>` : ""}
+      </span>
+      <span class="cot-precio">
+        <b>${cli != null ? usd(cli) : "—"}</b>
+        <small>por persona${grupo ? " · grupo" : ""}</small>
+        ${cli != null ? `<small>${n}× = ${usd(cli * n)}</small>` : ""}
+        ${(net != null && cli != null) ? `<small>margen ${usd(cli - net)}</small>` : ""}
+      </span>
+    </label>`;
+  }).join("");
   $$("#cot-lista [data-cot]").forEach(c => c.addEventListener("change", () => {
     if (c.checked) { if (!cot.sel.includes(c.value)) cot.sel.push(c.value); }
     else cot.sel = cot.sel.filter(x => x !== c.value);
@@ -620,12 +644,12 @@ function pintarCotizar() {
   }));
 
   const sel = fil.filter(t => cot.sel.includes(t.id));
-  const n = cot.n || 1;
   let cli = 0, net = 0, faltaCli = false;
-  sel.forEach(t => { if (t.cliente == null) faltaCli = true; cli += t.cliente || 0; net += t.neto || 0; });
+  sel.forEach(t => { const c = clienteDe(t, n); if (c == null) faltaCli = true; cli += c || 0; net += netoDe(t, n) || 0; });
   $("#cot-total").innerHTML = `
     <div class="cot-total">
       <div class="linea"><span>Actividades</span><b>${sel.length}</b></div>
+      <div class="linea"><span>Personas</span><b>${n}</b></div>
       <div class="linea"><span>Por persona</span><b>${faltaCli ? "falta precio" : usd(cli)}</b></div>
       <div class="linea fuerte"><span>Total (${n} ${n === 1 ? "persona" : "personas"})</span><b>${faltaCli ? "—" : usd(cli * n)}</b></div>
       <div class="linea"><span>Tu margen (${n})</span><b>${faltaCli ? "—" : usd((cli - net) * n)}</b></div>
@@ -638,9 +662,12 @@ function pintarAccCot(sel) {
   if (!sel || !sel.length) { acc.innerHTML = ""; return; }
   const n = cot.n || 1;
   let cli = 0, faltaCli = false;
-  sel.forEach(t => { if (t.cliente == null) faltaCli = true; cli += t.cliente || 0; });
-  const lineas = sel.map(t => `• ${t.es || t.en}${t.cliente != null ? ` — ${usd(t.cliente)} por persona` : ""}`).join("\n");
-  const msg = `Cotización Hey You ST\n${lineas}` + (faltaCli ? "" : `\nTotal por persona: ${usd(cli)}${n > 1 ? `\nPara ${n} personas: ${usd(cli * n)}` : ""}`);
+  sel.forEach(t => { const c = clienteDe(t, n); if (c == null) faltaCli = true; cli += c || 0; });
+  const lineas = sel.map(t => {
+    const c = clienteDe(t, n);
+    return `• ${t.es || t.en}${c != null ? ` — ${usd(c)} por persona` : ""}` + (t.desc ? `\n  ${t.desc}` : "");
+  }).join("\n");
+  const msg = `Cotización Hey You ST · ${n} ${n === 1 ? "persona" : "personas"}\n${lineas}` + (faltaCli ? "" : `\nTotal por persona: ${usd(cli)}\nPara ${n} ${n === 1 ? "persona" : "personas"}: ${usd(cli * n)}`);
   const wa = cot.tel ? `https://wa.me/${cot.tel.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(msg)}` : "";
   acc.innerHTML = `
     <button type="button" class="btn" id="cot-copiar">Copiar cotización</button>

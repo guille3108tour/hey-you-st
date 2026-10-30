@@ -92,11 +92,12 @@ main{max-width:1180px;margin:0 auto;padding:clamp(16px,3vw,1.75rem)}
 .campo{display:flex;flex-direction:column;gap:.3rem;min-width:0}
 .campo-ancho{grid-column:1/-1}
 .campo span{font-size:.78rem;color:var(--muted);font-weight:600}
-input,select{
+input,select,textarea{
   font:inherit;color:var(--fg);background:var(--surface-2);
   border:1px solid var(--line);border-radius:9px;padding:.5rem .6rem;width:100%;
 }
-input:focus,select:focus{outline:2px solid var(--sea);outline-offset:1px;border-color:var(--sea)}
+textarea{resize:vertical;min-height:2.6rem}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--sea);outline-offset:1px;border-color:var(--sea)}
 .checks{display:flex;flex-direction:column;gap:.5rem;margin-top:.9rem}
 .check{display:flex;align-items:center;gap:.5rem;font-size:.88rem;color:var(--fg)}
 .check input{width:auto}
@@ -187,13 +188,15 @@ button.op-chip{font-family:inherit;font-size:.84rem;color:var(--fg)}
   border:1px solid var(--line);border-radius:999px;padding:.05rem .45rem;white-space:nowrap}
 
 /* --- cotización rápida --- */
-.cot-row{display:flex;align-items:center;gap:.7rem;padding:.6rem 0;border-top:1px solid var(--line);cursor:pointer}
+.cot-row{display:flex;align-items:flex-start;gap:.7rem;padding:.6rem 0;border-top:1px solid var(--line);cursor:pointer}
 .cot-row:first-child{border-top:0}
-.cot-row input{width:auto;margin:0;flex:0 0 auto}
+.cot-row input{width:auto;margin:.2rem 0 0;flex:0 0 auto}
 .cot-info{min-width:0;flex:1}
 .cot-info b{font-weight:600}
 .cot-info span{display:block;font-size:.78rem;color:var(--muted)}
-.cot-precio{text-align:right;font-variant-numeric:tabular-nums;flex:0 0 auto}
+.cot-desc{margin-top:.2rem;line-height:1.4}
+.cot-precio{text-align:right;font-variant-numeric:tabular-nums;flex:0 0 auto;white-space:nowrap}
+.cot-precio small{display:block;font-size:.72rem;color:var(--muted)}
 .cot-precio b{display:block}
 .cot-precio small{color:var(--muted);font-size:.72rem}
 .cot-total{margin-top:.8rem;padding-top:.8rem;border-top:2px solid var(--line);display:grid;gap:.4rem}

@@ -135,8 +135,11 @@
           <label class="campo campo-ancho"><span>Incluye (español)</span><input type="text" id="c-inc" placeholder="Tabla · instructor local"></label>
           <label class="campo campo-ancho"><span>Incluye (inglés)</span><input type="text" id="c-ince" placeholder="Board · local instructor"></label>
           <div class="campo campo-ancho"><span>Características</span><div class="chips" id="cat-tags"></div></div>
-          <label class="campo"><span>Neto del proveedor (USD)</span><input type="number" id="c-neto" min="0" step="1" inputmode="numeric"></label>
-          <label class="campo"><span>Precio al cliente (USD)</span><input type="number" id="c-cliente" min="0" step="1" inputmode="numeric"></label>
+          <label class="campo campo-ancho"><span>Descripción (opcional)</span><textarea id="c-desc" rows="2" placeholder="Qué hace especial a este tour"></textarea></label>
+          <label class="campo"><span>Neto individual (USD)</span><input type="number" id="c-neto" min="0" step="1" inputmode="numeric"></label>
+          <label class="campo"><span>Precio cliente individual (USD)</span><input type="number" id="c-cliente" min="0" step="1" inputmode="numeric"></label>
+          <label class="campo"><span>Neto en grupo · p/persona</span><input type="number" id="c-netog" min="0" step="1" inputmode="numeric" placeholder="opcional"></label>
+          <label class="campo"><span>Cliente en grupo · p/persona</span><input type="number" id="c-clienteg" min="0" step="1" inputmode="numeric" placeholder="opcional"></label>
         </div>
         <div class="gen-botones">
           <button type="button" class="btn" id="cat-guardar">Guardar tour</button>
