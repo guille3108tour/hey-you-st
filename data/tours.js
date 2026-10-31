@@ -40,7 +40,7 @@ const TOURS = [
   {
     // Precios: tarifario de agencias Zuma Tours 2027 (vigente del 1-nov-2026 al 31-oct-2027).
     // En la ficha va el precio PÚBLICO (TOTAL IVAI, con impuesto). La comisión de agencia es
-    // dato interno de Hey You (no va acá; se usa en el dashboard de márgenes).
+    // dato interno de Hey You (no va acá; se usa en el dashboard de márgenes, margenes.html).
     id: "isla-tortuga",
     titulo: "Isla Tortuga: bote y snorkel (compartido)",
     lugares: ["catarata-montezuma"],

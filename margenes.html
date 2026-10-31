@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Márgenes · Hey You ST</title>
+  <meta name="description" content="Panel interno de Hey You: márgenes de comisión por tour.">
+  <!-- Panel interno: no es para clientes y no lleva números en el repo (ver js/margenes.js).
+       Que no lo indexen los buscadores. -->
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/svg+xml" href="img/marca/hey-you-st.svg">
+  <link rel="icon" type="image/png" sizes="512x512" href="img/marca/hey-you-st-512.png">
+  <link rel="apple-touch-icon" href="img/marca/hey-you-st-180.png">
+  <!-- Misma identidad que las páginas de propuesta/itinerario, más lo propio del panel -->
+  <link rel="stylesheet" href="css/propuesta.css?v=esy2h3nq">
+  <link rel="stylesheet" href="css/margenes.css?v=esy2h3nq">
+</head>
+<body>
+  <!-- Dashboard de márgenes (Juan): para cada tour público (data/tours.js) se anota el precio de
+       venta y la comisión de agencia de Hey You, y el panel calcula el margen por venta y el total
+       del período. Lo que Juan anota queda SOLO en este navegador (localStorage): no se publica ni
+       se sube al repositorio, por eso la comisión "no va" en data/tours.js. Para respaldar o pasar
+       los números a otra compu, usar Exportar / Importar. -->
+  <header class="barra">
+    <a class="marca" href="./">
+      <img src="img/marca/hey-you-st.svg" alt="">
+      <span>Hey You ST</span>
+    </a>
+    <span class="barra-etiqueta">Panel interno</span>
+  </header>
+
+  <main class="hoja" id="margenes"></main>
+
+  <script src="data/tours.js?v=esy2h3nq"></script>
+  <script src="js/margenes.js?v=esy2h3nq"></script>
+</body>
+</html>

@@ -1,0 +1,208 @@
+/* ---------- Dashboard de márgenes (margenes.html) ---------- */
+/* Usa las variables y la barra de css/propuesta.css (fondo azul noche, vidrio, acento turquesa).
+   Acá van solo las cosas del panel: la etiqueta "Panel interno", el resumen de arriba, las
+   tarjetas de cada tour con sus campos y los números grandes del margen. */
+
+/* Etiqueta a la derecha de la barra, en vez del selector de idioma */
+.barra-etiqueta {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--acento);
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--vidrio-borde);
+  background: var(--vidrio);
+}
+
+/* ---------- Resumen de arriba ---------- */
+.resumen-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 12px;
+}
+.resumen-dato {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--vidrio-borde);
+  background: rgba(255, 255, 255, 0.03);
+}
+.resumen-dato b {
+  font-size: 22px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.resumen-dato span {
+  font-size: 12px;
+  color: var(--suave);
+  line-height: 1.3;
+}
+
+/* ---------- Tarjeta de cada tour ---------- */
+.margen-cab {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.margen-cab h2 { margin: 0; font-size: 17px; line-height: 1.25; }
+.margen-id {
+  flex: none;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--suave);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.margen-ref {
+  margin: 6px 0 14px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--suave);
+}
+
+.margen-campos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.campo { display: flex; flex-direction: column; gap: 6px; }
+.campo > span:first-child { font-size: 12.5px; font-weight: 600; color: var(--suave); }
+.campo-ancho { grid-column: 1 / -1; }
+
+/* Caja de un número con su símbolo ($ a la izquierda, % o $ a la derecha) */
+.input-money {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--vidrio-borde);
+  background: rgba(255, 255, 255, 0.04);
+}
+.input-money:focus-within { border-color: rgba(34, 230, 223, 0.7); box-shadow: 0 0 10px rgba(34, 230, 223, 0.18); }
+.input-money em {
+  flex: none;
+  font-style: normal;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--suave);
+}
+.input-money.suf { flex-direction: row; }
+.input-money.suf em { order: 2; }
+.input-money input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--texto);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  outline: none;
+  -moz-appearance: textfield;
+}
+.input-money input::-webkit-outer-spin-button,
+.input-money input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+input.nota {
+  height: 44px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid var(--vidrio-borde);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--texto);
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+}
+input.nota:focus { border-color: rgba(34, 230, 223, 0.7); box-shadow: 0 0 10px rgba(34, 230, 223, 0.18); }
+input::placeholder { color: rgba(255, 255, 255, 0.35); }
+
+/* El tipo de comisión: % o $ fijo */
+.comision { display: flex; align-items: center; gap: 8px; }
+.comision .input-money { flex: 1 1 auto; }
+.segmentado.chico { height: 44px; flex: none; }
+.segmentado.chico button { min-width: 38px; font-size: 15px; }
+
+/* ---------- Salida: el margen ---------- */
+.margen-salida {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--vidrio-borde);
+}
+.margen-salida > div {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(14, 165, 233, 0.12);
+  border: 1px solid rgba(34, 230, 223, 0.28);
+}
+.margen-grande {
+  font-size: 20px;
+  font-weight: 800;
+  color: #8ffff6;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+}
+.margen-chico { font-size: 12px; color: var(--suave); }
+
+/* ---------- Barra de acciones (exportar / importar / borrar) ---------- */
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+}
+.boton-chico {
+  flex: 1 1 auto;
+  padding: 11px 16px;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--vidrio);
+  border: 1px solid var(--vidrio-borde);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.boton-chico:hover { background: rgba(255, 255, 255, 0.1); }
+.boton-chico.peligro { color: #fecaca; border-color: rgba(239, 68, 68, 0.4); }
+.boton-chico.peligro:hover { background: rgba(239, 68, 68, 0.16); }
+
+/* Aviso que aparece un momento al exportar/importar */
+.flash {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #bbf7d0;
+  background: rgba(34, 197, 94, 0.16);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+}
+
+@media (max-width: 560px) {
+  .resumen-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 440px) {
+  .margen-campos { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .boton-chico { transition: none; }
+}
