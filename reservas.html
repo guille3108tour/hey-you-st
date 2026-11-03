@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Book your Santa Teresa adventure · Hey You ST</title>
+  <meta name="description" content="Tell us how you travel and get a guide of activities made for you — free spots and local tours in Santa Teresa and Montezuma, on a simple map.">
+  <link rel="icon" type="image/svg+xml" href="img/marca/hey-you-st.svg">
+  <link rel="icon" type="image/png" sizes="512x512" href="img/marca/hey-you-st-512.png">
+  <link rel="apple-touch-icon" href="img/marca/hey-you-st-180.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css">
+  <link rel="stylesheet" href="css/reservas.css?v=1">
+</head>
+<body>
+  <!-- El mapa va SIEMPRE al fondo: blanco y sencillo, con las líneas de costa. -->
+  <div id="map"></div>
+  <div class="velo" aria-hidden="true"></div>
+
+  <!-- La barra de arriba flota sobre el mapa: marca, navegación e idioma. -->
+  <header id="topbar" class="topbar"></header>
+
+  <!-- El cuerpo del sistema: encuesta, explorar, detalle, guardados, itinerario.
+       Lo arma js/reservas/app.js según dónde esté la persona. -->
+  <main id="panel" class="panel" hidden></main>
+
+  <!-- MapLibre -->
+  <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+  <!-- Los datos que ya tiene la guía (los lee la capa de datos del sistema) -->
+  <script src="data/points.js?v=1"></script>
+  <script src="data/tours.js?v=1"></script>
+  <script src="data/rutas.js?v=1"></script>
+  <script src="data/laboratorio.js?v=1"></script>
+  <script src="js/contacto.js?v=1"></script>
+  <!-- El sistema de reservas (módulos ESM) -->
+  <script type="module" src="js/reservas/app.js?v=1"></script>
+</body>
+</html>
