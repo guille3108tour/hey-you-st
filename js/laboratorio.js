@@ -19,8 +19,16 @@ import { cargarMareas, ventanasIdeales, DIA } from "./mareas.js";
 // dirección usa las empresas de ejemplo (data/laboratorio-demo.js, que no se publica). Si no entra nada,
 // o si prefiere, le escribe a Juan para que un local se lo arme. La página no guarda nada en un servidor.
 export const dialogoPropuesta = document.getElementById("dialogo-propuesta");
-const pg = { personas: 2, presupuesto: "", dias: 3, desde: "", gustos: new Set(), nota: "", transporte: null, planes: {} };
-const PG_LIMITES = { personas: [1, 30], dias: [1, 14] };
+// El grupo: tipo (solo/pareja/familia/amigos), adultos y niños (6–12). "personas" es siempre adultos + niños
+// y la usa todo el motor; el precio por persona se mezcla entre adultos y niños (ver precioLab).
+const pg = { personas: 2, tipo: "pareja", adultos: 2, ninos: 0, presupuesto: "", dias: 3, desde: "", gustos: new Set(), nota: "", transporte: null, transportePropio: null, planes: {} };
+const PG_LIMITES = { personas: [1, 30], adultos: [1, 30], ninos: [0, 20], dias: [1, 14] };
+// Deja consistentes adultos, niños y personas (y clamp a los límites)
+function normalizarGrupo() {
+  pg.adultos = Math.min(PG_LIMITES.adultos[1], Math.max(PG_LIMITES.adultos[0], pg.adultos || 1));
+  pg.ninos = Math.min(PG_LIMITES.ninos[1], Math.max(0, pg.ninos || 0));
+  pg.personas = Math.min(PG_LIMITES.personas[1], Math.max(1, pg.adultos + pg.ninos));
+}
 const enDemo = new URLSearchParams(location.search).has("demo");
 if (enDemo) {
   const s = document.createElement("script");
@@ -43,7 +51,7 @@ const presupuestoPg = () => Math.round(Number(String(pg.presupuesto).replace(","
 
 function mensajePropuestaGratis() {
   return txt("pgMensaje", {
-    n: pg.personas, pp: presupuestoPg(), d: pg.dias, desde: pg.desde ? fechaPropuesta(pg.desde) : "",
+    n: pg.personas, a: pg.adultos, ni: pg.ninos, pp: presupuestoPg(), d: pg.dias, desde: pg.desde ? fechaPropuesta(pg.desde) : "",
     nota: [pg.nota.trim(), transporteLab() ? txt("pgQuiereTransporte", textoTransporteLab(transporteLab())) : "",
       Object.keys(pg.planes || {}).some(d => d <= pg.dias && pg.planes[d]) ? txt("pgQuierePlanes", Array.from({ length: pg.dias }, (_, i) => i + 1).filter(d => planDia(d)).map(d => `${txt("abDia", d)}: ${nombrePlan(planDia(d)).replace(/^\S+\s/, "").toLowerCase()}`).join(", ")) : ""].filter(Boolean).join("\n"),
     gustos: [...pg.gustos].filter(k => CATEGORIAS[k]).map(k => rotulo(CATEGORIAS[k]).toLowerCase()),
@@ -73,11 +81,25 @@ function trPayloadLab() {
   return tr ? { tr: Object.assign({ t: tr.t.t, es: tr.t.es }, tr.t.en ? { en: tr.t.en } : {}, { tipo: tr.t.tipo, v: tr.v, d: tr.d }, tr.t.sa ? { sa: tr.t.sa } : {}) } : {};
 }
 
-// Lo que paga cada persona en un tour, con n personas y k tours en el paquete (grupos de más de 20, como 20)
-const precioLab = (t, n, k) => {
-  const fila = t.pp[Math.min(n, t.pp.length) - 1];
-  return fila ? fila[Math.min(k, fila.length) - 1] : null;
+// Precio de una matriz pp/pn (se recorta sola: si hay menos filas/columnas que n o k, usa la última).
+const filaPrecio = (m, n, k) => {
+  const fila = m && m[Math.min(n, m.length) - 1];
+  const v = fila ? fila[Math.min(k, fila.length) - 1] : null;
+  return v === undefined ? null : v;
 };
+// Lo que paga CADA PERSONA (precio mezclado), con n personas y k tours en el paquete: los adultos al precio
+// adulto (pp), los niños al de niño (pn, o el adulto si el tour no tiene pn), repartido entre todas. comp =
+// { a, ni } (adultos y niños); por defecto, el grupo del formulario. Un tour de solo adultos no sale si el
+// grupo lleva niños. n (tamaño del grupo) define el descuento por grupo; a + ni = n.
+function precioLab(t, n, k, comp) {
+  const a = comp ? comp.a : pg.adultos, ni = comp ? comp.ni : pg.ninos;
+  if (t.soloAdultos && ni > 0) return null;
+  const pa = filaPrecio(t.pp, n, k);
+  if (pa === null) return null;
+  const pn = filaPrecio(t.pn || t.pp, n, k);
+  if (pn === null) return null;
+  return (a * pa + ni * pn) / Math.max(1, n);
+}
 // Lugares libres de un tour un día, de la foto que trae el catálogo (Juan: "conectar disponibilidad por aquello de
 // sobreventa"). Sin el día, no hay límite cargado. La reserva se confirma igual en el sistema, que frena si ya no hay.
 const libresLab = (t, iso) => (t.lib && t.lib[iso] !== undefined ? t.lib[iso] : Infinity);
@@ -248,7 +270,7 @@ function itinerarioLab(dias, precio, presupuesto = presupuestoPg()) {
   });
   return Object.assign({
     v: 1, c: `HYL-${String(hoy.getMonth() + 1).padStart(2, "0")}${String(hoy.getDate()).padStart(2, "0")}-${Math.random().toString(36).slice(2, 6).padEnd(4, "0")}`,
-    n: pg.personas, pp: precio, b: presupuesto, i: getIdioma(), lab: 1, ...trPayloadLab(),
+    n: pg.personas, a: pg.adultos, ni: pg.ninos, tg: pg.tipo, pp: precio, b: presupuesto, i: getIdioma(), lab: 1, ...trPayloadLab(),
     d: dias.sort((a, z) => a.dia - z.dia).map(x => Object.assign(pg.desde ? { f: sumarDias(pg.desde, x.dia - 1) } : {}, { dn: x.dia, s: x.s }, x.libres ? { libres: x.libres } : {})),
   }, enDemo ? { ej: 1 } : {});
 }
@@ -395,9 +417,10 @@ export function pintarPrecios(foco) {
   if (!t) return;
   simu.t = t.t;
   const nombre = (x) => (enIngles() && x.en) || x.es;
-  const pp = precioLab(t, simu.n, 1);
+  // El simulador muestra "entre más personas, más barato": cuenta a todos como adultos
+  const pp = precioLab(t, simu.n, 1, { a: simu.n, ni: 0 });
   let antes = null;
-  const filas = TAMANOS_SIMU.map(n => ({ n, p: precioLab(t, n, 1) })).filter(f => f.p !== null && f.p !== undefined).map(f => {
+  const filas = TAMANOS_SIMU.map(n => ({ n, p: precioLab(t, n, 1, { a: n, ni: 0 }) })).filter(f => f.p !== null && f.p !== undefined).map(f => {
     const baja = antes !== null && f.p < antes - 0.005;
     antes = f.p;
     return Object.assign(f, { baja });
@@ -423,7 +446,7 @@ export function pintarPrecios(foco) {
       <div class="ab-cuenta" aria-live="polite">
         ${pp === null || pp === undefined ? `<span class="ab-alerta">${esc(txt("ppNoSale", simu.n))}</span>`
           : `<span><span class="ab-precio">${esc(usd(pp))}</span> <span class="ab-suave">${esc(txt("porPersonaLab"))} · ${esc(txt("ppTotal", usd(pp * simu.n)))}</span></span>
-             ${[2, 3, 4].map(k => ({ k, p: precioLab(t, simu.n, k) })).filter(x => x.p !== null && x.p < pp - 0.005).slice(-1).map(x => `<span class="ab-acento">${esc(txt("ppPaquete", x.k, usd(x.p)))}</span>`).join("")}`}
+             ${[2, 3, 4].map(k => ({ k, p: precioLab(t, simu.n, k, { a: simu.n, ni: 0 }) })).filter(x => x.p !== null && x.p < pp - 0.005).slice(-1).map(x => `<span class="ab-acento">${esc(txt("ppPaquete", x.k, usd(x.p)))}</span>`).join("")}`}
       </div>
       <h3 class="ab-h">${esc(txt("ppComo"))}</h3>
       <div class="pp-tabla" role="list">${filas.map(f => `<div class="pp-fila${f.n === simu.n ? " actual" : ""}" role="listitem">
@@ -438,8 +461,8 @@ function accionPrecios(b) {
   if (a === "menos" || a === "mas") { simu.n = Math.min(PG_LIMITES.personas[1], Math.max(1, simu.n + (a === "mas" ? 1 : -1))); pintarPrecios(`[data-sim="${a}"]`); return; }
   if (a === "volver") { enPrecios = false; dialogoPropuesta.classList.remove("ancho"); pintarPropuestaGratis(); dialogoPropuesta.querySelector("#pg-probar")?.focus(); return; }
   if (a === "armar") {
-    // Arranca su itinerario con ese tour el día 1, para ese grupo
-    pg.personas = simu.n;
+    // Arranca su itinerario con ese tour el día 1, para ese grupo (desde el simulador, todos adultos)
+    pg.adultos = simu.n; pg.ninos = 0; pg.personas = simu.n;
     if (!ab.mios.some(m => m.t === simu.t)) ab.mios.push({ k: Math.random().toString(36).slice(2, 8), t: simu.t, dia: 1, x: [] });
     enPrecios = false; enArmado = true; guardarPg(); pintarArmado("#pg-titulo");
   }
@@ -507,9 +530,10 @@ function conUnoMas(p) {
   const actividades = p.d.flatMap(d => d.s), k = actividades.length;
   for (let n = pg.personas + 1; n <= Math.min(pg.personas + 5, PG_LIMITES.personas[1]); n++) {
     const tr = transporteLab(n);
+    const comp = { a: pg.adultos + (n - pg.personas), ni: pg.ninos };
     let suma = 0;
     for (const s of actividades) {
-      const precios = s.map(o => { const t = tourLab(o.t); return t ? precioLab(t, n, k) : null; });
+      const precios = s.map(o => { const t = tourLab(o.t); return t ? precioLab(t, n, k, comp) : null; });
       if (precios.some(x => x === null || x === undefined)) return null;
       suma += Math.max(...precios);
     }
@@ -701,19 +725,45 @@ const refrescarPlanes = () => {
   if (f) f.innerHTML = `<legend class="pg-etiqueta">${esc(txt("pgPlanes"))}</legend>${htmlPlanes()}`;
 };
 
+// Al elegir el tipo de grupo, poné un punto de partida razonable de adultos/niños y redibujá el formulario
+function aplicarTipo(tipo) {
+  pg.tipo = tipo;
+  if (tipo === "solo") { pg.adultos = 1; pg.ninos = 0; }
+  else if (tipo === "pareja") { pg.adultos = 2; pg.ninos = 0; }
+  else if (tipo === "familia") { if (pg.adultos < 1) pg.adultos = 2; if (pg.ninos < 1) pg.ninos = 1; }
+  else if (tipo === "amigos") { pg.ninos = 0; if (pg.adultos < 3) pg.adultos = 4; }
+  normalizarGrupo();
+  guardarPg();
+  pintarPropuestaGratis();
+  actualizarEnvioPropuesta();
+  dialogoPropuesta.querySelector(`[data-tipo="${tipo}"]`)?.focus();
+}
+
 export function pintarPropuestaGratis() {
   const hoy = new Date();
   const minimo = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}-${String(hoy.getDate()).padStart(2, "0")}`;
+  // solo/pareja: grupo fijo, sin steppers. familia: muestra niños. amigos: solo adultos.
+  const fijo = pg.tipo === "solo" || pg.tipo === "pareja";
+  const verNinos = pg.tipo === "familia" || pg.ninos > 0;
   dialogoPropuesta.innerHTML = `
     <form method="dialog" class="pg">
       <button type="submit" class="pg-cerrar" aria-label="${esc(txt("cerrar"))}">✕</button>
       <h2 id="pg-titulo">${esc(txt("pgTitulo"))}</h2>
       ${enDemo ? `<p class="pg-demo">${esc(txt("pgDemo"))}</p>` : ""}
       <p class="pg-intro">${esc(txt("pgIntro"))}</p>
+      <div class="pg-campo">
+        <span class="pg-etiqueta" id="pg-grupo-l">${esc(txt("pgGrupo"))}</span>
+        <div class="pg-tipos" role="group" aria-labelledby="pg-grupo-l">
+          ${[["solo", "grSolo"], ["pareja", "grPareja"], ["familia", "grFamilia"], ["amigos", "grAmigos"]].map(([k, l]) =>
+            `<button type="button" class="pg-tipo" data-tipo="${k}" aria-pressed="${pg.tipo === k}">${esc(txt(l))}</button>`).join("")}
+        </div>
+      </div>
       <div class="pg-fila">
-        ${pasoPropuesta("personas", txt("pgPersonas"))}
+        ${fijo ? `<div class="pg-campo"><span class="pg-etiqueta">${esc(txt("pgPersonas"))}</span><output class="pg-fijo">${esc(txt("pgGente", pg.personas))}</output></div>`
+          : pasoPropuesta("adultos", txt("pgAdultos"))}
         ${pasoPropuesta("dias", txt("pgDias"))}
       </div>
+      ${!fijo && verNinos ? `<div class="pg-fila">${pasoPropuesta("ninos", txt("pgNinos"))}<span class="pg-nota-edad">${esc(txt("pgNinosEdad"))}</span></div>` : ""}
       <fieldset class="pg-planes" id="pg-planes">
         <legend class="pg-etiqueta">${esc(txt("pgPlanes"))}</legend>
         ${htmlPlanes()}
@@ -729,7 +779,16 @@ export function pintarPropuestaGratis() {
         ${Object.entries(CATEGORIAS).map(([k, cat]) => `
           <label class="pg-chip"><input type="checkbox" value="${esc(k)}" ${pg.gustos.has(k) ? "checked" : ""}><span>${esc(cat.emoji)} ${esc(rotulo(cat))}</span></label>`).join("")}
       </fieldset>
-      ${transportesLab().length ? `<div class="pg-fila">
+      ${transportesLab().length ? `
+      <div class="pg-campo">
+        <span class="pg-etiqueta" id="pg-tp-l">${esc(txt("pgTieneTransporte"))}</span>
+        <div class="pg-si-no" role="group" aria-labelledby="pg-tp-l">
+          <button type="button" data-tp="si" aria-pressed="${pg.transportePropio === true}">${esc(txt("trSi"))}</button>
+          <button type="button" data-tp="no" aria-pressed="${pg.transportePropio === false}">${esc(txt("trNo"))}</button>
+        </div>
+      </div>
+      ${pg.transportePropio === false ? `<p class="pg-sugerido">${esc(txt("trSugerido"))}</p>` : ""}
+      <div class="pg-fila">
         <label class="pg-campo"><span class="pg-etiqueta">${esc(txt("pgTransporte"))}</span>
           <select id="pg-transporte"><option value="">${esc(txt("pgSinTransporte"))}</option>${transportesLab().map(t => `<option value="${esc(t.t)}"${pg.transporte && pg.transporte.t === t.t ? " selected" : ""}>${esc((enIngles() && t.en) || t.es)}</option>`).join("")}</select></label>
         ${transporteLab() && transporteLab().t.tipo === "traslado" ? `<label class="pg-check"><input type="checkbox" id="pg-vuelta"${pg.transporte.vuelta ? " checked" : ""}> ${esc(txt("pgVuelta"))}</label>`
@@ -759,6 +818,11 @@ function abrirLaboratorio() {
     const g = JSON.parse(sessionStorage.getItem("hey-lab") || "null");
     if (g) { ab.mios = g.armado || []; delete g.armado; Object.assign(pg, g, { gustos: new Set(g.gustos || []) }); }
   } catch { /* sin almacenamiento: arranca de cero */ }
+  // Compatibilidad: visitas viejas sin adultos/niños, o datos sueltos, quedan consistentes
+  if (typeof pg.adultos !== "number") pg.adultos = Math.max(1, (pg.personas || 1) - (pg.ninos || 0));
+  if (typeof pg.ninos !== "number") pg.ninos = 0;
+  if (!pg.tipo) pg.tipo = pg.ninos > 0 ? "familia" : pg.personas <= 1 ? "solo" : pg.personas === 2 ? "pareja" : "amigos";
+  normalizarGrupo();
   enArmado = false;
   enPrecios = false;
   enBarra = false;
@@ -775,6 +839,21 @@ dialogoPropuesta.addEventListener("click", (e) => {
   if (bs) { accionPrecios(bs); return; }
   const bb = e.target.closest("[data-bb]");
   if (bb) { accionBarra(bb); return; }
+  const bt = e.target.closest("[data-tipo]");
+  if (bt) { aplicarTipo(bt.dataset.tipo); return; }
+  const btp = e.target.closest("[data-tp]");
+  if (btp) {
+    const tp = btp.dataset.tp;
+    pg.transportePropio = tp === "si";
+    // "Sí tengo": sin transporte nuestro. "No tengo": sugerimos y preseleccionamos el shuttle.
+    if (tp === "si") pg.transporte = null;
+    else if (!pg.transporte && transportesLab().length) pg.transporte = { t: transportesLab()[0].t, vuelta: true };
+    guardarPg();
+    pintarPropuestaGratis();
+    actualizarEnvioPropuesta();
+    dialogoPropuesta.querySelector(`[data-tp="${tp}"]`)?.focus();
+    return;
+  }
   if (e.target.closest("#pg-barra")) { enBarra = true; barra.b = presupuestoPg(); guardarPg(); pintarBarra("#pg-titulo"); dialogoPropuesta.scrollTop = 0; return; }
   if (e.target.closest("#pg-probar")) { enPrecios = true; simu.n = pg.personas; pintarPrecios("#pg-titulo"); dialogoPropuesta.scrollTop = 0; return; }
   if (e.target.closest("#pg-armar-yo")) {
@@ -800,12 +879,23 @@ dialogoPropuesta.addEventListener("click", (e) => {
   }
   const b = e.target.closest("[data-paso]");
   if (!b) return;
-  const clave = b.dataset.paso, [min, max] = PG_LIMITES[clave];
-  pg[clave] = Math.min(max, Math.max(min, pg[clave] + Number(b.dataset.d)));
+  const clave = b.dataset.paso, [min, max] = PG_LIMITES[clave], d = Number(b.dataset.d);
+  if (clave === "personas") {
+    // En la barra, sumar/quitar gente ajusta los adultos y conserva los niños del formulario
+    const n = Math.min(max, Math.max(min, pg.personas + d));
+    pg.ninos = Math.min(pg.ninos, Math.max(0, n - 1));
+    pg.adultos = Math.max(1, n - pg.ninos);
+    normalizarGrupo();
+  } else {
+    pg[clave] = Math.min(max, Math.max(min, pg[clave] + d));
+    if (clave === "adultos" || clave === "ninos") normalizarGrupo();
+  }
   // En la barra del budget, otro grupo u otros días cambian desde cuánto entra cada actividad
   if (enBarra) { guardarPg(); pintarBarra(`[data-paso="${clave}"][data-d="${b.dataset.d}"]`); return; }
-  dialogoPropuesta.querySelector(`#pg-${clave}`).textContent = pg[clave];
+  const out = dialogoPropuesta.querySelector(`#pg-${clave}`);
+  if (out) out.textContent = pg[clave];
   if (clave === "dias") refrescarPlanes();
+  guardarPg();
   actualizarEnvioPropuesta();
 });
 dialogoPropuesta.addEventListener("input", (e) => {

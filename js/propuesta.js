@@ -42,6 +42,11 @@ const TEXTOS = {
   volverLab:    ["← Probar otra combinación en el laboratorio", "← Try another combination in the laboratory"],
   resumen:      [(n, d) => `${n} ${n === 1 ? "persona" : "personas"} · ${d} ${d === 1 ? "día" : "días"}`,
                  (n, d) => `${n} ${n === 1 ? "person" : "people"} · ${d} ${d === 1 ? "day" : "days"}`],
+  // Con adultos/niños: "2 adultos · 1 niño · 3 días"
+  grupoResumen: [(a, ni, d) => `${a} ${a === 1 ? "adulto" : "adultos"}${ni ? ` · ${ni} ${ni === 1 ? "niño" : "niños"}` : ""} · ${d} ${d === 1 ? "día" : "días"}`,
+                 (a, ni, d) => `${a} ${a === 1 ? "adult" : "adults"}${ni ? ` · ${ni} ${ni === 1 ? "kid" : "kids"}` : ""} · ${d} ${d === 1 ? "day" : "days"}`],
+  grupoMsg:     [(a, ni) => `${a} ${a === 1 ? "adulto" : "adultos"}${ni ? ` y ${ni} ${ni === 1 ? "niño" : "niños"}` : ""}`,
+                 (a, ni) => `${a} ${a === 1 ? "adult" : "adults"}${ni ? ` and ${ni} ${ni === 1 ? "kid" : "kids"}` : ""}`],
   desde:        [f => `desde el ${f}`, f => `from ${f}`],
   porPersona:   ["por persona", "per person"],
   todoIncluido: [iva => `todo incluido${iva ? ", con impuestos" : ""}`, iva => `all included${iva ? ", taxes included" : ""}`],
@@ -88,8 +93,8 @@ const TEXTOS = {
   rotoMensaje:  ["Hola Juan 👋 Vi en Hey You ST que el link de mi propuesta no abre. ¿Me lo mandás de nuevo?",
                  "Hi Juan 👋 I saw on Hey You ST that my trip plan link doesn't open. Could you send it again?"],
   // Lo que le llega a Juan: la elección en palabras y, al final, el código para cargarla en el sistema
-  mensaje:      [(lineas, n, pp, codigo, eleccion) => `Hola Juan 👋 Vi mi propuesta en Hey You ST y la quiero:\n${lineas}\nSomos ${n}, ${pp} por persona.\nCódigo: ${codigo} · ${eleccion}`,
-                 (lineas, n, pp, codigo, eleccion) => `Hi Juan 👋 I saw my trip plan on Hey You ST and I want it:\n${lineas}\nWe are ${n}, ${pp} per person.\nCode: ${codigo} · ${eleccion}`],
+  mensaje:      [(lineas, grupo, pp, codigo, eleccion) => `Hola Juan 👋 Vi mi propuesta en Hey You ST y la quiero:\n${lineas}\nSomos ${grupo}, ${pp} por persona.\nCódigo: ${codigo} · ${eleccion}`,
+                 (lineas, grupo, pp, codigo, eleccion) => `Hi Juan 👋 I saw my trip plan on Hey You ST and I want it:\n${lineas}\nWe are ${grupo}, ${pp} per person.\nCode: ${codigo} · ${eleccion}`],
   mensajeCambio: [(codigo) => `Hola Juan 👋 Vi mi propuesta en Hey You ST (${codigo}) y quiero cambiar algo: `,
                   (codigo) => `Hi Juan 👋 I saw my trip plan on Hey You ST (${codigo}) and I'd like to change something: `],
 };
@@ -229,7 +234,8 @@ function mensajeLoQuiero() {
     // "t1x2y3*3*2": el transporte, cuántos vehículos y por cuántos días o viajes
     codigos += (inicio ? ` · ${inicio.f}` : "") + ` · ${ids.concat(P.tr && P.tr.t ? [`${P.tr.t}*${P.tr.v}*${P.tr.d}`] : []).join(" ")}`;
   }
-  return txt("mensaje", lineas, P.n, usd(P.pp), P.c, codigos);
+  const grupo = P.a != null ? txt("grupoMsg", P.a, P.ni || 0) : String(P.n);
+  return txt("mensaje", lineas, grupo, usd(P.pp), P.c, codigos);
 }
 const waUrl = (msg) => `https://wa.me/${CONTACTO_JUAN.whatsapp}?text=${encodeURIComponent(msg)}`;
 
@@ -254,7 +260,7 @@ function pintar() {
     <section class="portada">
       <span class="kicker">${esc(txt(P.lab ? "kickerLab" : "kicker"))}</span>
       <h1><span class="precio">${esc(usd(P.pp))}</span> <span class="precio-por">${esc(txt("porPersona"))}</span></h1>
-      <p class="resumen">${esc(txt("resumen", P.n, dias))}${primera ? " · " + esc(txt("desde", fechaLarga(primera.f))) : ""} · ${esc(txt("todoIncluido", P.iva))}</p>
+      <p class="resumen">${esc(P.a != null ? txt("grupoResumen", P.a, P.ni || 0, dias) : txt("resumen", P.n, dias))}${primera ? " · " + esc(txt("desde", fechaLarga(primera.f))) : ""} · ${esc(txt("todoIncluido", P.iva))}</p>
       ${actividades > 1 && !P.tr ? `<p class="por-actividad">${esc(txt("porActividad", actividades, usd(P.pp / actividades)))}</p>` : ""}
       ${P.b - P.pp >= 5 ? `<p class="por-actividad">${esc(txt("sobra", usd(P.b), usd(P.b - P.pp)))}</p>` : ""}
       ${P.d.some(d => d.s.some(o => o.length > 1)) ? `<p class="explica">${esc(txt("explica"))}</p>` : ""}

@@ -130,6 +130,22 @@ const TEXTOS = {
   pgDemo:           ["Modo demo: empresas de ejemplo, no son tours reales.", "Demo mode: example companies, not real tours."],
   pgArmar:          ["🧪 Armámelo al instante", "🧪 Build it for me"],
   pgArmarYo:        ["🛠️ Lo armo yo", "🛠️ I'll build it myself"],
+  // Perfil del grupo: con quién viaja y cuántos adultos / niños
+  pgGrupo:          ["¿Con quién viajás?", "Who's traveling?"],
+  grSolo:           ["🚶 Solo", "🚶 Solo"],
+  grPareja:         ["💑 Pareja", "💑 Couple"],
+  grFamilia:        ["👨‍👩‍👧 Familia", "👨‍👩‍👧 Family"],
+  grAmigos:         ["🎒 Amigos", "🎒 Friends"],
+  pgAdultos:        ["Adultos", "Adults"],
+  pgNinos:          ["Niños", "Kids"],
+  pgNinosEdad:      ["De 6 a 12 años", "Ages 6 to 12"],
+  pgGente:          [n => `${n} ${n === 1 ? "persona" : "personas"}`, n => `${n} ${n === 1 ? "person" : "people"}`],
+  // ¿Tenés transporte propio? Si no, sugerimos el shuttle
+  pgTieneTransporte: ["¿Tenés transporte propio?", "Do you have your own transport?"],
+  trSi:             ["Sí", "Yes"],
+  trNo:             ["No", "No"],
+  trSugerido:       ["Te sugerimos el shuttle Santa Teresa–Montezuma: compartido, puerta a puerta y mucho más económico que un taxi.",
+                     "We suggest the Santa Teresa–Montezuma shuttle: shared, door to door and much cheaper than a taxi."],
   // Lo arma el cliente: elige día por día entre lo disponible
   abTitulo:         ["🛠️ Armá tu itinerario", "🛠️ Build your itinerary"],
   porPersonaLab:    ["por persona", "per person"],
@@ -237,10 +253,12 @@ const TEXTOS = {
   pgEnviar:         ["Prefiero que me lo arme un local", "I'd rather have a local plan it"],
   pgLetraChica:     ["Gratis y sin compromiso. Precios por persona, todo incluido; la disponibilidad se confirma por WhatsApp. Esta página no guarda tus datos.",
                      "Free, no strings attached. Prices per person, all included; availability is confirmed on WhatsApp. This page doesn't store your details."],
-  pgMensaje:        [({ n, pp, d, desde, gustos, nota }) => `Hola Juan 👋 Vi en Hey You ST el laboratorio de itinerarios. Somos ${n}${pp ? `, tenemos unos $${pp} por persona` : ""} y estamos ${d} ${d === 1 ? "día" : "días"}${desde ? ` desde el ${desde}` : ""}.` +
-                       (gustos.length ? `\nNos gusta: ${gustos.join(", ")}.` : "") + (nota ? `\n${nota}` : "") + "\n¿Nos armás una propuesta?",
-                     ({ n, pp, d, desde, gustos, nota }) => `Hi Juan 👋 I saw the itinerary laboratory on Hey You ST. We are ${n}${pp ? `, we have about $${pp} per person` : ""} and we're here for ${d} ${d === 1 ? "day" : "days"}${desde ? ` from ${desde}` : ""}.` +
-                       (gustos.length ? `\nWe like: ${gustos.join(", ")}.` : "") + (nota ? `\n${nota}` : "") + "\nCould you put together a plan for us?"],
+  pgMensaje:        [({ n, a, ni, pp, d, desde, gustos, nota }) => { const g = a == null ? `${n} ${n === 1 ? "persona" : "personas"}` : `${a} ${a === 1 ? "adulto" : "adultos"}${ni ? ` y ${ni} ${ni === 1 ? "niño" : "niños"}` : ""}`;
+                       return `Hola Juan 👋 Vi en Hey You ST el laboratorio de itinerarios. Somos ${g}${pp ? `, tenemos unos $${pp} por persona` : ""} y estamos ${d} ${d === 1 ? "día" : "días"}${desde ? ` desde el ${desde}` : ""}.` +
+                       (gustos.length ? `\nNos gusta: ${gustos.join(", ")}.` : "") + (nota ? `\n${nota}` : "") + "\n¿Nos armás una propuesta?"; },
+                     ({ n, a, ni, pp, d, desde, gustos, nota }) => { const g = a == null ? `${n} ${n === 1 ? "person" : "people"}` : `${a} ${a === 1 ? "adult" : "adults"}${ni ? ` and ${ni} ${ni === 1 ? "kid" : "kids"}` : ""}`;
+                       return `Hi Juan 👋 I saw the itinerary laboratory on Hey You ST. We are ${g}${pp ? `, we have about $${pp} per person` : ""} and we're here for ${d} ${d === 1 ? "day" : "days"}${desde ? ` from ${desde}` : ""}.` +
+                       (gustos.length ? `\nWe like: ${gustos.join(", ")}.` : "") + (nota ? `\n${nota}` : "") + "\nCould you put together a plan for us?"; }],
 };
 
 export function txt(clave, ...datos) {

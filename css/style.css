@@ -1524,6 +1524,42 @@ main {
 .pg-demo { margin: -6px 0 0; font-size: 13px; font-weight: 600; color: #fde68a; }
 .pg-letra { margin: 0; font-size: 12.5px; line-height: 1.45; color: rgba(255, 255, 255, 0.65); text-align: center; }
 
+/* Perfil del grupo: chips de solo / pareja / familia / amigos */
+.pg-tipos { display: flex; flex-wrap: wrap; gap: 8px; }
+.pg-tipo {
+  flex: 1 1 auto;
+  padding: 9px 12px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 13.5px;
+  color: #fff;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.05);
+  transition: background 0.15s, border-color 0.15s;
+}
+.pg-tipo:hover { background: rgba(255, 255, 255, 0.12); }
+.pg-tipo[aria-pressed="true"] { background: rgba(14, 165, 233, 0.34); border-color: rgba(34, 230, 223, 0.75); font-weight: 700; }
+/* Personas fijas (solo / pareja): se muestra el número, sin stepper */
+.pg-fijo { display: flex; align-items: center; height: 42px; font-size: 16px; font-weight: 700; color: rgba(255, 255, 255, 0.92); }
+.pg-nota-edad { align-self: end; min-height: 42px; display: flex; align-items: center; font-size: 13px; color: rgba(255, 255, 255, 0.65); }
+/* ¿Tenés transporte propio? Sí / No */
+.pg-si-no { display: flex; gap: 8px; }
+.pg-si-no button {
+  flex: 1 1 0;
+  height: 42px;
+  border-radius: 10px;
+  font: inherit;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.07);
+  transition: background 0.15s, border-color 0.15s;
+}
+.pg-si-no button[aria-pressed="true"] { background: rgba(14, 165, 233, 0.34); border-color: rgba(34, 230, 223, 0.75); }
+.pg-sugerido { margin: 0; padding: 10px 12px; border-radius: 10px; font-size: 13.5px; line-height: 1.45; color: #8ffff6; background: rgba(14, 165, 233, 0.14); border: 1px solid rgba(34, 230, 223, 0.4); }
+
 @media (max-width: 640px) {
   /* En el celular no entra en la barra: baja a una pastilla justo debajo, a la izquierda
      (a la derecha están los controles del mapa). La barra tiene backdrop-filter, así que es
