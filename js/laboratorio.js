@@ -745,12 +745,16 @@ export function pintarPropuestaGratis() {
   // solo/pareja: grupo fijo, sin steppers. familia: muestra niños. amigos: solo adultos.
   const fijo = pg.tipo === "solo" || pg.tipo === "pareja";
   const verNinos = pg.tipo === "familia" || pg.ninos > 0;
+  // "Más opciones" arranca abierto solo si la persona ya tocó algo de lo avanzado (no por el transporte Sí/No)
+  const hayAvanzado = !!(pg.desde || (pg.nota && pg.nota.trim()) || pg.gustos.size || Object.values(pg.planes || {}).some(p => p));
   dialogoPropuesta.innerHTML = `
     <form method="dialog" class="pg">
       <button type="submit" class="pg-cerrar" aria-label="${esc(txt("cerrar"))}">✕</button>
       <h2 id="pg-titulo">${esc(txt("pgTitulo"))}</h2>
       ${enDemo ? `<p class="pg-demo">${esc(txt("pgDemo"))}</p>` : ""}
       <p class="pg-intro">${esc(txt("pgIntro"))}</p>
+
+      <!-- Esencial: con quién, cuántos, cuántos días, presupuesto y transporte -->
       <div class="pg-campo">
         <span class="pg-etiqueta" id="pg-grupo-l">${esc(txt("pgGrupo"))}</span>
         <div class="pg-tipos" role="group" aria-labelledby="pg-grupo-l">
@@ -764,21 +768,8 @@ export function pintarPropuestaGratis() {
         ${pasoPropuesta("dias", txt("pgDias"))}
       </div>
       ${!fijo && verNinos ? `<div class="pg-fila">${pasoPropuesta("ninos", txt("pgNinos"))}<span class="pg-nota-edad">${esc(txt("pgNinosEdad"))}</span></div>` : ""}
-      <fieldset class="pg-planes" id="pg-planes">
-        <legend class="pg-etiqueta">${esc(txt("pgPlanes"))}</legend>
-        ${htmlPlanes()}
-      </fieldset>
-      <div class="pg-fila">
-        <label class="pg-campo"><span class="pg-etiqueta">${esc(txt("pgPresupuesto"))}</span>
-          <input id="pg-presupuesto" type="number" min="0" step="10" inputmode="numeric" placeholder="150" value="${esc(pg.presupuesto)}"></label>
-        <label class="pg-campo"><span class="pg-etiqueta">${esc(txt("pgDesde"))}</span>
-          <input id="pg-desde" type="date" min="${minimo}" value="${esc(pg.desde)}"></label>
-      </div>
-      <fieldset class="pg-gustos">
-        <legend class="pg-etiqueta">${esc(txt("pgGustos"))}</legend>
-        ${Object.entries(CATEGORIAS).map(([k, cat]) => `
-          <label class="pg-chip"><input type="checkbox" value="${esc(k)}" ${pg.gustos.has(k) ? "checked" : ""}><span>${esc(cat.emoji)} ${esc(rotulo(cat))}</span></label>`).join("")}
-      </fieldset>
+      <label class="pg-campo"><span class="pg-etiqueta">${esc(txt("pgPresupuesto"))}</span>
+        <input id="pg-presupuesto" type="number" min="0" step="10" inputmode="numeric" placeholder="150" value="${esc(pg.presupuesto)}"></label>
       ${transportesLab().length ? `
       <div class="pg-campo">
         <span class="pg-etiqueta" id="pg-tp-l">${esc(txt("pgTieneTransporte"))}</span>
@@ -787,20 +778,40 @@ export function pintarPropuestaGratis() {
           <button type="button" data-tp="no" aria-pressed="${pg.transportePropio === false}">${esc(txt("trNo"))}</button>
         </div>
       </div>
-      ${pg.transportePropio === false ? `<p class="pg-sugerido">${esc(txt("trSugerido"))}</p>` : ""}
-      <div class="pg-fila">
-        <label class="pg-campo"><span class="pg-etiqueta">${esc(txt("pgTransporte"))}</span>
-          <select id="pg-transporte"><option value="">${esc(txt("pgSinTransporte"))}</option>${transportesLab().map(t => `<option value="${esc(t.t)}"${pg.transporte && pg.transporte.t === t.t ? " selected" : ""}>${esc((enIngles() && t.en) || t.es)}</option>`).join("")}</select></label>
-        ${transporteLab() && transporteLab().t.tipo === "traslado" ? `<label class="pg-check"><input type="checkbox" id="pg-vuelta"${pg.transporte.vuelta ? " checked" : ""}> ${esc(txt("pgVuelta"))}</label>`
-          : transporteLab() ? `<span class="pg-check">${esc(textoTransporteLab(transporteLab()))}</span>` : ""}
-      </div>` : ""}
-      <label class="pg-campo"><span class="pg-etiqueta">${esc(txt("pgNota"))}</span>
-        <textarea id="pg-nota" rows="2" placeholder="${esc(txt("pgNotaPista"))}">${esc(pg.nota)}</textarea></label>
+      ${pg.transportePropio === false ? `<p class="pg-sugerido">${esc(txt("trSugerido"))}</p>` : ""}` : ""}
+
+      <!-- Todo lo demás, plegado para no abrumar -->
+      <details class="pg-mas"${hayAvanzado ? " open" : ""}>
+        <summary>${esc(txt("pgMasOpciones"))}</summary>
+        <div class="pg-mas-cuerpo">
+          <label class="pg-campo"><span class="pg-etiqueta">${esc(txt("pgDesde"))}</span>
+            <input id="pg-desde" type="date" min="${minimo}" value="${esc(pg.desde)}"></label>
+          <fieldset class="pg-planes" id="pg-planes">
+            <legend class="pg-etiqueta">${esc(txt("pgPlanes"))}</legend>
+            ${htmlPlanes()}
+          </fieldset>
+          <fieldset class="pg-gustos">
+            <legend class="pg-etiqueta">${esc(txt("pgGustos"))}</legend>
+            ${Object.entries(CATEGORIAS).map(([k, cat]) => `
+              <label class="pg-chip"><input type="checkbox" value="${esc(k)}" ${pg.gustos.has(k) ? "checked" : ""}><span>${esc(cat.emoji)} ${esc(rotulo(cat))}</span></label>`).join("")}
+          </fieldset>
+          ${transportesLab().length ? `<div class="pg-fila">
+            <label class="pg-campo"><span class="pg-etiqueta">${esc(txt("pgTransporte"))}</span>
+              <select id="pg-transporte"><option value="">${esc(txt("pgSinTransporte"))}</option>${transportesLab().map(t => `<option value="${esc(t.t)}"${pg.transporte && pg.transporte.t === t.t ? " selected" : ""}>${esc((enIngles() && t.en) || t.es)}</option>`).join("")}</select></label>
+            ${transporteLab() && transporteLab().t.tipo === "traslado" ? `<label class="pg-check"><input type="checkbox" id="pg-vuelta"${pg.transporte.vuelta ? " checked" : ""}> ${esc(txt("pgVuelta"))}</label>`
+              : transporteLab() ? `<span class="pg-check">${esc(textoTransporteLab(transporteLab()))}</span>` : ""}
+          </div>` : ""}
+          <label class="pg-campo"><span class="pg-etiqueta">${esc(txt("pgNota"))}</span>
+            <textarea id="pg-nota" rows="2" placeholder="${esc(txt("pgNotaPista"))}">${esc(pg.nota)}</textarea></label>
+        </div>
+      </details>
       <p class="pg-aviso" id="pg-aviso" role="status" hidden></p>
       <button type="button" class="reservar pg-armar" id="pg-armar">${esc(txt("pgArmar"))}</button>
-      ${(catalogoLab().tours || []).length ? `<button type="button" class="pg-armar pg-armar-yo" id="pg-barra">${esc(txt("pgBarra"))}</button>` : ""}
-      <button type="button" class="pg-armar pg-armar-yo" id="pg-armar-yo">${esc(txt("pgArmarYo"))}</button>
-      ${(catalogoLab().tours || []).length ? `<button type="button" class="pg-armar pg-armar-yo" id="pg-probar">${esc(txt("pgProbar"))}</button>` : ""}
+      <div class="pg-otras">
+        <button type="button" class="pg-otra" id="pg-armar-yo">${esc(txt("pgArmarYo"))}</button>
+        ${(catalogoLab().tours || []).length ? `<button type="button" class="pg-otra" id="pg-barra">${esc(txt("pgBarra"))}</button>` : ""}
+        ${(catalogoLab().tours || []).length ? `<button type="button" class="pg-otra" id="pg-probar">${esc(txt("pgProbar"))}</button>` : ""}
+      </div>
       <a class="pg-secundario" id="pg-enviar" href="${esc(urlPropuestaGratis())}" target="_blank" rel="noopener">${esc(txt("pgEnviar"))}</a>
       <p class="pg-letra">${esc(txt("pgLetraChica"))}</p>
     </form>`;

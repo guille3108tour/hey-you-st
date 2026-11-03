@@ -1559,6 +1559,18 @@ main {
 }
 .pg-si-no button[aria-pressed="true"] { background: rgba(14, 165, 233, 0.34); border-color: rgba(34, 230, 223, 0.75); }
 .pg-sugerido { margin: 0; padding: 10px 12px; border-radius: 10px; font-size: 13.5px; line-height: 1.45; color: #8ffff6; background: rgba(14, 165, 233, 0.14); border: 1px solid rgba(34, 230, 223, 0.4); }
+/* "Más opciones (opcional)": todo lo no esencial, plegado */
+.pg-mas { border-top: 1px solid rgba(255, 255, 255, 0.12); padding-top: 4px; }
+.pg-mas > summary { list-style: none; cursor: pointer; padding: 8px 0; font-size: 14px; font-weight: 600; color: #8ffff6; display: flex; align-items: center; gap: 8px; }
+.pg-mas > summary::-webkit-details-marker { display: none; }
+.pg-mas > summary::before { content: "▸"; font-size: 12px; transition: transform 0.15s; }
+.pg-mas[open] > summary::before { transform: rotate(90deg); }
+.pg-mas-cuerpo { display: flex; flex-direction: column; gap: 14px; padding-top: 10px; }
+/* Botones secundarios en una fila liviana, para que destaque "Armámelo al instante" */
+.pg-otras { display: flex; flex-wrap: wrap; gap: 8px; }
+.pg-otra { flex: 1 1 140px; min-width: 0; padding: 10px 12px; border-radius: 10px; font: inherit; font-size: 13px; font-weight: 600; color: #cdeef0; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.18); background: rgba(255, 255, 255, 0.05); transition: background 0.15s; }
+.pg-otra:hover { background: rgba(255, 255, 255, 0.12); }
+@media (prefers-reduced-motion: reduce) { .pg-mas > summary::before { transition: none; } }
 
 @media (max-width: 640px) {
   /* En el celular no entra en la barra: baja a una pastilla justo debajo, a la izquierda

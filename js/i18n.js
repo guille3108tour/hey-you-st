@@ -125,8 +125,9 @@ const TEXTOS = {
   // Itinerary laboratory (Juan, 24-oct: el botón se llama así, y arma el itinerario al instante)
   propuestaBoton:   ["🧪 Laboratorio de itinerarios", "🧪 Itinerary laboratory"],
   pgTitulo:         ["🧪 Laboratorio de itinerarios", "🧪 Itinerary laboratory"],
-  pgIntro:          ["Contanos cuántos son, su presupuesto y sus días, y te armamos un itinerario al instante. Elegís las actividades de cada día y, si te gusta, lo confirmás por WhatsApp con un local.",
-                     "Tell us how many you are, your budget and your days, and we'll build your itinerary right away. Pick the activities for each day and, if you like it, confirm it on WhatsApp with a local."],
+  pgIntro:          ["Contanos de tu grupo y te armamos un itinerario al instante.",
+                     "Tell us about your group and we'll build your itinerary right away."],
+  pgMasOpciones:    ["Más opciones (opcional)", "More options (optional)"],
   pgDemo:           ["Modo demo: empresas de ejemplo, no son tours reales.", "Demo mode: example companies, not real tours."],
   pgArmar:          ["🧪 Armámelo al instante", "🧪 Build it for me"],
   pgArmarYo:        ["🛠️ Lo armo yo", "🛠️ I'll build it myself"],
