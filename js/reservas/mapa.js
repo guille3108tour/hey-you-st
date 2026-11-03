@@ -28,7 +28,20 @@ map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom
 
 // Al cargar el estilo lo dejamos blanco: fondo blanco pleno, mar en azul suave para que
 // la costa se lea, y fuera los íconos de negocios. Lo demás de positron ya es sobrio.
-map.on("style.load", () => blanquear());
+let estiloListo = false;
+map.on("style.load", () => { estiloListo = true; blanquear(); });
+
+// Respaldo: si el estilo externo no carga (por ejemplo en un entorno con la red
+// restringida, como el sandbox de una vista previa), mostramos un mapa claro de respaldo
+// para que el cuerpo igual pueda ubicar los puntos y dibujar las rutas. En el sitio
+// desplegado, con internet, carga positron y se ven las líneas de costa.
+setTimeout(() => {
+  if (estiloListo) return;
+  try {
+    map.setStyle({ version: 8, sources: {}, glyphs: null,
+      layers: [{ id: "fondo", type: "background", paint: { "background-color": "#e9f1f0" } }] });
+  } catch { /* nada que hacer */ }
+}, 3500);
 function blanquear() {
   const capas = map.getStyle().layers || [];
   for (const l of capas) {
