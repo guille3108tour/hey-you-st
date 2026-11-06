@@ -59,6 +59,18 @@ const TEXTOS = {
                      (quien, titulo) => `Hi ${quien} 👋 I saw "${titulo}" on Hey You ST and I'm interested. We are ___ people and we'd like to go on ___.`],
   botonTour:        [quien => `Me interesa: escribile a ${quien}`, quien => `I'm interested: message ${quien}`],
 
+  // Servicios a domicilio (js/servicios.js). El botón de la barra muestra 🧹 + el texto;
+  // en el celular solo el ícono (ver css/style.css). serviciosBoton es la etiqueta accesible.
+  serviciosBoton:   ["Servicios", "Services"],
+  serviciosTxt:     [" Servicios", " Services"],
+  serviciosTitulo:  ["🧹 Servicios a domicilio", "🧹 Home services"],
+  serviciosIntro:   ["Vos pedís, nosotros lo resolvemos: gente de confianza para que no tengás que buscar ni explicar nada.",
+                     "You ask, we handle it: trusted people so you don't have to search or explain anything."],
+  serviciosPronto:  ["Pronto sumamos más servicios.", "More services coming soon."],
+  mensajeServicio:  [(quien, titulo) => `Hola ${quien} 👋 Vi "${titulo}" en Hey You ST y me interesa. ¿Me contás la disponibilidad?`,
+                     (quien, titulo) => `Hi ${quien} 👋 I saw "${titulo}" on Hey You ST and I'm interested. Could you tell me your availability?`],
+  botonServicio:    [quien => `Me interesa: escribile a ${quien}`, quien => `I'm interested: message ${quien}`],
+
   // Las líneas de la mejor hora de hoy y mañana
   mejorHoy:         [para => `Mejor hora para ${para} hoy`, para => `Best time to ${para} today`],
   mejorManana:      [para => `Mejor hora para ${para} mañana`, para => `Best time to ${para} tomorrow`],

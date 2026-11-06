@@ -14,6 +14,7 @@ import { renderMarcadores, nombrarMarcador, marcadores } from "./marcadores.js";
 import { abrirPanel, marcarLugar, lugarAbierto, panel } from "./panel.js";
 import { inmersivo, sincronizarGiro } from "./inmersivo.js";
 import { alturaActual, panelAsa } from "./hoja.js";
+import { repintarServicios } from "./servicios.js";
 
 // Primer render: con el mapa y los marcadores ya creados (en sus módulos), se muestran
 // según la categoría activa (al abrir, ninguna). Antes corría al final de la sección de
@@ -77,6 +78,7 @@ function aplicarIdioma() {
   if (conCoords) coordsCopy.textContent = txt("copiar");
   sincronizarGiro?.();
   if (dialogoPropuesta.open) (enPrecios ? pintarPrecios : enBarra ? pintarBarra : enArmado ? pintarArmado : pintarPropuestaGratis)();
+  repintarServicios();
 
   if (lugarAbierto) {
     const { feature, el, sobre360, vista } = lugarAbierto;

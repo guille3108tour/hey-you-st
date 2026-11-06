@@ -1647,3 +1647,38 @@ main {
 .bb-modo button[aria-pressed="true"] { font-weight: 700; background: rgba(14, 165, 233, 0.34); border-color: rgba(34, 230, 223, 0.75); }
 .bb-pp { flex: none; display: flex; flex-direction: column; align-items: flex-end; text-align: right; font-variant-numeric: tabular-nums; }
 .bb-pp b { font-size: 16px; }
+
+/* ---------- Servicios a domicilio (js/servicios.js) ----------
+   Fichas de servicio dentro del diálogo oscuro. Reusa .reservar (el coral de "Me interesa")
+   y .datos/.dato, pero las pastillas van en claro para que se lean sobre el fondo oscuro. */
+.serv .dato {
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.serv-card {
+  display: flex;
+  flex-direction: column;
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+.serv-titulo-card { margin: 0 0 6px; font-size: 16px; line-height: 1.25; color: #fff; }
+.serv-meta { margin: 0 0 10px; font-size: 12.5px; line-height: 1.55; color: rgba(255, 255, 255, 0.72); }
+.serv-card .datos { margin-bottom: 10px; }
+.serv-texto { margin: 0 0 4px; font-size: 14px; line-height: 1.55; color: rgba(255, 255, 255, 0.88); }
+.serv-modalidad { margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.12); }
+.serv-modalidad-fila {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 0 0 2px;
+}
+.serv-modalidad-nombre { font-size: 14px; font-weight: 700; color: #fff; }
+.serv-modalidad-precio { font-size: 14px; font-weight: 700; color: #8ffff6; white-space: nowrap; }
+.serv-modalidad-texto { margin: 0; font-size: 13px; line-height: 1.5; color: rgba(255, 255, 255, 0.78); }
+.serv-precio { margin: 10px 0 0; font-size: 14px; font-weight: 700; color: #8ffff6; }
+.serv-card .reservar { margin-top: 14px; }
+
+/* En el celular el botón de servicios queda solo con el ícono 🧹, para no apretar la barra */
+@media (max-width: 640px) {
+  #btn-servicios .ctrl-txt { display: none; }
+}
