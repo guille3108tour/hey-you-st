@@ -31,14 +31,14 @@ const SERVICIOS = [
     //   1) Deep cleaning inicial (precio cerrado). Van las dos hermanas, llevan y compran los
     //      productos, dejan la casa a punto para que después solo sean repasos.
     //        costo de las dos hermanas (productos incl.) ... ₡40.000  (≈ $78–80)
-    //        precio al cliente ............................. $90
-    //        margen Hey You ................................ ≈ $10–12
+    //        precio al cliente ............................. ₡60.000  (≈ $120)
+    //        margen Hey You ................................ ₡20.000  (≈ $40)
     //   2) Mantenimiento por hora (después del deep cleaning):
     //        base de la limpiadora ..... ₡4.000/h  (≈ $8)
     //        comisión Hey You ........... ₡2.500/h  (≈ $5)
     //        total al cliente ........... ₡6.500/h  (≈ $13)
-    //   Nota (Juan): el negocio real está en el mantenimiento recurrente por hora, no en el
-    //   deep cleaning —el deep cleaning casi no deja margen, es la puerta de entrada.
+    //   Nota (Juan): el deep cleaning ya deja margen (~$40) y además es la puerta de entrada al
+    //   mantenimiento recurrente por hora, que es lo que suma a largo plazo.
     //   (tipo de cambio aprox. ₡500–510/$1, a afinar al cerrar la tarifa pública.)
     id: "limpieza-jossmayling",
     categoria: "limpieza",
@@ -54,7 +54,7 @@ const SERVICIOS = [
     modalidades: [
       {
         nombre: "Deep cleaning inicial",
-        precio: "$90",
+        precio: "$120",
         texto: "Una limpieza profunda de arranque, van las dos hermanas con todos los productos. Deja la casa a punto para que de ahí en adelante solo sean repasos.",
       },
       {
@@ -81,7 +81,7 @@ const SERVICIOS = [
       modalidades: [
         {
           nombre: "Initial deep cleaning",
-          precio: "$90",
+          precio: "$120",
           texto: "A thorough first clean — both sisters come with all the products. Leaves the house in shape so from then on it's just touch-ups.",
         },
         {
