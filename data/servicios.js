@@ -27,15 +27,19 @@ const SERVICIOS = [
     // trabaja en limpieza y la mamá es veterana en el oficio: para el "deep cleaning" van las
     // dos hermanas.
     //
-    // TARIFA (interna, a confirmar — Juan: "el precio lo vemos luego"):
-    //   1) Deep cleaning inicial: tarifa tipo contrato, cerrada (monto POR DEFINIR). Van las dos
-    //      hermanas, llevan y compran los productos. Deja la casa a punto para que después solo
-    //      sean repasos, no limpieza tan profunda.
+    // TARIFA (interna):
+    //   1) Deep cleaning inicial (precio cerrado). Van las dos hermanas, llevan y compran los
+    //      productos, dejan la casa a punto para que después solo sean repasos.
+    //        costo de las dos hermanas (productos incl.) ... ₡40.000  (≈ $78–80)
+    //        precio al cliente ............................. $90
+    //        margen Hey You ................................ ≈ $10–12
     //   2) Mantenimiento por hora (después del deep cleaning):
     //        base de la limpiadora ..... ₡4.000/h  (≈ $8)
     //        comisión Hey You ........... ₡2.500/h  (≈ $5)
     //        total al cliente ........... ₡6.500/h  (≈ $13)
-    //      (tipo de cambio aprox. ₡500–510/$1, a afinar al cerrar la tarifa pública.)
+    //   Nota (Juan): el negocio real está en el mantenimiento recurrente por hora, no en el
+    //   deep cleaning —el deep cleaning casi no deja margen, es la puerta de entrada.
+    //   (tipo de cambio aprox. ₡500–510/$1, a afinar al cerrar la tarifa pública.)
     id: "limpieza-jossmayling",
     categoria: "limpieza",
     titulo: "Limpieza a domicilio",
@@ -50,14 +54,18 @@ const SERVICIOS = [
     modalidades: [
       {
         nombre: "Deep cleaning inicial",
+        precio: "$90",
         texto: "Una limpieza profunda de arranque, van las dos hermanas con todos los productos. Deja la casa a punto para que de ahí en adelante solo sean repasos.",
       },
       {
         nombre: "Mantenimiento por hora",
+        precio: "$13/hora",
         texto: "Después del deep cleaning, los repasos se cobran por hora.",
       },
     ],
-    precio: null, // Se confirma por WhatsApp (tarifa pública aún sin cerrar).
+    // Sin precio único: cada modalidad trae el suyo (ver "modalidades"). El margen interno va
+    // en el bloque TARIFA de arriba, no acá.
+    precio: null,
     local: "",
     whatsapp: "",
     texto: "Jossmayling trabajó conmigo en cocina —yo era su manager y ella la sous chef—, así que respondo por ella: no es una persona cualquiera entrando a tu casa. Llega con su propio transporte a Santa Teresa, Mal País y la zona, y lleva ella misma los productos. Arrancamos con una limpieza profunda (van ella y su hermana) para dejar la casa impecable, y después mantenemos con repasos por hora. Disponible por las mañanas.",
@@ -73,10 +81,12 @@ const SERVICIOS = [
       modalidades: [
         {
           nombre: "Initial deep cleaning",
+          precio: "$90",
           texto: "A thorough first clean — both sisters come with all the products. Leaves the house in shape so from then on it's just touch-ups.",
         },
         {
           nombre: "Hourly upkeep",
+          precio: "$13/hour",
           texto: "After the deep cleaning, touch-ups are charged by the hour.",
         },
       ],
