@@ -1847,3 +1847,22 @@ main {
 .marker.marker-ruta-comida { --pin: rgba(192, 124, 26, 0.98); }
 .badge-comida { background: var(--ambar); }
 .parada-comida .parada-num { background: var(--ambar); }
+
+/* Rótulo "Inicio" / "Final" sobre el pin de la ruta (8-nov) */
+.marker.marker-ruta .pin-rotulo {
+  position: absolute;
+  bottom: calc(100% - 3px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 9.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #fff;
+  background: var(--pin);
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1.5px solid #fff;
+  box-shadow: 0 2px 6px rgba(2, 20, 40, 0.35);
+}

@@ -257,7 +257,7 @@ const TEXTOS = {
   rutaVerEnMapa:    ["Ver en el mapa", "Show on the map"],
   rutaNotas:        ["Antes de salir", "Before you go"],
   rutaInicio:       ["Inicio", "Start"],
-  rutaMeta:         ["Meta", "Finish"],
+  rutaMeta:         ["Final", "Finish"],
   rutaComida:       ["Comida", "Food"],
 };
 
