@@ -255,6 +255,7 @@ const TEXTOS = {
                      "The map now shows only this route's stops."],
   rutaParada:       [n => `Parada ${n}`, n => `Stop ${n}`],
   rutaVerEnMapa:    ["Ver en el mapa", "Show on the map"],
+  rutaVer360:       ["Ver foto 360°", "See 360° photo"],
   rutaNotas:        ["Antes de salir", "Before you go"],
   rutaInicio:       ["Inicio", "Start"],
   rutaMeta:         ["Final", "Finish"],

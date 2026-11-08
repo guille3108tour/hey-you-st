@@ -13,6 +13,7 @@ import { encuadrarPuntos } from "./mapa.js";
 import { activarRuta, limpiarRuta, onSalirDeRuta } from "./filtros.js";
 import { panel, cerrarPanel, marcarLugar } from "./panel.js";
 import { marcadores } from "./marcadores.js";
+import { abrirInmersivo } from "./inmersivo.js";
 import { ponerAltura } from "./hoja.js";
 
 const panelBody = document.getElementById("panel-body");
@@ -94,6 +95,8 @@ export function abrirCaminatas() {
     btn.addEventListener("click", () => alternarRuta(btn.dataset.rutaToggle)));
   panelBody.querySelectorAll("[data-parada-coords]").forEach(btn =>
     btn.addEventListener("click", () => verParadaEnMapa(btn.dataset.paradaCoords)));
+  panelBody.querySelectorAll("[data-parada-360]").forEach(btn =>
+    btn.addEventListener("click", () => verParada360(btn.dataset.parada360)));
 
   panel.hidden = false;
   panel.scrollTop = 0;
@@ -131,6 +134,12 @@ function htmlResena(rutaOriginal) {
     const verMapa = coords
       ? `<button type="button" class="parada-mapa" data-parada-coords="${coords.join(",")}">${esc(txt("rutaVerEnMapa"))}</button>`
       : "";
+    // 360° del punto: aparece solo si la parada es un punto de la guía con foto 360° (las fotos
+    // se agregan al punto en data/points.js; sin foto, no sale el botón).
+    const m360 = paradaOriginal.lugar && marcadores.find(x => x.feature.properties.id === paradaOriginal.lugar);
+    const ver360 = m360 && m360.feature.properties.foto360
+      ? `<button type="button" class="parada-360" data-parada-360="${esc(paradaOriginal.lugar)}">${esc(txt("rutaVer360"))}</button>`
+      : "";
     // Todas las paradas van numeradas; inicio/meta/comida suman su insignia de texto.
     const rol = paradaOriginal.rol;
     const BADGE = { inicio: "rutaInicio", meta: "rutaMeta", comida: "rutaComida" };
@@ -143,7 +152,7 @@ function htmlResena(rutaOriginal) {
           ${badge}
           <h4 class="parada-nombre">${esc(p.nombre)}${p.min ? ` <span class="parada-min">· ${esc(p.min)}</span>` : ""}</h4>
           <p class="parada-texto">${esc(p.texto)}</p>
-          ${verMapa}
+          <div class="parada-acciones">${verMapa}${ver360}</div>
         </div>
       </li>`;
   }).join("");
@@ -192,6 +201,12 @@ function verParadaEnMapa(coordsStr) {
   const m = marcadores.find(x => x.feature.geometry.coordinates.join(",") === coordsStr);
   if (m) marcarLugar(m.el, { conNombre: true });
   if (anchoMovil.matches) ponerAltura("baja");
+}
+
+// "Ver foto 360°" de una parada: abre el visor inmersivo del punto (reutiliza el de la ficha).
+function verParada360(id) {
+  const m = marcadores.find(x => x.feature.properties.id === id);
+  if (m && m.feature.properties.foto360) abrirInmersivo(m.feature, m.el);
 }
 
 // El botón de la barra superior

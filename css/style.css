@@ -1866,3 +1866,20 @@ main {
   border: 1.5px solid #fff;
   box-shadow: 0 2px 6px rgba(2, 20, 40, 0.35);
 }
+
+/* Acciones de una parada (Ver en el mapa / Ver 360°) — 8-nov */
+.parada-acciones { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 7px; }
+.parada-acciones .parada-mapa { margin-top: 0; }
+.parada-360 {
+  padding: 5px 11px;
+  border: 1px solid rgba(239, 108, 77, 0.45);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--coral);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.parada-360:hover { background: rgba(239, 108, 77, 0.1); }
