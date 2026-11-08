@@ -950,8 +950,8 @@ const POINTS = {
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -85.04913,
-          9.670106
+          -85.054312,
+          9.666779
         ]
       },
       "properties": {
