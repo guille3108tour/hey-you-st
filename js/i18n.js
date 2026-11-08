@@ -252,6 +252,7 @@ const TEXTOS = {
   rutaMula:         ["Mula", "Mule"],
   rutaConOperador:  [op => `Con ${op}`, op => `With ${op}`],
   rutaAlquiler:     ["Alquiler del vehículo (Xtremecenter)", "Vehicle rental (Xtremecenter)"],
+  rutaAlquiler24:   ["También se puede alquilar por 24 h.", "You can also rent it for 24 h."],
   rutaRequisitos:   ["Requisitos: licencia de conducir y depósito de garantía.",
                      "Requirements: driver's license and security deposit."],
   rutaSegunMarea:   ["Según la marea", "Tide permitting"],

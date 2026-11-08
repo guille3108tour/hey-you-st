@@ -111,12 +111,14 @@ const RUTAS = [
     entrada: "Una vuelta en ATV (cuadri) o mula por la costa sur: de Santa Teresa a Cabuya y Montezuma, con playas, el cementerio sobre el mar, una catarata y comida. Dura unas 4 a 5 horas.",
     pago: {
       operador: "Xtremecenter",
+      // Precios del cartel: tarifa de 8 h y de 24 h. El tour dura 4-5 h (entra en la de 8 h),
+      // pero también se puede alquilar por 24 h.
       opciones: [
-        { v: "Mula · Side by Side 1000cc (5 pax)", p: "$180 / 8 h" },
-        { v: "Mula · Side by Side 1000cc (4 pax)", p: "$200 / 8 h" },
-        { v: "ATV Yamaha 450cc", p: "$80 / 8 h" },
-        { v: "ATV Honda 420cc", p: "$70 / 8 h" },
-        { v: "ATV Kymco 300cc", p: "$60 / 8 h" }
+        { v: "Mula · Side by Side 1000cc (5 pax)", p8: "$180", p24: "$230" },
+        { v: "Mula · Side by Side 1000cc (4 pax)", p8: "$200", p24: "$250" },
+        { v: "ATV Yamaha 450cc", p8: "$80", p24: "$90" },
+        { v: "ATV Honda 420cc", p8: "$70", p24: "$80" },
+        { v: "ATV Kymco 300cc", p8: "$60", p24: "$70" }
       ]
     },
     paradas: [

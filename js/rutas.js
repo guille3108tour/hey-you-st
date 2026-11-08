@@ -186,8 +186,9 @@ function htmlResena(rutaOriginal) {
   const bloquePago = pago ? `
     <div class="caminata-pago">
       <p class="caminata-pago-t">🏍️ ${esc(txt("rutaAlquiler"))}</p>
-      <ul>${pago.opciones.map(o => `<li><span>${esc(o.v)}</span><span class="pago-precio">${esc(o.p)}</span></li>`).join("")}</ul>
-      <p class="caminata-pago-nota">${esc(txt("rutaRequisitos"))}</p>
+      <div class="pago-fila pago-cab"><span></span><span>8 h</span><span>24 h</span></div>
+      <ul>${pago.opciones.map(o => `<li class="pago-fila"><span>${esc(o.v)}</span><span class="pago-precio">${esc(o.p8)}</span><span class="pago-precio">${esc(o.p24)}</span></li>`).join("")}</ul>
+      <p class="caminata-pago-nota">${esc(txt("rutaAlquiler24"))} ${esc(txt("rutaRequisitos"))}</p>
     </div>` : "";
 
   return `
