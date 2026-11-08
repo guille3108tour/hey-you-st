@@ -7,7 +7,7 @@
    ========================================================= */
 import { txt, traducido } from "./i18n.js";
 import { esc } from "./util.js";
-import { LUGARES, anchoMovil } from "./config.js";
+import { PUNTOS_POR_ID, anchoMovil } from "./config.js";
 import { map } from "./mapa.js";
 import { encuadrarPuntos } from "./mapa.js";
 import { activarRuta, limpiarRuta, onSalirDeRuta } from "./filtros.js";
@@ -18,12 +18,10 @@ import { ponerAltura } from "./hoja.js";
 
 const panelBody = document.getElementById("panel-body");
 
-// id de parada -> coordenadas del punto en el mapa (solo las paradas que tienen ficha)
-const COORDS_POR_ID = new Map(LUGARES.map(f => [f.properties.id, f.geometry.coordinates]));
-
-// Las coordenadas de una parada: su ficha en el mapa (p.lugar) o las que trae puestas (p.coords).
+// Las coordenadas de una parada: del punto que referencia (p.lugar, en data/points.js, incluidos
+// los soloRuta) o, de respaldo, las que trae puestas la parada (p.coords).
 function coordsDeParada(p) {
-  return (p.lugar && COORDS_POR_ID.get(p.lugar)) || p.coords || null;
+  return (p.lugar && PUNTOS_POR_ID.get(p.lugar)?.geometry.coordinates) || p.coords || null;
 }
 
 // Las paradas de una ruta que tienen ubicación, en orden, para dibujarlas en el mapa como
@@ -136,8 +134,8 @@ function htmlResena(rutaOriginal) {
       : "";
     // 360° del punto: aparece solo si la parada es un punto de la guía con foto 360° (las fotos
     // se agregan al punto en data/points.js; sin foto, no sale el botón).
-    const m360 = paradaOriginal.lugar && marcadores.find(x => x.feature.properties.id === paradaOriginal.lugar);
-    const ver360 = m360 && m360.feature.properties.foto360
+    const punto360 = paradaOriginal.lugar && PUNTOS_POR_ID.get(paradaOriginal.lugar);
+    const ver360 = punto360?.properties.foto360
       ? `<button type="button" class="parada-360" data-parada-360="${esc(paradaOriginal.lugar)}">${esc(txt("rutaVer360"))}</button>`
       : "";
     // Todas las paradas van numeradas; inicio/meta/comida suman su insignia de texto.
@@ -205,8 +203,11 @@ function verParadaEnMapa(coordsStr) {
 
 // "Ver foto 360°" de una parada: abre el visor inmersivo del punto (reutiliza el de la ficha).
 function verParada360(id) {
+  const feat = PUNTOS_POR_ID.get(id);
+  if (!feat?.properties.foto360) return;
+  // Si el punto también está en el mapa general tiene su marcador; si es soloRuta, va sin él.
   const m = marcadores.find(x => x.feature.properties.id === id);
-  if (m && m.feature.properties.foto360) abrirInmersivo(m.feature, m.el);
+  abrirInmersivo(feat, m ? m.el : null);
 }
 
 // El botón de la barra superior

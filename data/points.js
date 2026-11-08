@@ -2104,6 +2104,43 @@ const POINTS = {
           }
         ]
       }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-85.062634, 9.658697] },
+      "properties": {
+        "id": "asvo-montezuma",
+        "nombre": "ASVO",
+        "soloRuta": true,
+        "categorias": ["naturaleza"],
+        "gratis": true,
+        "entrada": "En el camino a Playa Grande, el proyecto de conservación de tortugas de Montezuma. Pasá a ver los nidos (\"es como sembrar tortugas\"): es gratis y se entra libre.",
+        "en": { "nombre": "ASVO", "entrada": "On the way to Playa Grande, Montezuma's sea turtle conservation project. Stop by to see the nests (\"it is like planting turtles\"): it is free and open to walk in." }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-85.068005, 9.654672] },
+      "properties": {
+        "id": "las-delicias-cafe",
+        "nombre": "Las Delicias Café",
+        "soloRuta": true,
+        "categorias": ["comida"],
+        "entrada": "En el centro de Montezuma, para comer algo rico al cerrar el día después de la caminata.",
+        "en": { "nombre": "Las Delicias Café", "entrada": "In downtown Montezuma, for a good bite to close out the day after the walk." }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-85.066523, 9.655513] },
+      "properties": {
+        "id": "montezuma-centro",
+        "nombre": "Montezuma centro",
+        "soloRuta": true,
+        "categorias": ["transporte"],
+        "entrada": "El punto de salida de la caminata. Comprá agua y algo de comer antes de arrancar: en el camino y en Playa Grande no hay nada cerca para comprar.",
+        "en": { "nombre": "Downtown Montezuma", "entrada": "The starting point of the walk. Buy water and something to eat before you set off: there is nowhere to buy anything along the way or at Playa Grande." }
+      }
     }
   ]
 };

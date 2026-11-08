@@ -41,19 +41,16 @@ const RUTAS = [
     },
     paradas: [
       {
-        // INICIO de la ruta (Juan, 8-nov), con las coordenadas del centro de Montezuma: sale como
-        // pin de inicio en el mapa.
+        // INICIO de la ruta. Punto soloRuta en data/points.js (montezuma-centro).
         rol: "inicio",
+        lugar: "montezuma-centro",
         nombre: "Montezuma centro",
-        coords: [-85.066523, 9.655513],
         texto: "La salida. Comprá agua y algo de comer antes de arrancar: en el camino y en Playa Grande no hay nada cerca para comprar.",
         en: { nombre: "Downtown Montezuma", texto: "The starting point. Buy water and something to eat before you set off: there is nowhere to buy anything along the way or at Playa Grande." }
       },
       {
-        // ASVO no es un punto de data/points.js; con sus coordenadas (Juan, 8-nov) sale como
-        // parada 2 en el mapa.
+        // ASVO: punto soloRuta en data/points.js (asvo-montezuma).
         lugar: "asvo-montezuma",
-        coords: [-85.062634, 9.658697],
         nombre: "ASVO",
         texto: "En el camino, el proyecto de conservación de tortugas. Pasá a ver los nidos (\"es como sembrar tortugas\"): es gratis y se entra libre.",
         en: { texto: "On the way, the sea turtle conservation project. Stop by to see the nests (\"it is like planting turtles\"): it is free and open to walk in." }
@@ -75,11 +72,10 @@ const RUTAS = [
         en: { min: "15 to 20 more min", texto: "The end of the walk. Over the rocks, with one climb, one descent and ocean views. It is a very long, flat beach. When the tide comes in, it rises very fast and very high: keep your things away from the shoreline." }
       },
       {
-        // La comida del cierre (Juan, 8-nov): de vuelta en el pueblo. Restaurantes es una categoría
-        // en pausa en el mapa, así que no tiene ficha propia: lleva sus coordenadas y sale como pin.
+        // La comida del cierre: punto soloRuta en data/points.js (las-delicias-cafe).
         rol: "comida",
+        lugar: "las-delicias-cafe",
         nombre: "Las Delicias Café, Montezuma",
-        coords: [-85.068005, 9.654672],
         min: "de vuelta en el pueblo",
         texto: "Para cerrar el día, de vuelta en Montezuma: caé a Las Delicias Café a comer algo rico después de la caminata.",
         en: { nombre: "Las Delicias Café, Montezuma", min: "back in town", texto: "To close out the day, back in Montezuma: stop by Las Delicias Café for something good to eat after the walk." }

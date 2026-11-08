@@ -38,11 +38,18 @@ const CATEGORIAS_EN_PAUSA = ["hospedaje", "comida", "bienestar", "transporte", "
 const NEGOCIOS_EN_PAUSA = ["hospedaje", "comida", "tours"];
 for (const clave of CATEGORIAS_EN_PAUSA) delete CATEGORIAS[clave];
 
-// Los lugares que muestra el mapa, cada uno solo con sus categorías activas
+// Los lugares que muestra el mapa por categoría, cada uno solo con sus categorías activas.
+// Los puntos "soloRuta" quedan fuera: existen en la base (data/points.js) pero solo aparecen
+// cuando se elige una ruta (ver js/rutas.js), no en la navegación por categorías.
 export const LUGARES = POINTS.features
+  .filter(f => !f.properties.soloRuta)
   .filter(f => !f.properties.categorias.some(c => NEGOCIOS_EN_PAUSA.includes(c)))
   .map(f => ({ ...f, properties: { ...f.properties, categorias: f.properties.categorias.filter(c => CATEGORIAS[c]) } }))
   .filter(f => f.properties.categorias.length);
+
+// Todos los puntos por id (incluye los soloRuta): las rutas los usan para ubicar sus paradas
+// en el mapa y para abrir el 360° de cada punto.
+export const PUNTOS_POR_ID = new Map(POINTS.features.map(f => [f.properties.id, f]));
 
 // Los tours se coordinan directamente con Juan, no con quien da el tour: el panel
 // no muestra teléfonos, correos ni webs de proveedores y ofrece escribirle a él.
