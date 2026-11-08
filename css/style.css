@@ -1672,10 +1672,12 @@ main {
 
 /* Marcador temporal de una parada sin ficha propia (ej. Las Delicias Café): pin coral */
 .marker.marker-ruta {
-  width: 34px;
-  height: 34px;
-  font-size: 17px;
+  width: 32px;
+  height: 32px;
+  font-size: 15px;
+  font-weight: 800;
   line-height: 1;
+  color: #fff;
   background: rgba(239, 108, 77, 0.96);
   border: 2px solid #fff;
   border-radius: 50%;
@@ -1812,9 +1814,11 @@ main {
 }
 .badge-inicio { background: var(--selva); }
 .badge-meta { background: var(--coral); }
-.parada-inicio .parada-num { background: var(--selva); font-size: 11px; }
-.parada-meta .parada-num { background: transparent; font-size: 19px; } /* la bandera 🏁 sola */
-.marker.marker-ruta-meta { background: rgba(42, 59, 51, 0.92); }
+/* El número de cada paso toma el color de su rol (inicio/meta/comida) */
+.parada-inicio .parada-num { background: var(--selva); }
+.parada-meta .parada-num { background: var(--tinta); }
+.marker.marker-ruta-meta { background: rgba(42, 59, 51, 0.95); }
 .marker.marker-ruta-inicio { background: rgba(79, 157, 105, 0.96); }
+.marker.marker-ruta-comida { background: rgba(192, 124, 26, 0.96); }
 .badge-comida { background: var(--ambar); }
-.parada-comida .parada-num { background: transparent; font-size: 18px; }
+.parada-comida .parada-num { background: var(--ambar); }

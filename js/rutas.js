@@ -25,43 +25,42 @@ function coordsDeParada(p) {
   return (p.lugar && COORDS_POR_ID.get(p.lugar)) || p.coords || null;
 }
 
-// Reparte las paradas de una ruta para el mapa: las que son punto de la guía (ids, marcadores
-// que ya existen) y las que solo traen coordenadas (temp: marcador temporal, ej. el café).
-// "coords" es el recorrido completo en orden, para encuadrar.
+// Las paradas de una ruta que tienen ubicación, en orden, para dibujarlas en el mapa como
+// pines numerados. "numero" es el paso en la reseña (1..N), así el pin y el paso coinciden;
+// una parada sin coordenadas (ej. ASVO, hasta que tenga ubicación) no sale en el mapa y deja
+// su número sin pin. "coords" es el recorrido, para encuadrar.
 function paradasEnMapa(ruta) {
-  const ids = [];
-  const temp = [];
+  const stops = [];
   const coords = [];
-  for (const paradaOriginal of ruta.paradas) {
+  ruta.paradas.forEach((paradaOriginal, i) => {
     const c = coordsDeParada(paradaOriginal);
-    if (!c) continue;
+    if (!c) return;
     const clave = c.join(",");
-    if (!coords.some(x => x.join(",") === clave)) coords.push(c);
-    if (paradaOriginal.lugar && COORDS_POR_ID.has(paradaOriginal.lugar)) {
-      if (!ids.includes(paradaOriginal.lugar)) ids.push(paradaOriginal.lugar);
-    } else if (!temp.some(t => t.coords.join(",") === clave)) {
-      const p = traducido(paradaOriginal);
-      temp.push({ coords: c, nombre: p.nombre, rol: paradaOriginal.rol });
-    }
-  }
-  return { ids, temp, coords };
+    if (stops.some(s => s.coords.join(",") === clave)) return; // sin repetir una misma ubicación
+    const p = traducido(paradaOriginal);
+    stops.push({ coords: c, nombre: p.nombre, rol: paradaOriginal.rol, numero: i + 1 });
+    coords.push(c);
+  });
+  return { stops, coords };
 }
 
-// ---------- Marcadores temporales (paradas sin ficha) ----------
+// ---------- Pines de la ruta en el mapa ----------
+// En modo ruta ocultamos los marcadores de categoría y dibujamos los nuestros: un pin numerado
+// por parada, en orden, para que se lea el recorrido (Playa Grande incluida) de un vistazo.
 let marcadoresRuta = [];
 function limpiarMarcadoresRuta() {
   marcadoresRuta.forEach(m => m.remove());
   marcadoresRuta = [];
 }
-function pintarMarcadoresRuta(temp) {
+function pintarMarcadoresRuta(stops) {
   limpiarMarcadoresRuta();
-  for (const t of temp) {
+  for (const s of stops) {
     const el = document.createElement("div");
-    el.className = "marker marker-ruta" + (t.rol ? " marker-ruta-" + t.rol : "");
-    el.title = t.nombre;
-    el.textContent = t.rol === "meta" ? "🏁" : t.rol === "inicio" ? "▶" : "🍽️";
+    el.className = "marker marker-ruta" + (s.rol ? " marker-ruta-" + s.rol : "");
+    el.title = s.nombre;
+    el.textContent = s.numero; // número en vez de ícono
     const marker = new maplibregl.Marker({ element: el, anchor: "center" })
-      .setLngLat(t.coords).addTo(map);
+      .setLngLat(s.coords).addTo(map);
     marcadoresRuta.push(marker);
   }
 }
@@ -127,11 +126,10 @@ function htmlResena(rutaOriginal) {
     const verMapa = coords
       ? `<button type="button" class="parada-mapa" data-parada-coords="${coords.join(",")}">${esc(txt("rutaVerEnMapa"))}</button>`
       : "";
-    // Inicio, meta y comida: en vez del número, la parada lleva su marca y su insignia.
+    // Todas las paradas van numeradas; inicio/meta/comida suman su insignia de texto.
     const rol = paradaOriginal.rol;
-    const MARCA = { inicio: "▶", meta: "🏁", comida: "🍽️" };
     const BADGE = { inicio: "rutaInicio", meta: "rutaMeta", comida: "rutaComida" };
-    const marca = MARCA[rol] || (i + 1);
+    const marca = i + 1;
     const badge = BADGE[rol] ? `<span class="parada-badge badge-${rol}">${esc(txt(BADGE[rol]))}</span>` : "";
     return `
       <li class="parada${rol ? " parada-" + rol : ""}">
@@ -172,9 +170,9 @@ function alternarRuta(id) {
   }
   rutaDesplegada = id;
   const ruta = RUTAS.find(r => r.id === id);
-  const { ids, temp, coords } = paradasEnMapa(ruta);
-  activarRuta(ids);             // el mapa muestra solo las paradas que son punto de la guía
-  pintarMarcadoresRuta(temp);   // + las paradas sueltas con coordenadas (ej. el café)
+  const { stops, coords } = paradasEnMapa(ruta);
+  activarRuta(new Set());       // oculta los marcadores de categoría (dibujamos pines numerados)
+  pintarMarcadoresRuta(stops);  // un pin numerado por parada, en orden (Playa Grande incluida)
   encuadrarPuntos(coords);      // encuadra el recorrido completo
   // En el celular la hoja tapa el mapa: se baja un poco para que se vea el encuadre.
   if (anchoMovil.matches) ponerAltura("media");
