@@ -41,7 +41,7 @@ function paradasEnMapa(ruta) {
       if (!ids.includes(paradaOriginal.lugar)) ids.push(paradaOriginal.lugar);
     } else if (!temp.some(t => t.coords.join(",") === clave)) {
       const p = traducido(paradaOriginal);
-      temp.push({ coords: c, nombre: p.nombre });
+      temp.push({ coords: c, nombre: p.nombre, rol: paradaOriginal.rol });
     }
   }
   return { ids, temp, coords };
@@ -57,9 +57,9 @@ function pintarMarcadoresRuta(temp) {
   limpiarMarcadoresRuta();
   for (const t of temp) {
     const el = document.createElement("div");
-    el.className = "marker marker-ruta";
+    el.className = "marker marker-ruta" + (t.rol ? " marker-ruta-" + t.rol : "");
     el.title = t.nombre;
-    el.textContent = "🍽️";
+    el.textContent = t.rol === "meta" ? "🏁" : t.rol === "inicio" ? "▶" : "🍽️";
     const marker = new maplibregl.Marker({ element: el, anchor: "center" })
       .setLngLat(t.coords).addTo(map);
     marcadoresRuta.push(marker);
@@ -127,10 +127,17 @@ function htmlResena(rutaOriginal) {
     const verMapa = coords
       ? `<button type="button" class="parada-mapa" data-parada-coords="${coords.join(",")}">${esc(txt("rutaVerEnMapa"))}</button>`
       : "";
+    // Inicio, meta y comida: en vez del número, la parada lleva su marca y su insignia.
+    const rol = paradaOriginal.rol;
+    const MARCA = { inicio: "▶", meta: "🏁", comida: "🍽️" };
+    const BADGE = { inicio: "rutaInicio", meta: "rutaMeta", comida: "rutaComida" };
+    const marca = MARCA[rol] || (i + 1);
+    const badge = BADGE[rol] ? `<span class="parada-badge badge-${rol}">${esc(txt(BADGE[rol]))}</span>` : "";
     return `
-      <li class="parada">
-        <span class="parada-num">${i + 1}</span>
+      <li class="parada${rol ? " parada-" + rol : ""}">
+        <span class="parada-num">${marca}</span>
         <div class="parada-cuerpo">
+          ${badge}
           <h4 class="parada-nombre">${esc(p.nombre)}${p.min ? ` <span class="parada-min">· ${esc(p.min)}</span>` : ""}</h4>
           <p class="parada-texto">${esc(p.texto)}</p>
           ${verMapa}

@@ -1797,3 +1797,24 @@ main {
   .ctrl-caminatas { padding: 7px 10px; }
   .ctrl-caminatas .ctrl-txt { display: none; }
 }
+
+/* Inicio y meta de una caminata (js/rutas.js, 8-nov) */
+.parada-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-bottom: 5px;
+  color: #fff;
+}
+.badge-inicio { background: var(--selva); }
+.badge-meta { background: var(--coral); }
+.parada-inicio .parada-num { background: var(--selva); font-size: 11px; }
+.parada-meta .parada-num { background: transparent; font-size: 19px; } /* la bandera 🏁 sola */
+.marker.marker-ruta-meta { background: rgba(42, 59, 51, 0.92); }
+.marker.marker-ruta-inicio { background: rgba(79, 157, 105, 0.96); }
+.badge-comida { background: var(--ambar); }
+.parada-comida .parada-num { background: transparent; font-size: 18px; }

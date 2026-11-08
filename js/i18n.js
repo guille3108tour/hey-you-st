@@ -256,6 +256,9 @@ const TEXTOS = {
   rutaParada:       [n => `Parada ${n}`, n => `Stop ${n}`],
   rutaVerEnMapa:    ["Ver en el mapa", "Show on the map"],
   rutaNotas:        ["Antes de salir", "Before you go"],
+  rutaInicio:       ["Inicio", "Start"],
+  rutaMeta:         ["Meta", "Finish"],
+  rutaComida:       ["Comida", "Food"],
 };
 
 export function txt(clave, ...datos) {

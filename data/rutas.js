@@ -20,17 +20,17 @@
 const RUTAS = [
   {
     // Lo diseñó Juan el 27-oct con lo que contó en los vídeos de Montezuma: centro, ASVO, Piedra
-    // Colorada y Playa Grande. Piedra Colorada se pasa de largo a la ida y la parada larga es a la
-    // vuelta ("si venís de allá con calor, caé acá"). ASVO: "gratis, entra libre". Marea: "llegar una
-    // hora antes de la marea baja es lo más idóneo, hasta 2 después". "No hay nada cerca para comprar".
-    // Por el sol, "recomendar en las mañanas o en las tardes": las horas para llegar a Playa Grande
-    // (de 6 a 10 a.m. y de 2 a 4 p.m., para volver con luz) las propuso Claude; falta que Juan las confirme.
+    // Colorada y Playa Grande. Rediseño 8-nov (Juan): la reseña ya no repite las paradas de la
+    // vuelta; va de corrido con un INICIO (Montezuma centro) y una META (Las Delicias Café, el
+    // lugar para comer del cierre). ASVO: "gratis, entra libre". Marea: "llegar una hora antes de
+    // la marea baja es lo más idóneo, hasta 2 después". "No hay nada cerca para comprar". Por el
+    // sol, "recomendar en las mañanas o en las tardes".
     id: "montezuma-a-pie",
     nombre: "Montezuma a pie: ASVO, Piedra Colorada y Playa Grande",
     icono: "🥾",
     categorias: ["naturaleza", "playa", "cascada"],
     entrada: "Una caminata desde el centro de Montezuma con tortugas, un río con barro y una playa larguísima, sin pagar entrada en ninguna parada.",
-    camino: "35 a 40 min caminando de ida, y lo mismo de vuelta",
+    camino: "40 min a pie",
     marea: {
       lugar: "playa-grande",
       tipo: "baja",
@@ -41,11 +41,17 @@ const RUTAS = [
     },
     paradas: [
       {
+        // INICIO de la ruta (Juan, 8-nov), con las coordenadas del centro de Montezuma: sale como
+        // pin de inicio en el mapa.
+        rol: "inicio",
         nombre: "Montezuma centro",
+        coords: [-85.066523, 9.655513],
         texto: "La salida. Comprá agua y algo de comer antes de arrancar: en el camino y en Playa Grande no hay nada cerca para comprar.",
         en: { nombre: "Downtown Montezuma", texto: "The starting point. Buy water and something to eat before you set off: there is nowhere to buy anything along the way or at Playa Grande." }
       },
       {
+        // ASVO aún no es un punto de data/points.js: cuando Juan pase sus coordenadas, se le
+        // agrega "coords" acá y aparece como parada en el mapa, como el café.
         lugar: "asvo-montezuma",
         nombre: "ASVO",
         texto: "En el camino, el proyecto de conservación de tortugas. Pasá a ver los nidos (\"es como sembrar tortugas\"): es gratis y se entra libre.",
@@ -55,38 +61,27 @@ const RUTAS = [
         lugar: "piedra-colorada",
         nombre: "Piedra Colorada",
         min: "20 min desde el centro",
-        texto: "A la ida, de pasada: la parada larga es a la vuelta.",
-        en: { min: "20 min from downtown", texto: "On the way out, just pass through: the long stop is on the way back." }
+        texto: "En el camino, antes de Playa Grande: pozas en el río, el barro de la roca arcillosa para embarrarse y lavarse en el río y, subiendo por la derecha, una catarata pequeña. En verano el agua baja cristalina; con las lluvias, un poco sucia.",
+        en: { min: "20 min from downtown", texto: "Along the way, before Playa Grande: natural pools in the river, the clay rock for a mud scrub and a rinse in the river and, heading upstream along the right side, a small waterfall. In the dry season the water runs crystal-clear; in the rainy season, a bit murky." }
       },
       {
+        // META de la ruta (Juan, 8-nov): Playa Grande es el final de la caminata.
+        rol: "meta",
         lugar: "playa-grande",
         nombre: "Playa Grande",
         min: "15 a 20 min más",
-        texto: "Por roca, con una subida, una bajada y vistas al mar. Es una playa muy extensa y plana. Cuando la marea sube, lo hace muy rápido y muy alto: dejá tus cosas lejos de la orilla.",
-        en: { min: "15 to 20 more min", texto: "Over the rocks, with one climb, one descent and ocean views. It is a very long, flat beach. When the tide comes in, it rises very fast and very high: keep your things away from the shoreline." }
+        texto: "El final de la caminata. Por roca, con una subida, una bajada y vistas al mar. Es una playa muy extensa y plana. Cuando la marea sube, lo hace muy rápido y muy alto: dejá tus cosas lejos de la orilla.",
+        en: { min: "15 to 20 more min", texto: "The end of the walk. Over the rocks, with one climb, one descent and ocean views. It is a very long, flat beach. When the tide comes in, it rises very fast and very high: keep your things away from the shoreline." }
       },
       {
-        lugar: "piedra-colorada",
-        nombre: "Piedra Colorada, a la vuelta",
-        min: "15 a 20 min",
-        texto: "Si venís con calor, caé acá: pozas en el río, el barro de la roca arcillosa para embarrarse y lavarse en el río y, subiendo por la derecha, una catarata pequeña. En verano el agua baja cristalina; con las lluvias, un poco sucia.",
-        en: { nombre: "Piedra Colorada, on the way back", min: "15 to 20 min", texto: "If you are feeling the heat, stop here: natural pools in the river, the clay rock for a mud scrub and a rinse in the river and, heading upstream along the right side, a small waterfall. In the dry season the water runs crystal-clear; in the rainy season, a bit murky." }
-      },
-      {
-        nombre: "Montezuma centro",
-        min: "20 min",
-        texto: "De vuelta al pueblo.",
-        en: { nombre: "Downtown Montezuma", texto: "Back to town." }
-      },
-      {
-        // El lugar para comer del cierre (Juan, 8-nov). Restaurantes es una categoría en pausa
-        // en el mapa, así que esta parada no tiene ficha propia: lleva sus coordenadas y sale
-        // como marcador de la ruta.
+        // La comida del cierre (Juan, 8-nov): de vuelta en el pueblo. Restaurantes es una categoría
+        // en pausa en el mapa, así que no tiene ficha propia: lleva sus coordenadas y sale como pin.
+        rol: "comida",
         nombre: "Las Delicias Café, Montezuma",
         coords: [-85.068005, 9.654672],
-        min: "en el pueblo",
+        min: "de vuelta en el pueblo",
         texto: "Para cerrar el día, de vuelta en Montezuma: caé a Las Delicias Café a comer algo rico después de la caminata.",
-        en: { nombre: "Las Delicias Café, Montezuma", min: "in town", texto: "To close out the day, back in Montezuma: stop by Las Delicias Café for something good to eat after the walk." }
+        en: { nombre: "Las Delicias Café, Montezuma", min: "back in town", texto: "To close out the day, back in Montezuma: stop by Las Delicias Café for something good to eat after the walk." }
       }
     ],
     notas: [
@@ -97,7 +92,7 @@ const RUTAS = [
     en: {
       nombre: "Montezuma on foot: ASVO, Piedra Colorada and Playa Grande",
       entrada: "A walk from downtown Montezuma with sea turtles, a river with natural mud and a very long beach, with no entrance fee at any stop.",
-      camino: "35 to 40 min on foot each way",
+      camino: "40 min on foot",
       notas: [
         "Because of the sun, walk it in the morning or in the afternoon, not at midday.",
         "It is best not to go alone: it is a long walk, on the way back too.",
