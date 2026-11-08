@@ -50,9 +50,10 @@ const RUTAS = [
         en: { nombre: "Downtown Montezuma", texto: "The starting point. Buy water and something to eat before you set off: there is nowhere to buy anything along the way or at Playa Grande." }
       },
       {
-        // ASVO aún no es un punto de data/points.js: cuando Juan pase sus coordenadas, se le
-        // agrega "coords" acá y aparece como parada en el mapa, como el café.
+        // ASVO no es un punto de data/points.js; con sus coordenadas (Juan, 8-nov) sale como
+        // parada 2 en el mapa.
         lugar: "asvo-montezuma",
+        coords: [-85.062634, 9.658697],
         nombre: "ASVO",
         texto: "En el camino, el proyecto de conservación de tortugas. Pasá a ver los nidos (\"es como sembrar tortugas\"): es gratis y se entra libre.",
         en: { texto: "On the way, the sea turtle conservation project. Stop by to see the nests (\"it is like planting turtles\"): it is free and open to walk in." }

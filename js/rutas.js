@@ -58,8 +58,9 @@ function pintarMarcadoresRuta(stops) {
     const el = document.createElement("div");
     el.className = "marker marker-ruta" + (s.rol ? " marker-ruta-" + s.rol : "");
     el.title = s.nombre;
-    el.textContent = s.numero; // número en vez de ícono
-    const marker = new maplibregl.Marker({ element: el, anchor: "center" })
+    // Pin de mapa (gota) con el número dentro; la punta marca el punto exacto.
+    el.innerHTML = `<div class="pin-cuerpo">${s.numero}</div><div class="pin-punta"></div>`;
+    const marker = new maplibregl.Marker({ element: el, anchor: "bottom" })
       .setLngLat(s.coords).addTo(map);
     marcadoresRuta.push(marker);
   }

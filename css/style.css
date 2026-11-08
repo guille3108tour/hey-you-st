@@ -1672,17 +1672,42 @@ main {
 
 /* Marcador temporal de una parada sin ficha propia (ej. Las Delicias Café): pin coral */
 .marker.marker-ruta {
+  position: relative;
+  display: block;
+  width: 32px;
+  height: 40px;
+  --pin: rgba(239, 108, 77, 0.97); /* color del pin, lo cambia cada rol */
+  cursor: default;
+}
+.marker.marker-ruta .pin-cuerpo {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 32px;
   height: 32px;
+  display: grid;
+  place-items: center;
+  color: #fff;
   font-size: 15px;
   font-weight: 800;
   line-height: 1;
-  color: #fff;
-  background: rgba(239, 108, 77, 0.96);
+  background: var(--pin);
   border: 2px solid #fff;
   border-radius: 50%;
   box-shadow: 0 3px 9px rgba(2, 20, 40, 0.4);
-  cursor: default;
+  z-index: 1;
+}
+.marker.marker-ruta .pin-punta {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 11px solid var(--pin);
+  filter: drop-shadow(0 2px 1px rgba(2, 20, 40, 0.25));
 }
 
 /* Cabecera del panel de caminatas */
@@ -1817,8 +1842,8 @@ main {
 /* El número de cada paso toma el color de su rol (inicio/meta/comida) */
 .parada-inicio .parada-num { background: var(--selva); }
 .parada-meta .parada-num { background: var(--tinta); }
-.marker.marker-ruta-meta { background: rgba(42, 59, 51, 0.95); }
-.marker.marker-ruta-inicio { background: rgba(79, 157, 105, 0.96); }
-.marker.marker-ruta-comida { background: rgba(192, 124, 26, 0.96); }
+.marker.marker-ruta-inicio { --pin: rgba(79, 157, 105, 0.98); }
+.marker.marker-ruta-meta   { --pin: rgba(42, 59, 51, 0.96); }
+.marker.marker-ruta-comida { --pin: rgba(192, 124, 26, 0.98); }
 .badge-comida { background: var(--ambar); }
 .parada-comida .parada-num { background: var(--ambar); }
