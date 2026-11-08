@@ -96,5 +96,52 @@ const RUTAS = [
         "Please take all your trash back with you."
       ]
     }
+  },
+  {
+    // Ruta en ATV o mula (Juan, 8-nov): de Santa Teresa a Cabuya y Montezuma. Es PAGADA: el
+    // vehículo se alquila en Xtremecenter (precios del cartel, tarifa de 8 h aunque el tour dure
+    // 4-5 h). Varias paradas dependen de la marea. El inicio y la vuelta (Santa Teresa /
+    // Xtremecenter) todavía no tienen punto propio: falta la coordenada para el pin.
+    id: "atv-cabuya-montezuma",
+    nombre: "ATV o Mula: Santa Teresa, Cabuya y Montezuma",
+    icono: "🏍️",
+    modo: "atv-mula",
+    camino: "4 a 5 h",
+    categorias: ["naturaleza", "playa", "cascada"],
+    entrada: "Una vuelta en ATV (cuadri) o mula por la costa sur: de Santa Teresa a Cabuya y Montezuma, con playas, el cementerio sobre el mar, una catarata y comida. Dura unas 4 a 5 horas.",
+    pago: {
+      operador: "Xtremecenter",
+      opciones: [
+        { v: "Mula · Side by Side 1000cc (5 pax)", p: "$180 / 8 h" },
+        { v: "Mula · Side by Side 1000cc (4 pax)", p: "$200 / 8 h" },
+        { v: "ATV Yamaha 450cc", p: "$80 / 8 h" },
+        { v: "ATV Honda 420cc", p: "$70 / 8 h" },
+        { v: "ATV Kymco 300cc", p: "$60 / 8 h" }
+      ]
+    },
+    paradas: [
+      { rol: "inicio", nombre: "Santa Teresa", texto: "La salida: retirás el ATV o la mula en Xtremecenter, en Santa Teresa.", en: { nombre: "Santa Teresa", texto: "The start: pick up your ATV or mule at Xtremecenter, in Santa Teresa." } },
+      { lugar: "playa-suecos" },
+      { lugar: "cementerio-cabuya", condicional: "marea" },
+      { lugar: "playa-manchas", condicional: "marea" },
+      { lugar: "catarata-montezuma" },
+      { rol: "comida", lugar: "las-delicias-cafe" },
+      { rol: "meta", nombre: "Santa Teresa", texto: "La vuelta: de regreso a Santa Teresa, a devolver el ATV o la mula.", en: { nombre: "Santa Teresa", texto: "The way back: back to Santa Teresa to drop off the ATV or mule." } }
+    ],
+    notas: [
+      "El vehículo se alquila por 8 h aunque la vuelta dure 4 a 5 h.",
+      "Varias paradas dependen de la marea: mirá el pronóstico antes de salir.",
+      "Llevá protector solar y agua; en el ATV el sol pega fuerte."
+    ],
+    en: {
+      nombre: "ATV or Mule: Santa Teresa, Cabuya and Montezuma",
+      entrada: "A ride by ATV (quad) or mule along the south coast: from Santa Teresa to Cabuya and Montezuma, with beaches, the cemetery over the sea, a waterfall and food. It takes about 4 to 5 hours.",
+      camino: "4 to 5 h",
+      notas: [
+        "The vehicle is rented for 8 h even though the ride takes 4 to 5 h.",
+        "Several stops depend on the tide: check the forecast before you set off.",
+        "Bring sunscreen and water; the sun is strong on the ATV."
+      ]
+    }
   }
 ];

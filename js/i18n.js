@@ -242,13 +242,19 @@ const TEXTOS = {
                      ({ n, pp, d, desde, gustos, nota }) => `Hi Juan 👋 I saw the itinerary laboratory on Hey You ST. We are ${n}${pp ? `, we have about $${pp} per person` : ""} and we're here for ${d} ${d === 1 ? "day" : "days"}${desde ? ` from ${desde}` : ""}.` +
                        (gustos.length ? `\nWe like: ${gustos.join(", ")}.` : "") + (nota ? `\n${nota}` : "") + "\nCould you put together a plan for us?"],
 
-  // ---- Caminatas / días gratis (reseña paso a paso de una ruta) ----
-  caminatasBoton:   ["Día gratis", "Free day"],
-  caminatasTitulo:  ["Caminatas gratis", "Free walks"],
-  caminatasIntro:   ["Planes de un día sin pagar entrada, contados paso a paso por un local.",
-                     "Full-day plans with no entrance fee, told step by step by a local."],
+  // ---- Rutas del día (reseña paso a paso: caminatas gratis y paseos en ATV/mula) ----
+  caminatasBoton:   ["Rutas", "Routes"],
+  caminatasTitulo:  ["Rutas del día", "Day routes"],
+  caminatasIntro:   ["Planes de un día contados paso a paso por un local: a pie y gratis, o en ATV o mula.",
+                     "Full-day plans told step by step by a local: free and on foot, or by ATV or mule."],
   rutaGratis:       ["Gratis", "Free"],
   rutaAPie:         ["A pie", "On foot"],
+  rutaMula:         ["Mula", "Mule"],
+  rutaConOperador:  [op => `Con ${op}`, op => `With ${op}`],
+  rutaAlquiler:     ["Alquiler del vehículo (Xtremecenter)", "Vehicle rental (Xtremecenter)"],
+  rutaRequisitos:   ["Requisitos: licencia de conducir y depósito de garantía.",
+                     "Requirements: driver's license and security deposit."],
+  rutaSegunMarea:   ["Según la marea", "Tide permitting"],
   rutaVerPasos:     ["Ver la ruta paso a paso", "See the route step by step"],
   rutaOcultar:      ["Ocultar la ruta", "Hide the route"],
   rutaSoloEnMapa:   ["En el mapa quedan solo las paradas de esta ruta.",

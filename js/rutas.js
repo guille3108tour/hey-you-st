@@ -101,11 +101,28 @@ export function abrirCaminatas() {
   if (anchoMovil.matches) ponerAltura("alta");
 }
 
+// El medio de la ruta: a pie (gratis) o en ATV / mula (pagada).
+function modoLabel(modo) {
+  if (modo === "atv") return "ATV";
+  if (modo === "mula") return txt("rutaMula");
+  if (modo === "atv-mula") return `ATV · ${txt("rutaMula")}`;
+  return txt("rutaAPie");
+}
+
+// Las "pastillas" de una ruta: primero si es gratis o con operador, luego el medio y el tiempo.
+function htmlChipsRuta(rutaOriginal, r) {
+  const primero = rutaOriginal.pago
+    ? `<span class="caminata-chip caminata-chip-pago">${esc(txt("rutaConOperador", rutaOriginal.pago.operador))}</span>`
+    : `<span class="caminata-chip caminata-chip-gratis">${esc(txt("rutaGratis"))}</span>`;
+  const resto = [modoLabel(rutaOriginal.modo), r.camino].filter(Boolean)
+    .map(m => `<span class="caminata-chip">${esc(m)}</span>`).join("");
+  return primero + resto;
+}
+
 // Tarjeta de una ruta: cabecera siempre visible + reseña plegable (data/rutas.js).
 function htmlTarjetaRuta(rutaOriginal) {
   const r = traducido(rutaOriginal);
-  const meta = [txt("rutaGratis"), txt("rutaAPie"), r.camino].filter(Boolean)
-    .map(m => `<span class="caminata-chip">${esc(m)}</span>`).join("");
+  const meta = htmlChipsRuta(rutaOriginal, r);
   return `
     <article class="caminata" data-ruta="${esc(r.id)}">
       <button type="button" class="caminata-cab" data-ruta-toggle="${esc(r.id)}" aria-expanded="false">
@@ -128,16 +145,23 @@ function htmlResena(rutaOriginal) {
 
   const pasos = rutaOriginal.paradas.map((paradaOriginal, i) => {
     const p = traducido(paradaOriginal);
+    // Si la parada es un punto de la base, su nombre y su texto salen de la ficha del punto
+    // (no se repiten en la ruta); la parada puede igual traer su propio texto para sobreescribir.
+    const feat = paradaOriginal.lugar && PUNTOS_POR_ID.get(paradaOriginal.lugar);
+    const ficha = feat ? traducido(feat.properties) : {};
+    const nombre = p.nombre || ficha.nombre || "";
+    const texto = p.texto || ficha.entrada || ficha.descripcion || "";
     const coords = coordsDeParada(paradaOriginal);
     const verMapa = coords
       ? `<button type="button" class="parada-mapa" data-parada-coords="${coords.join(",")}">${esc(txt("rutaVerEnMapa"))}</button>`
       : "";
-    // 360° del punto: aparece solo si la parada es un punto de la guía con foto 360° (las fotos
-    // se agregan al punto en data/points.js; sin foto, no sale el botón).
-    const punto360 = paradaOriginal.lugar && PUNTOS_POR_ID.get(paradaOriginal.lugar);
-    const ver360 = punto360?.properties.foto360
+    // 360° del punto: aparece solo si el punto tiene foto 360° (se agrega en data/points.js).
+    const ver360 = feat?.properties.foto360
       ? `<button type="button" class="parada-360" data-parada-360="${esc(paradaOriginal.lugar)}">${esc(txt("rutaVer360"))}</button>`
       : "";
+    // Paradas que dependen de la marea (ej. cementerio de Cabuya, Playa Manchas)
+    const cond = paradaOriginal.condicional === "marea"
+      ? ` <span class="parada-cond">🌊 ${esc(txt("rutaSegunMarea"))}</span>` : "";
     // Todas las paradas van numeradas; inicio/meta/comida suman su insignia de texto.
     const rol = paradaOriginal.rol;
     const BADGE = { inicio: "rutaInicio", meta: "rutaMeta", comida: "rutaComida" };
@@ -148,8 +172,8 @@ function htmlResena(rutaOriginal) {
         <span class="parada-num">${marca}</span>
         <div class="parada-cuerpo">
           ${badge}
-          <h4 class="parada-nombre">${esc(p.nombre)}${p.min ? ` <span class="parada-min">· ${esc(p.min)}</span>` : ""}</h4>
-          <p class="parada-texto">${esc(p.texto)}</p>
+          <h4 class="parada-nombre">${esc(nombre)}${p.min ? ` <span class="parada-min">· ${esc(p.min)}</span>` : ""}${cond}</h4>
+          <p class="parada-texto">${esc(texto)}</p>
           <div class="parada-acciones">${verMapa}${ver360}</div>
         </div>
       </li>`;
@@ -157,9 +181,19 @@ function htmlResena(rutaOriginal) {
 
   const notas = (r.notas || []).map(n => `<li>${esc(n)}</li>`).join("");
 
+  // Bloque de alquiler (rutas pagadas: ATV/mula en Xtremecenter)
+  const pago = rutaOriginal.pago;
+  const bloquePago = pago ? `
+    <div class="caminata-pago">
+      <p class="caminata-pago-t">🏍️ ${esc(txt("rutaAlquiler"))}</p>
+      <ul>${pago.opciones.map(o => `<li><span>${esc(o.v)}</span><span class="pago-precio">${esc(o.p)}</span></li>`).join("")}</ul>
+      <p class="caminata-pago-nota">${esc(txt("rutaRequisitos"))}</p>
+    </div>` : "";
+
   return `
     <p class="caminata-aviso">🗺️ ${esc(txt("rutaSoloEnMapa"))}</p>
     ${marea ? `<p class="caminata-marea">🌊 ${esc(marea.texto)}</p>` : ""}
+    ${bloquePago}
     <ol class="paradas">${pasos}</ol>
     ${notas ? `<div class="caminata-notas"><h5>${esc(txt("rutaNotas"))}</h5><ul>${notas}</ul></div>` : ""}`;
 }
