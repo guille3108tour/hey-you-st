@@ -5,7 +5,7 @@
 import { traducido } from "./i18n.js";
 import { CATEGORIAS, crearIcono, LUGARES } from "./config.js";
 import { map } from "./mapa.js";
-import { sincronizarCapas, categoriasActivas } from "./filtros.js";
+import { sincronizarCapas, categoriasActivas, rutaActiva } from "./filtros.js";
 import { abrirLugar } from "./inmersivo.js";
 
 // ---------- Marcadores ----------
@@ -53,6 +53,19 @@ export function renderMarcadores() {
   let visibles = 0;
   for (const m of marcadores) {
     const cats = m.feature.properties.categorias;
+    // Modo ruta: el mapa muestra SOLO las paradas de la caminata desplegada, sin importar
+    // las categorías ni el lugar que estaba marcado (pedido de Juan, 8-nov).
+    if (rutaActiva) {
+      if (!rutaActiva.has(m.feature.properties.id)) {
+        m.marker.remove();
+        m.enMapa = false;
+        continue;
+      }
+      pintarMarcador(m.el, cats[0]);
+      if (!m.enMapa) { m.marker.addTo(map); m.enMapa = true; nuevos.push(m); }
+      visibles++;
+      continue;
+    }
     // El ícono muestra la PRIMERA categoría buscada que el lugar cumple (un lugar con surf
     // y niños se ve como "niños" cuando el visitante está buscando lugares para niños).
     const coincide = cats.find(c => categoriasActivas.has(c));

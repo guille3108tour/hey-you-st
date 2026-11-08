@@ -77,6 +77,16 @@ const RUTAS = [
         min: "20 min",
         texto: "De vuelta al pueblo.",
         en: { nombre: "Downtown Montezuma", texto: "Back to town." }
+      },
+      {
+        // El lugar para comer del cierre (Juan, 8-nov). Restaurantes es una categoría en pausa
+        // en el mapa, así que esta parada no tiene ficha propia: lleva sus coordenadas y sale
+        // como marcador de la ruta.
+        nombre: "Las Delicias Café, Montezuma",
+        coords: [-85.068005, 9.654672],
+        min: "en el pueblo",
+        texto: "Para cerrar el día, de vuelta en Montezuma: caé a Las Delicias Café a comer algo rico después de la caminata.",
+        en: { nombre: "Las Delicias Café, Montezuma", min: "in town", texto: "To close out the day, back in Montezuma: stop by Las Delicias Café for something good to eat after the walk." }
       }
     ],
     notas: [

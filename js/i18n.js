@@ -241,6 +241,21 @@ const TEXTOS = {
                        (gustos.length ? `\nNos gusta: ${gustos.join(", ")}.` : "") + (nota ? `\n${nota}` : "") + "\n¿Nos armás una propuesta?",
                      ({ n, pp, d, desde, gustos, nota }) => `Hi Juan 👋 I saw the itinerary laboratory on Hey You ST. We are ${n}${pp ? `, we have about $${pp} per person` : ""} and we're here for ${d} ${d === 1 ? "day" : "days"}${desde ? ` from ${desde}` : ""}.` +
                        (gustos.length ? `\nWe like: ${gustos.join(", ")}.` : "") + (nota ? `\n${nota}` : "") + "\nCould you put together a plan for us?"],
+
+  // ---- Caminatas / días gratis (reseña paso a paso de una ruta) ----
+  caminatasBoton:   ["Día gratis", "Free day"],
+  caminatasTitulo:  ["Caminatas gratis", "Free walks"],
+  caminatasIntro:   ["Planes de un día sin pagar entrada, contados paso a paso por un local.",
+                     "Full-day plans with no entrance fee, told step by step by a local."],
+  rutaGratis:       ["Gratis", "Free"],
+  rutaAPie:         ["A pie", "On foot"],
+  rutaVerPasos:     ["Ver la ruta paso a paso", "See the route step by step"],
+  rutaOcultar:      ["Ocultar la ruta", "Hide the route"],
+  rutaSoloEnMapa:   ["En el mapa quedan solo las paradas de esta ruta.",
+                     "The map now shows only this route's stops."],
+  rutaParada:       [n => `Parada ${n}`, n => `Stop ${n}`],
+  rutaVerEnMapa:    ["Ver en el mapa", "Show on the map"],
+  rutaNotas:        ["Antes de salir", "Before you go"],
 };
 
 export function txt(clave, ...datos) {

@@ -8,7 +8,7 @@ import { esc } from "./util.js";
 import { CATEGORIAS, rotulo, crearIcono, anchoMovil, sinMovimiento, TILES_SATELITE, TILES_TERRENO } from "./config.js";
 import { llenarMarea, llenarIdealHoy } from "./mareas.js";
 import { map, ondasEn, setEncuadreLibre } from "./mapa.js";
-import { ponerCategoria, categoriasActivas } from "./filtros.js";
+import { ponerCategoria, categoriasActivas, limpiarRuta } from "./filtros.js";
 import { renderMarcadores, marcadores } from "./marcadores.js";
 import { abrirInmersivo, congelarFoto, salirDeLaFoto, inmersivo } from "./inmersivo.js";
 import { ponerAltura, soltarAltura, asaNombre } from "./hoja.js";
@@ -372,7 +372,8 @@ export function abrirPanel(feature, el, opciones = {}) {
 export function cerrarPanel() {
   const elCerrado = lugarAbierto?.el;
   panel.hidden = true;
-  panel.classList.remove("sobre-360");
+  panel.classList.remove("sobre-360", "panel-ruta");
+  limpiarRuta(); // si venía de una caminata desplegada, el mapa vuelve a su estado normal
   lugarAbierto = null;
   soltarAltura();
   desmontarVista3D();

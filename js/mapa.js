@@ -38,6 +38,23 @@ function encuadrarLugares() {
   map.fitBounds(LIMITES_LUGARES, { padding: margenEncuadre(), maxZoom: 13, duration: 0 });
 }
 
+// Encuadra el mapa sobre un puñado de paradas (una caminata desplegada). Con una sola parada
+// hace un acercamiento suave; con varias, las enmarca a todas. Deja de ser encuadre "libre":
+// la vista pasa a ser de la ruta hasta que la persona la mueva o cierre la caminata.
+export function encuadrarPuntos(coords) {
+  if (!coords?.length) return;
+  encuadreLibre = false;
+  if (coords.length === 1) {
+    map.flyTo({ center: coords[0], zoom: Math.max(map.getZoom(), 14), duration: 800 });
+    return;
+  }
+  const limites = coords.reduce(
+    (b, c) => b.extend(c),
+    new maplibregl.LngLatBounds(coords[0], coords[0])
+  );
+  map.fitBounds(limites, { padding: margenEncuadre(), maxZoom: 14, duration: 800 });
+}
+
 // MapLibre no detecta solo los cambios de tamaño de su contenedor (ej: la ventana
 // cambia de tamaño, el celular rota, o el layout termina de acomodarse después de
 // cargar) — sin esto el mapa se queda pegado en el tamaño que tenía al crearse.

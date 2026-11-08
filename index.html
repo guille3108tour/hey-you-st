@@ -9,7 +9,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="img/marca/hey-you-st-512.png">
   <link rel="apple-touch-icon" href="img/marca/hey-you-st-180.png">
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css">
-  <link rel="stylesheet" href="css/style.css?v=esy2h3nq">
+  <link rel="stylesheet" href="css/style.css?v=8nov26a1">
 </head>
 <body>
 
@@ -36,6 +36,9 @@
       <!-- Propuesta gratis (Juan, 24-oct): abre el formulario de js/app.js → "Propuesta gratis".
            En el celular baja a una pastilla debajo de la barra (css/style.css). -->
       <button type="button" id="btn-propuesta" class="ctrl ctrl-propuesta" data-t="propuestaBoton">🧪 Itinerary laboratory</button>
+      <!-- Caminatas gratis (Juan, 8-nov): un "día gratis" contado paso a paso; al desplegar una
+           ruta, el mapa muestra solo sus paradas (js/rutas.js). -->
+      <button type="button" id="btn-caminatas" class="ctrl ctrl-caminatas"><span class="ctrl-emoji" aria-hidden="true">🥾</span><span class="ctrl-txt" data-t="caminatasBoton">Free day</span></button>
     </div>
   </header>
 
@@ -84,13 +87,13 @@
   <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
   <!-- Curvas de nivel generadas en el navegador a partir de los tiles de altura -->
   <script src="https://unpkg.com/maplibre-contour@0.1.1/dist/index.min.js"></script>
-  <script src="data/points.js?v=esy2h3nq"></script>
-  <script src="data/tours.js?v=esy2h3nq"></script>
+  <script src="data/points.js?v=8nov26a1"></script>
+  <script src="data/tours.js?v=8nov26a1"></script>
   <!-- Los tours del Itinerary laboratory (scripts/exportar-laboratorio.js) -->
-  <script src="data/laboratorio.js?v=esy2h3nq"></script>
+  <script src="data/laboratorio.js?v=8nov26a1"></script>
   <!-- Las rutas a pie para los días libres del laboratorio -->
-  <script src="data/rutas.js?v=esy2h3nq"></script>
-  <script src="js/contacto.js?v=esy2h3nq"></script>
-  <script type="module" src="js/app.js?v=esy2h3nq"></script>
+  <script src="data/rutas.js?v=8nov26a1"></script>
+  <script src="js/contacto.js?v=8nov26a1"></script>
+  <script type="module" src="js/app.js?v=8nov26a1"></script>
 </body>
 </html>

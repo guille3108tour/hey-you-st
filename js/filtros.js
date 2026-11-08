@@ -14,6 +14,30 @@ export const listaCapasEl = document.getElementById("capas-lista");
 const conteoEl = document.getElementById("capas-conteo");
 export const categoriasActivas = new Set();
 
+// ---------- Modo ruta (caminatas gratis) ----------
+// Cuando una caminata se despliega, el mapa deja de mostrar categorías y muestra SOLO las
+// paradas de esa ruta (un Set de ids de data/points.js). renderMarcadores() lo respeta.
+// Es un binding vivo: marcadores.js lee el valor actualizado. Elegir una categoría sale del modo.
+export let rutaActiva = null;
+
+// Quien quiera limpiar algo al salir del modo ruta (ej: los marcadores temporales de las
+// paradas sin ficha, en js/rutas.js) se anota acá. Evita que filtros.js conozca esos módulos.
+const alSalirDeRuta = [];
+export function onSalirDeRuta(fn) { alSalirDeRuta.push(fn); }
+
+export function activarRuta(ids) {
+  rutaActiva = new Set(ids);
+  categoriasActivas.clear();
+  renderMarcadores();
+}
+
+export function limpiarRuta() {
+  alSalirDeRuta.forEach(fn => fn());
+  if (!rutaActiva) return;
+  rutaActiva = null;
+  renderMarcadores();
+}
+
 function crearFilaCapa(clave, cat, extraClase = "") {
   const b = document.createElement("button");
   b.type = "button";
@@ -39,6 +63,7 @@ export function nombrarFilaCapa(b, cat) {
 // Deja prendida solo esa categoría, sin alternar: la usa la ficha cuando la persona cambia de
 // sección, para que al salir el mapa muestre los lugares de la sección que dejó (Juan, 4-oct)
 export function ponerCategoria(clave) {
+  rutaActiva = null; // elegir una sección de un lugar sale del modo ruta
   if (categoriasActivas.size === 1 && categoriasActivas.has(clave)) return;
   categoriasActivas.clear();
   categoriasActivas.add(clave);
@@ -48,6 +73,7 @@ export function ponerCategoria(clave) {
 // Regla de Juan: una categoría a la vez. Prender una apaga la que estaba;
 // tocar la que ya está prendida la apaga y el mapa vuelve a "Todas".
 function alternarCategoria(clave) {
+  rutaActiva = null; // tocar una categoría sale del modo ruta y vuelve al mapa normal
   const yaEstaba = categoriasActivas.has(clave);
   categoriasActivas.clear();
   if (clave !== "todos" && !yaEstaba) categoriasActivas.add(clave);

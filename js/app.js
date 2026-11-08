@@ -14,6 +14,7 @@ import { renderMarcadores, nombrarMarcador, marcadores } from "./marcadores.js";
 import { abrirPanel, marcarLugar, lugarAbierto, panel } from "./panel.js";
 import { inmersivo, sincronizarGiro } from "./inmersivo.js";
 import { alturaActual, panelAsa } from "./hoja.js";
+import "./rutas.js"; // caminatas gratis: botón de la barra + reseña paso a paso
 
 // Primer render: con el mapa y los marcadores ya creados (en sus módulos), se muestran
 // según la categoría activa (al abrir, ninguna). Antes corría al final de la sección de
